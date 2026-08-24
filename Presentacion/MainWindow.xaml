@@ -1,0 +1,28 @@
+﻿<Window x:Class="TP_ControlVehicular.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TP_ControlVehicular"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid x:Name="mainWindows">
+        <DockPanel LastChildFill="True">
+            <Grid DockPanel.Dock="Top">
+                <Menu>
+                    <MenuItem Header="Cliente" Click="MenuItem_Click_Cliente"/>
+                    <MenuItem Header="Vehiculo" Click="MenuItem_Click_Vehiculo"/>
+                    <MenuItem Header="Modelo" Click="MenuItem_Click_Modelo"/>
+                    <MenuItem Header="Marca" Click="MenuItem_Click_Marca"/>
+                </Menu>
+            </Grid>
+            <Grid x:Name="grdContenido">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="141*"/>
+                    <ColumnDefinition Width="659*"/>
+                </Grid.ColumnDefinitions>
+            </Grid>
+        </DockPanel>
+
+    </Grid>
+</Window>

@@ -1,0 +1,67 @@
+﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Usuario.CtlUsuario"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TP_ControlVehicular.Presentacion.Usuario"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 1. Cabecera -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Control de Usuarios" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Administración del personal del sistema" FontSize="12" Foreground="Gray"/>
+        </StackPanel>
+
+        <!-- 2. Barra de herramientas superior -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0" Height="25" VerticalContentAlignment="Center"
+                  Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <ComboBox Grid.Column="1" Margin="10,0,0,0" Width="150" Height="25" SelectedIndex="0">
+                <ComboBoxItem Content="Todos los Roles"/>
+                <ComboBoxItem Content="Administrador"/>
+                <ComboBoxItem Content="Supervisor"/>
+                <ComboBoxItem Content="Operador"/>
+            </ComboBox>
+
+            <Button Grid.Column="2" Content="Nuevo Registro" Width="110" Height="25"
+                 HorizontalAlignment="Right" Click="BtnNuevo_Click"/>
+        </Grid>
+
+        <!-- 3. Tabla Pura (Sin DataTemplates que rompan el diseñador) -->
+        <DataGrid Grid.Row="2" 
+               x:Name="dgUsuarios"
+               ItemsSource="{Binding ListadoUsuariosFiltered}" 
+               AutoGenerateColumns="False"
+               IsReadOnly="True"
+               SelectionMode="Single">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding IdUsuario}" Width="70"/>
+                <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
+                <DataGridTextColumn Header="Rol" Binding="{Binding RolNombre}" Width="150"/>
+                <DataGridTextColumn Header="Estado" Binding="{Binding EstadoText}" Width="120"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 4. Barra de Acciones Inferior (¡Editar devuelto a su lugar!) -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Editar Seleccionado" Width="140" Height="28" Margin="0,0,10,0" Click="BtnEditar_Click"/>
+            <Button Content="Eliminar Seleccionado" Width="140" Height="28" Click="BtnBorrar_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

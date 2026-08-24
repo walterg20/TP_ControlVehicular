@@ -1,0 +1,100 @@
+﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Cliente.CtlCliente"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TP_ControlVehicular.Presentacion.Cliente"
+              mc:Ignorable="d" 
+              d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <Style x:Key="WatermarkTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock x:Name="Watermark" Text="{TemplateBinding Tag}" Foreground="Gray" Margin="4,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="Text" Value="{x:Null}">
+                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Watermark" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Cabecera -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Control de Clientes" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Administración de clientes del sistema" FontSize="12" Foreground="Gray"/>
+        </StackPanel>
+
+        <!-- Barra superior -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0" Height="25" VerticalContentAlignment="Center"
+                     Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+                     Style="{StaticResource WatermarkTextBoxStyle}"
+                     Tag="Buscar cliente..." />
+
+            <Button Grid.Column="2" Content="Nuevo Cliente" Width="120" Height="25"
+                    HorizontalAlignment="Right" Click="BtnNuevo_Click"/>
+        </Grid>
+
+        <!-- Tabla de clientes -->
+        <DataGrid Grid.Row="2"
+                  x:Name="dgClientes"
+                  ItemsSource="{Binding ListadoClientesFiltered}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single">
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding IdCliente}" Width="70"/>
+                <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="120"/>
+                <DataGridTextColumn Header="Apellido" Binding="{Binding Apellido}" Width="120"/>
+                <DataGridTextColumn Header="DNI" Binding="{Binding Dni}" Width="100"/>
+                <DataGridTextColumn Header="Fecha Nac." Binding="{Binding FechaNac, StringFormat=d}" Width="100"/>
+                <DataGridTextColumn Header="Dirección" Binding="{Binding Direccion}" Width="150"/>
+                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="150"/>
+                <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="100"/>
+                <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Barra inferior -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Editar Seleccionado" Width="140" Height="28" Margin="0,0,10,0" Click="BtnEditar_Click"/>
+            <Button Content="Eliminar Seleccionado" Width="140" Height="28" Click="BtnBorrar_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
