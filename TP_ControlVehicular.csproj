@@ -12,9 +12,6 @@
     <Folder Include="Negocio\" />
     <Folder Include="Datos\" />
     <Folder Include="Entidad\" />
-    <Folder Include="Presentacion\Modelo\" />
-    <Folder Include="Presentacion\Marca\" />
-    <Folder Include="Presentacion\Vehiculo\" />
   </ItemGroup>
 
 </Project>
