@@ -10,19 +10,20 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TP_ControlVehicular.Presentacion.Cliente;
 
-namespace TP_ControlVehicular.Presentacion.Cliente
+namespace TP_ControlVehicular.Presentacion.Modelo
 {
     /// <summary>
-    /// Lógica de interacción para CtlCliente.xaml
+    /// Lógica de interacción para CtlModelo.xaml
     /// </summary>
-    public partial class CtlCliente : UserControl
+    public partial class CtlModelo : UserControl
     {
-        public CtlCliente()
+        public CtlModelo()
         {
             InitializeComponent();
+
         }
-        // Evento para simular la acción de "Editar" haciendo doble clic en la fila
         private void DgUsuarios_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             /*var usuarioSeleccionado; //= dgUsuarios.SelectedItem as UsuarioModel;
@@ -36,7 +37,7 @@ namespace TP_ControlVehicular.Presentacion.Cliente
 
         private void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Abrir formulario de creación vacío.", "Sistema MDI");
+            MessageBox.Show("Abrir formulario de creación vacío.", "Control Vehicular");
             // 1. Creamos la ventana modal
             FrmCliente modal = new FrmCliente();
 
@@ -56,35 +57,35 @@ namespace TP_ControlVehicular.Presentacion.Cliente
         private void BtnBorrar_Click(object sender, RoutedEventArgs e)
         {
             // Captura la fila que el usuario dejó marcada con un clic común
-           // var usuarioSeleccionado = new(); //dgUsuarios.SelectedItem as UsuarioModel;
+            // var usuarioSeleccionado = new(); //dgUsuarios.SelectedItem as UsuarioModel;
 
-           /* if (usuarioSeleccionado != null)
-            {
-                var result = MessageBox.Show($"¿Seguro que querés eliminar a {usuarioSeleccionado.Nombre}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (result == MessageBoxResult.Yes)
-                {
-                    //Usuarios.Remove(usuarioSeleccionado);
-                }
-            }
-            else
-            {
-                MessageBox.Show("Por favor, selecciona primero un usuario de la lista haciendo un clic sobre él.", "Aviso");
-            }*/
+            /* if (usuarioSeleccionado != null)
+             {
+                 var result = MessageBox.Show($"¿Seguro que querés eliminar a {usuarioSeleccionado.Nombre}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                 if (result == MessageBoxResult.Yes)
+                 {
+                     //Usuarios.Remove(usuarioSeleccionado);
+                 }
+             }
+             else
+             {
+                 MessageBox.Show("Por favor, selecciona primero un usuario de la lista haciendo un clic sobre él.", "Aviso");
+             }*/
         }
         private void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
             // Captura la fila que el usuario seleccionó con un clic común en la grilla
-           /* var usuarioSeleccionado = dgUsuarios.SelectedItem as UsuarioModel;
+            /* var usuarioSeleccionado = dgUsuarios.SelectedItem as UsuarioModel;
 
-            if (usuarioSeleccionado != null)
-            {
-                MessageBox.Show($"Abriendo formulario de edición para: {usuarioSeleccionado.Nombre}", "Sistema MDI");
-                // Acá ponés la lógica para pasar 'usuarioSeleccionado' a tu pantalla de carga
-            }
-            else
-            {
-                MessageBox.Show("Por favor, selecciona un usuario de la lista antes de editar.", "Aviso");
-            }*/
+             if (usuarioSeleccionado != null)
+             {
+                 MessageBox.Show($"Abriendo formulario de edición para: {usuarioSeleccionado.Nombre}", "Sistema MDI");
+                 // Acá ponés la lógica para pasar 'usuarioSeleccionado' a tu pantalla de carga
+             }
+             else
+             {
+                 MessageBox.Show("Por favor, selecciona un usuario de la lista antes de editar.", "Aviso");
+             }*/
         }
     }
 }

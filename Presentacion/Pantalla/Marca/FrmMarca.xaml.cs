@@ -1,33 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+﻿using System.Windows;
 
-namespace TP_ControlVehicular.Presentacion.Cliente
+
+namespace TP_ControlVehicular.Presentacion.Marca
 {
     /// <summary>
-    /// Lógica de interacción para FrmCliente.xaml
+    /// Lógica de interacción para FrmMarca.xaml
     /// </summary>
-    public partial class FrmCliente : Window
+    public partial class FrmMarca : Window
     {
-        //private UsuarioModel _usuarioEdicion;
-        private bool _esModificacion = false;
+        private readonly bool _esModificacion;
 
-        // Constructor para Nuevo
-        public FrmCliente()
+        public FrmMarca()
         {
             InitializeComponent();
-            lblTituloFormulario.Text = "Registrar Nuevo Cliente";
+            lblTituloFormulario.Text = "Registrar Nuevo Marca";
             _esModificacion = false;
         }
-
         // Constructor para Editar
         /*public FrmCliente(UsuarioModel usuario)
         {
@@ -47,12 +35,12 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             // [AQUÍ HACES TU INSERCIÓN O UPDATE EN LA BASE DE DATOS]
             // Ejemplo: Instanciar tu BLL/DAL y enviar los parámetros.
 
-          /*  if (_esModificacion)
-            {
-                _usuarioEdicion.Nombre = txtNombre.Text;
-                _usuarioEdicion.Contrasena = txtContrasena.Password;
-                _usuarioEdicion.Estado = chkEstado.IsChecked ?? false;
-            }*/
+            /*  if (_esModificacion)
+              {
+                  _usuarioEdicion.Nombre = txtNombre.Text;
+                  _usuarioEdicion.Contrasena = txtContrasena.Password;
+                  _usuarioEdicion.Estado = chkEstado.IsChecked ?? false;
+              }*/
 
             // OPERACIÓN EXITOSA: Cambiar DialogResult a 'true' cierra la ventana automáticamente
             this.DialogResult = true;

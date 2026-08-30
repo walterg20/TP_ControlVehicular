@@ -5,24 +5,66 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TP_ControlVehicular"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Taller Pro" Height="450" Width="800" ShowInTaskbar="False"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize">
     <Grid x:Name="mainWindows">
-        <DockPanel LastChildFill="True">
-            <Grid DockPanel.Dock="Top">
-                <Menu>
-                    <MenuItem Header="Cliente" Click="MenuItem_Click_Cliente"/>
-                    <MenuItem Header="Vehiculo" Click="MenuItem_Click_Vehiculo"/>
-                    <MenuItem Header="Modelo" Click="MenuItem_Click_Modelo"/>
-                    <MenuItem Header="Marca" Click="MenuItem_Click_Marca"/>
-                </Menu>
-            </Grid>
-            <Grid x:Name="grdContenido">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="141*"/>
-                    <ColumnDefinition Width="659*"/>
-                </Grid.ColumnDefinitions>
-            </Grid>
-        </DockPanel>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <!-- Columna 0: Menú Lateral Completo -->
+            <ColumnDefinition Width="*"/>
+            <!-- Columna 1: Área de Trabajo -->
+        </Grid.ColumnDefinitions>
+
+        <!-- ==========================================
+             MENÚ LATERAL UNIFICADO (Ocupa todo el alto)
+             ========================================== -->
+        <Border Grid.Column="0" Background="#2C3E50">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="15">
+
+                    <!-- LOGO O TÍTULO DEL SOFTWARE -->
+                    <TextBlock Text="🛠️ TALLER PRO" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,10,0,25"/>
+
+                    <!-- SECCIÓN 1: OPERACIONES -->
+                    <TextBlock Text="OPERACIONES" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5"/>
+                    <Button Content="📋 Órdenes de Trabajo" Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="#2980B9" Foreground="White" BorderThickness="0" FontWeight="Bold"/>
+                    <Button Content="📦 Repuestos / Servicios" Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+
+                    <!-- ESPACIADOR -->
+                    <Separator Background="#34495E" Margin="0,15"/>
+
+                    <!-- SECCIÓN 2: CATÁLOGOS / ABMs (Tus opciones originales mudadas aquí) -->
+                    <TextBlock Text="ADMINISTRACIÓN" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5"/>
+
+                    <!-- Botón Cliente -->
+                    <Button x:Name="btnCliente" Content="👤 Clientes" Click="MenuItem_Click_Cliente" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+
+                    <!-- Botón Vehículo -->
+                    <!-- Aquí va el código del Icono (Elegir de la lista de abajo) -->
+                     <Button x:Name="btnVehiculo" Content="🚗 Vehículos" Click="MenuItem_Click_Vehiculo" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+
+                    <!-- Botón Modelo -->
+                    <Button x:Name="btnModelo" Content="🏷️ Modelos de Autos" Click="MenuItem_Click_Modelo" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+
+                    <!-- Botón Marca -->
+                    <Button x:Name="btnMarca" Content="🏢 Marcas" Click="MenuItem_Click_Marca" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <!-- ==========================================
+             ÁREA DE TRABAJO DINÁMICA (grdContenido)
+             ========================================== -->
+        <Grid x:Name="grdContenido" Grid.Column="1" Background="#F5F7FA" Margin="15">
+            <!-- Tus UserControls se seguirán inyectando aquí sin problemas -->
+        </Grid>
 
     </Grid>
 </Window>

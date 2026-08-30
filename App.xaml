@@ -1,8 +1,7 @@
 ﻿<Application x:Class="TP_ControlVehicular.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:TP_ControlVehicular"
-             StartupUri="Presentacion/MainWindow.xaml">
+             xmlns:local="clr-namespace:TP_ControlVehicular">
     <Application.Resources>
          
     </Application.Resources>

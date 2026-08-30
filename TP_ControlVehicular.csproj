@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migracion\" />
     <Folder Include="spec\" />
     <Folder Include="Presentacion\ViewModels\" />
     <Folder Include="Presentacion\Pantalla\" />

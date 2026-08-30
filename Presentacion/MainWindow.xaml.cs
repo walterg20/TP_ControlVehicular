@@ -55,7 +55,9 @@ namespace TP_ControlVehicular
             this.grdContenido.Children.Clear();
             // Asegurar que el control ocupe todas las columnas del grid
             Grid.SetColumn(userControl, 0);
-            Grid.SetColumnSpan(userControl, this.grdContenido.ColumnDefinitions.Count);
+            // ColumnSpan must be >= 1. Si no hay columnas definidas, usar 1.
+            var span = Math.Max(1, this.grdContenido.ColumnDefinitions.Count);
+            Grid.SetColumnSpan(userControl, span);
             this.grdContenido.Children.Add(userControl);
         }
     }
