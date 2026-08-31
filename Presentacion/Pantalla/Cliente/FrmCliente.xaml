@@ -6,6 +6,27 @@
         xmlns:local="clr-namespace:TP_ControlVehicular.Presentacion.Cliente"
         mc:Ignorable="d"
         Title="FrmCliente" Height="450" Width="800">
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="ToolTip" Value="{Binding (Validation.Errors)[0].ErrorContent, RelativeSource={RelativeSource Self}}" />
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="BorderBrush" Value="Red" />
+                    <Setter Property="BorderThickness" Value="1.5" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="DatePicker">
+            <Setter Property="ToolTip" Value="{Binding (Validation.Errors)[0].ErrorContent, RelativeSource={RelativeSource Self}}" />
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="BorderBrush" Value="Red" />
+                    <Setter Property="BorderThickness" Value="1.5" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -37,33 +58,41 @@
             </Grid.RowDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Nombre:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="0" Grid.Column="1" x:Name="txtNombre" Height="23"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Height="23"
+                     Text="{Binding Nombre, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Apellido:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="1" Grid.Column="1" x:Name="txtApellido" Height="23"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Height="23"
+                     Text="{Binding Apellido, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="DNI:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="2" Grid.Column="1" x:Name="txtDni" Height="23"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Height="23"
+                     Text="{Binding Dni, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Fecha Nac.:" VerticalAlignment="Center"/>
-            <DatePicker Grid.Row="3" Grid.Column="1" x:Name="dpFechaNac" Height="23"/>
+            <DatePicker Grid.Row="3" Grid.Column="1" Height="23"
+                        SelectedDate="{Binding FechaNacimiento, UpdateSourceTrigger=PropertyChanged}" />
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Dirección:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="4" Grid.Column="1" x:Name="txtDireccion" Height="23"/>
+            <TextBox Grid.Row="4" Grid.Column="1" Height="23"
+                     Text="{Binding Direccion, UpdateSourceTrigger=PropertyChanged}" />
 
             <TextBlock Grid.Row="5" Grid.Column="0" Text="Email:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="5" Grid.Column="1" x:Name="txtEmail" Height="23"/>
+            <TextBox Grid.Row="5" Grid.Column="1" Height="23"
+                     Text="{Binding Email, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" />
 
             <TextBlock Grid.Row="6" Grid.Column="0" Text="Teléfono:" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="6" Grid.Column="1" x:Name="txtTelefono" Height="23"/>
+            <TextBox Grid.Row="6" Grid.Column="1" Height="23"
+                     Text="{Binding Telefono, UpdateSourceTrigger=PropertyChanged}" />
 
             <TextBlock Grid.Row="7" Grid.Column="0" Text="Activo:" VerticalAlignment="Center"/>
-            <CheckBox Grid.Row="7" Grid.Column="1" x:Name="chkActivo" Content="Sí" VerticalAlignment="Center" IsChecked="True"/>
+            <CheckBox Grid.Row="7" Grid.Column="1" Content="Sí" VerticalAlignment="Center"
+                      IsChecked="{Binding Activo, Mode=TwoWay}" />
         </Grid>
 
         <!-- Botones -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Guardar" Width="80" Height="25" Margin="0,0,10,0" Click="BtnGuardar_Click"/>
+            <Button Content="Guardar" Width="80" Height="25" Margin="0,0,10,0" Command="{Binding RegistrarCommand}" IsDefault="True"/>
             <Button Content="Cancelar" Width="80" Height="25" Click="BtnCancelar_Click"/>
         </StackPanel>
     </Grid>

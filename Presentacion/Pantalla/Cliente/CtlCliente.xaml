@@ -66,6 +66,8 @@
                      Style="{StaticResource WatermarkTextBoxStyle}"
                      Tag="Buscar cliente..." />
 
+            <Button Grid.Column="1" Content="Buscar" Width="80" Height="25" Margin="10,0,0,0" Click="BtnBuscar_Click"/>
+
             <Button Grid.Column="2" Content="Nuevo Cliente" Width="120" Height="25"
                     HorizontalAlignment="Right" Click="BtnNuevo_Click"/>
         </Grid>
@@ -73,10 +75,10 @@
         <!-- Tabla de clientes -->
         <DataGrid Grid.Row="2"
                   x:Name="dgClientes"
-                  ItemsSource="{Binding ListadoClientesFiltered}"
+                  ItemsSource="{Binding Clientes}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
-                  SelectionMode="Single">
+                  SelectionMode="Single" SelectionChanged="dgClientes_SelectionChanged">
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding IdCliente}" Width="70"/>

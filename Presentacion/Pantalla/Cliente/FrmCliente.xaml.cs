@@ -1,5 +1,6 @@
 ﻿
 using System.Windows;
+using TP_ControlVehicular.Negocio.DTOs;
 
 namespace TP_ControlVehicular.Presentacion.Cliente
 {
@@ -8,7 +9,6 @@ namespace TP_ControlVehicular.Presentacion.Cliente
     /// </summary>
     public partial class FrmCliente : Window
     {
-        //private UsuarioModel _usuarioEdicion;
         private bool _esModificacion = false;
 
         // Constructor para Nuevo
@@ -17,6 +17,25 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             InitializeComponent();
             lblTituloFormulario.Text = "Registrar Nuevo Cliente";
             _esModificacion = false;
+            this.Title = "Registrar Nuevo Cliente";
+
+            // Obtener el ViewModel desde el contenedor DI y suscribirse al evento
+            try
+            {
+                if (App.ServiceProvider.GetService(typeof(Presentacion.ViewModels.ClienteViewModel)) is Presentacion.ViewModels.ClienteViewModel vm)
+                {
+                    DataContext = vm;
+                    vm.RegistrationCompleted += (s, ok) =>
+                    {
+                        // Cerrar la ventana en el hilo de la UI
+                        Dispatcher.Invoke(() => this.DialogResult = ok);
+                    };
+                }
+            }
+            catch
+            {
+                // Ignorar si DI no está disponible
+            }
         }
 
         // Constructor para Editar
@@ -33,20 +52,17 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             chkEstado.IsChecked = usuario.Estado;
         }*/
 
-        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
+        private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            // [AQUÍ HACES TU INSERCIÓN O UPDATE EN LA BASE DE DATOS]
-            // Ejemplo: Instanciar tu BLL/DAL y enviar los parámetros.
-
-          /*  if (_esModificacion)
+            if (DataContext is Presentacion.ViewModels.ClienteViewModel vm)
             {
-                _usuarioEdicion.Nombre = txtNombre.Text;
-                _usuarioEdicion.Contrasena = txtContrasena.Password;
-                _usuarioEdicion.Estado = chkEstado.IsChecked ?? false;
-            }*/
-
-            // OPERACIÓN EXITOSA: Cambiar DialogResult a 'true' cierra la ventana automáticamente
-            this.DialogResult = true;
+                var ok = await vm.RegistrarClienteAsync();
+                this.DialogResult = ok;
+            }
+            else
+            {
+                this.DialogResult = false;
+            }
         }
 
         private void BtnCancelar_Click(object sender, RoutedEventArgs e)

@@ -19,7 +19,15 @@ namespace TP_ControlVehicular.Negocio.Services
 
         public async Task<ClienteDto> HandleAsync(Cliente cliente)
         {
-            await _clienteRepository.AddAsync(cliente);
+            if (cliente.Id > 0)
+            {
+                await _clienteRepository.UpdateAsync(cliente);
+            }
+            else
+            {
+                await _clienteRepository.AddAsync(cliente);
+            }
+
             return _mapper.Map<ClienteDto>(cliente);
         }
     }
