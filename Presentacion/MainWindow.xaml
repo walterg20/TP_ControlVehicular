@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TP_ControlVehicular"
         mc:Ignorable="d"
-        Title="Taller Pro" Height="450" Width="800" ShowInTaskbar="False"
+        Title="Taller Pro" Height="504" Width="800" ShowInTaskbar="False"
         WindowState="Maximized"
         WindowStyle="None"
         ResizeMode="NoResize">
@@ -54,6 +54,17 @@
                     <!-- Botón Marca -->
                     <Button x:Name="btnMarca" Content="🏢 Marcas" Click="MenuItem_Click_Marca" 
                             Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+
+                    <!-- Botón Taller -->
+                    <Button x:Name="btnTaller" Content="🔧 Talleres" Click="MenuItem_Click_Taller" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                    <!-- ESPACIADOR -->
+                    <Separator Background="#34495E" Margin="0,15"/>
+                    
+                    <!-- Botón Salir -->
+                    <Button x:Name="btnSalir" Content="❌ Salir" Click="MenuItem_Click_Salir"
+        Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left"
+        Background="Transparent" Foreground="White" BorderThickness="0"/>
 
                 </StackPanel>
             </ScrollViewer>

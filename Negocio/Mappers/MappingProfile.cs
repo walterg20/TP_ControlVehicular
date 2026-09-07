@@ -29,6 +29,10 @@ namespace TP_ControlVehicular.Negocio.Mappers
 
             // Marca → MarcaDto
             CreateMap<Marca, MarcaDto>();
+
+            // Taller → TallerDto
+            CreateMap<Taller, TallerDto>()
+                .ForMember(dest => dest.IdTaller, opt => opt.MapFrom(src => src.Id));
         }
     }
 }

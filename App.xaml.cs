@@ -11,6 +11,7 @@ using TP_ControlVehicular.Negocio.Services;
 using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.Marca;
 using TP_ControlVehicular.Presentacion.Modelo;
+using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
@@ -48,11 +49,15 @@ namespace TP_ControlVehicular
             services.AddScoped<IVehiculoRepository, VehiculoRepository>();
             services.AddScoped<IModeloRepository, ModeloRepository>();
             services.AddScoped<IMarcaRepository, MarcaRepository>();
+            services.AddScoped<ITallerRepository, TallerRepository>();
 
             // Handlers
             services.AddScoped<RegistrarClienteHandler>();
             services.AddScoped<RegistrarVehiculoHandler>();
             services.AddScoped<ListarVehiculosPorClienteHandler>();
+            services.AddScoped<ListarTallerHandler>();
+            services.AddScoped<RegistrarTallerHandler>();
+            services.AddScoped<ModificarTallerHandler>();
 
 
             // ViewModels
@@ -60,12 +65,14 @@ namespace TP_ControlVehicular
             services.AddScoped<VehiculoViewModel>();
             services.AddScoped<ModeloViewModel>();
             services.AddScoped<MarcaViewModel>();
+            services.AddScoped<TallerViewModel>();
 
             // UserControls
             services.AddScoped<CtlCliente>();
             services.AddScoped<CtlVehiculo>();
             services.AddScoped<CtlModelo>();
             services.AddScoped<CtlMarca>();
+            services.AddScoped<CtlTaller>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();

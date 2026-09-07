@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TP_ControlVehicular.Presentacion.Cliente;
+using TP_ControlVehicular.Presentacion.Taller;
 
 namespace TP_ControlVehicular
 {
@@ -26,6 +27,10 @@ namespace TP_ControlVehicular
             //var ctlCliente = App.ServiceProvider.GetRequiredService<CtlCliente>();
             //ctlCliente.DataContext = App.ServiceProvider.GetRequiredService<ClienteViewModel>();
             AgregarPagina(new CtlCliente());
+        }
+        private void MenuItem_Click_Taller(object sender, RoutedEventArgs e)
+        {
+            AgregarPagina(new CtlTaller());
         }
         private void MenuItem_Click_Vehiculo(object sender, RoutedEventArgs e)
         {
@@ -48,6 +53,11 @@ namespace TP_ControlVehicular
             /*var ctlMarca = App.ServiceProvider.GetRequiredService<CtlMarca>();
             ctlMarca.DataContext = App.ServiceProvider.GetRequiredService<MarcaViewModel>();
             AgregarPagina(ctlMarca);*/
+        }
+
+        private void MenuItem_Click_Salir(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
         private void AgregarPagina(UserControl userControl)
         {
