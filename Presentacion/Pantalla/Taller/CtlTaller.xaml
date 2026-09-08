@@ -5,23 +5,71 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <UserControl.Resources>
+        <Style x:Key="WatermarkTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock x:Name="Watermark" Text="{TemplateBinding Tag}" Foreground="Gray" Margin="4,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="Text" Value="{x:Null}">
+                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Watermark" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Barra de herramientas -->
-        <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="0">
-            <TextBlock Text="Buscar:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-            <TextBox x:Name="txtBusqueda" Width="200" VerticalContentAlignment="Center" TextChanged="TxtBusqueda_TextChanged"/>
-            <Button Content="➕ Nuevo" Width="70" Height="25" Click="BtnNuevo_Click" Margin="5,0"/>
-            <Button Content="✏️ Modificar" Width="80" Height="25" Click="BtnModificar_Click" Margin="5,0"/>
-            <Button Content="🗑️ Baja" Width="60" Height="25" Click="BtnBaja_Click" Margin="5,0"/>
+        <!-- Cabecera -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Control de Taller" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Administración de taller del sistema" FontSize="12" Foreground="Gray"/>
         </StackPanel>
+        <!-- Barra superior -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0" Height="25" VerticalContentAlignment="Center"
+             Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+             Style="{StaticResource WatermarkTextBoxStyle}"
+             Tag="Buscar cliente..." />
+
+            <Button Grid.Column="1" Content="Buscar" Width="80" Height="25" Margin="10,0,0,0" Click="BtnBuscar_Click"/>
+
+            <Button Grid.Column="2" Content="Nuevo Taller" Width="120" Height="25"
+            HorizontalAlignment="Right" Click="BtnNuevo_Click"/>
+        </Grid>
 
         <!-- DataGrid de talleres -->
-        <DataGrid x:Name="dgTalleres" AutoGenerateColumns="False" Margin="5" Grid.Row="1">
+        <DataGrid x:Name="dgTalleres" AutoGenerateColumns="False" Margin="5" Grid.Row="2">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding IdTaller}" Width="80"/>
                 <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
@@ -30,5 +78,10 @@
                 <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="*"/>
             </DataGrid.Columns>
         </DataGrid>
+        <!-- Barra inferior -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Editar Seleccionado" Width="140" Height="28" Margin="0,0,10,0" Click="BtnEditar_Click"/>
+            <Button Content="Eliminar Seleccionado" Width="140" Height="28" Click="BtnBorrar_Click"/>
+        </StackPanel>
     </Grid>
 </UserControl>

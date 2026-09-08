@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Taller
@@ -24,7 +25,53 @@ namespace TP_ControlVehicular.Presentacion.Taller
                 // ignore DI resolution errors
             }
         }
+        private void BtnBuscar_Click(object sender, RoutedEventArgs e)
+        {
+          //  if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
+            //{
+                // Asignar ItemsSource al filtro calculado
+               // dgClientes.ItemsSource = vm.ListadoClientesFiltered;
+            //}
+        }
 
+        private async void BtnEditar_Click(object sender, RoutedEventArgs e)
+        {
+            //var selected = dgClientes.SelectedItem as TP_ControlVehicular.Negocio.DTOs.ClienteDto;
+            //if (selected is null)
+            //{
+            //    MessageBox.Show("Por favor, selecciona primero un cliente.", "Aviso");
+            //    return;
+            //}
+
+            ////if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
+            ////{
+            ////    // cargar datos en el mismo ViewModel usado por el formulario
+            ////    vm.IdCliente = selected.IdCliente;
+            ////    vm.Nombre = selected.Nombre;
+            ////    vm.Apellido = selected.Apellido;
+            ////    vm.Dni = selected.Dni;
+            ////    vm.FechaNacimiento = selected.FechaNac;
+            ////    vm.Direccion = selected.Direccion;
+            ////    vm.Email = selected.Email;
+            ////    vm.Telefono = selected.Telefono;
+            ////    vm.Activo = selected.Activo;
+
+            ////    // Abrir modal (usa el mismo VM desde DI en FrmCliente)
+            ////    var modal = new FrmCliente();
+            ////    modal.Owner = Window.GetWindow(this);
+            ////    var ok = modal.ShowDialog();
+            ////    if (ok == true)
+            ////    {
+            ////        await vm.LoadAsync();
+            ////    }
+            ////    else
+            ////    {
+            ////        // limpiar IdCliente si canceló
+            ////        vm.IdCliente = 0;
+            ////    }
+            //}
+
+        }
         // El filtro de búsqueda se aplica al listado calculado, sin recargar de la BD
         private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -63,6 +110,24 @@ namespace TP_ControlVehicular.Presentacion.Taller
                     await vm.LoadAsync();
                 }
             }
+        }
+        private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
+        {
+            // Eliminación lógica: marcar Activo = false
+            //var selected = dgClientes.SelectedItem as TP_ControlVehicular.Negocio.DTOs.ClienteDto;
+            //if (selected is null)
+            //{
+            //    MessageBox.Show("Por favor, selecciona primero un cliente.", "Aviso");
+            //    return;
+            //}
+
+            //var result = MessageBox.Show($"¿Seguro que querés marcar como inactivo al cliente {selected.Nombre} {selected.Apellido}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            //if (result != MessageBoxResult.Yes) return;
+
+            //if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
+            //{
+            //    await vm.DeleteClienteAsync(selected.IdCliente);
+            //}
         }
 
         // Baja lógica: marca Activo = false usando ModificarTallerHandler
