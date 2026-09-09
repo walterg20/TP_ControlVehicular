@@ -1,6 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Entidad;
-
 
 namespace TP_ControlVehicular.Datos.Data
 {
@@ -13,6 +12,11 @@ namespace TP_ControlVehicular.Datos.Data
         public DbSet<Modelo> Modelos { get; set; } = null!;
         public DbSet<Marca> Marcas { get; set; } = null!;
         public DbSet<Taller> Talleres { get; set; } = null!;
+        public DbSet<Rol> Roles { get; set; } = null!;
+        public DbSet<Usuario> Usuarios { get; set; } = null!;
+        public DbSet<Servicio> Servicios { get; set; } = null!;
+        public DbSet<RegistroServicio> RegistroServicios { get; set; } = null!;
+        public DbSet<DetalleServicio> DetalleServicios { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

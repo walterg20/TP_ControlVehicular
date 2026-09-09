@@ -1,45 +1,129 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Presentacion.Rol;
+using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Usuario
 {
-    /// <summary>
-    /// Lógica de interacción para FrmUsuario.xaml
-    /// </summary>
     public partial class FrmUsuario : Window
     {
+        private readonly bool _esModificacion;
+
         public FrmUsuario()
         {
             InitializeComponent();
+            _esModificacion = false;
+            this.Title = "Registrar Nuevo Usuario";
+            ConfigurarViewModel(null);
+            Loaded += (s, e) => txtNombre.Focus();
+            ConfigurarValidacionAlPerderFoco();
         }
-        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
+
+        public FrmUsuario(UsuarioDto usuario)
         {
-            // [AQUÍ HACES TU INSERCIÓN O UPDATE EN LA BASE DE DATOS]
-            // Ejemplo: Instanciar tu BLL/DAL y enviar los parámetros.
+            InitializeComponent();
+            _esModificacion = true;
+            this.Title = "Modificar Usuario";
+            ConfigurarViewModel(usuario);
+            Loaded += (s, e) => txtNombre.Focus();
+            ConfigurarValidacionAlPerderFoco();
+        }
 
-            /*  if (_esModificacion)
-              {
-                  _usuarioEdicion.Nombre = txtNombre.Text;
-                  _usuarioEdicion.Contrasena = txtContrasena.Password;
-                  _usuarioEdicion.Estado = chkEstado.IsChecked ?? false;
-              }*/
+        private void ConfigurarValidacionAlPerderFoco()
+        {
+            AddHandler(UIElement.LostFocusEvent, new RoutedEventHandler((s, e) =>
+            {
+                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vm)
+                {
+                    DependencyProperty? dp = null;
+                    if (element is TextBox)
+                        dp = TextBox.TextProperty;
+                    else if (element is ComboBox)
+                        dp = ComboBox.SelectedValueProperty;
+                    else if (element is DatePicker)
+                        dp = DatePicker.SelectedDateProperty;
 
-            // OPERACIÓN EXITOSA: Cambiar DialogResult a 'true' cierra la ventana automáticamente
-            this.DialogResult = true;
+                    if (dp != null)
+                    {
+                        var binding = BindingOperations.GetBinding(element, dp);
+                        var be = element.GetBindingExpression(dp);
+                        if (binding != null && binding.Path != null && !string.IsNullOrEmpty(binding.Path.Path))
+                        {
+                            be?.UpdateSource();
+                            vm.ValidateProperty(binding.Path.Path);
+                        }
+                    }
+                }
+            }));
+        }
+
+        private async void ConfigurarViewModel(UsuarioDto? usuario)
+        {
+            try
+            {
+                if (App.ServiceProvider.GetService(typeof(UsuarioViewModel)) is UsuarioViewModel vmUsuario)
+                {
+                    DataContext = vmUsuario;
+                    await vmUsuario.LoadAsync();
+
+                    if (_esModificacion && usuario != null)
+                    {
+                        vmUsuario.UsuarioSeleccionado = usuario;
+                        vmUsuario.Nombre = usuario.Nombre;
+                        vmUsuario.Contrasena = usuario.Contrasena;
+                        vmUsuario.IdRol = usuario.IdRol;
+                        vmUsuario.Estado = usuario.Estado;
+                    }
+                    else
+                    {
+                        vmUsuario.UsuarioSeleccionado = null;
+                        vmUsuario.Nombre = string.Empty;
+                        vmUsuario.Contrasena = string.Empty;
+                        vmUsuario.IdRol = 0;
+                        vmUsuario.Estado = true;
+                    }
+
+                    vmUsuario.ClearAllErrors();
+                }
+            }
+            catch
+            {
+                // Ignorar si DI no está disponible
+            }
+        }
+
+        private async void BtnAgregarRol_Click(object sender, RoutedEventArgs e)
+        {
+            var frmRol = new FrmRol();
+            frmRol.Owner = this;
+            var ok = frmRol.ShowDialog();
+            if (ok == true && DataContext is UsuarioViewModel vmUsuario)
+            {
+                await vmUsuario.CargarRolesAsync();
+            }
+        }
+
+        private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is UsuarioViewModel vmUsuario)
+            {
+                var ok = await vmUsuario.GuardarUsuarioAsync();
+                if (ok)
+                {
+                    this.DialogResult = true;
+                }
+            }
+            else
+            {
+                this.DialogResult = false;
+            }
         }
 
         private void BtnCancelar_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false; // Cierra sin hacer nada
+            this.DialogResult = false;
         }
     }
 }

@@ -13,11 +13,11 @@ namespace TP_ControlVehicular.Presentacion.Taller
             // Asignar ViewModel desde DI para que la vista tenga DataContext y podamos cargar datos
             try
             {
-                var vm = App.ServiceProvider.GetService(typeof(TallerViewModel)) as TallerViewModel;
-                if (vm is not null)
+                var vmTaller = App.ServiceProvider.GetService(typeof(TallerViewModel)) as TallerViewModel;
+                if (vmTaller is not null)
                 {
-                    this.DataContext = vm;
-                    this.Loaded += async (s, e) => { await vm.LoadAsync(); };
+                    this.DataContext = vmTaller;
+                    this.Loaded += async (s, e) => { await vmTaller.LoadAsync(); };
                 }
             }
             catch
@@ -75,9 +75,9 @@ namespace TP_ControlVehicular.Presentacion.Taller
         // El filtro de búsqueda se aplica al listado calculado, sin recargar de la BD
         private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (this.DataContext is TallerViewModel vm)
+            if (this.DataContext is TallerViewModel vmTaller)
             {
-                dgTalleres.ItemsSource = vm.ListadoTalleresFiltered;
+                dgTalleres.ItemsSource = vmTaller.ListadoTalleresFiltered;
             }
         }
 
@@ -86,28 +86,28 @@ namespace TP_ControlVehicular.Presentacion.Taller
             var frm = new FrmTaller();
             frm.Owner = Window.GetWindow(this);
             var ok = frm.ShowDialog();
-            if (ok == true && this.DataContext is TallerViewModel vm)
+            if (ok == true && this.DataContext is TallerViewModel vmTaller)
             {
-                await vm.LoadAsync();
+                await vmTaller.LoadAsync();
             }
         }
 
         private async void BtnModificar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is TallerViewModel vm)
+            if (this.DataContext is TallerViewModel vmTaller)
             {
-                if (vm.TallerSeleccionado == null)
+                if (vmTaller.TallerSeleccionado == null)
                 {
                     MessageBox.Show("Por favor, selecciona primero un taller.", "Aviso");
                     return;
                 }
 
-                var frm = new FrmTaller(vm.TallerSeleccionado);
+                var frm = new FrmTaller(vmTaller.TallerSeleccionado);
                 frm.Owner = Window.GetWindow(this);
                 var ok = frm.ShowDialog();
                 if (ok == true)
                 {
-                    await vm.LoadAsync();
+                    await vmTaller.LoadAsync();
                 }
             }
         }
@@ -133,9 +133,9 @@ namespace TP_ControlVehicular.Presentacion.Taller
         // Baja lógica: marca Activo = false usando ModificarTallerHandler
         private async void BtnBaja_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is TallerViewModel vm)
+            if (this.DataContext is TallerViewModel vmTaller)
             {
-                if (vm.TallerSeleccionado == null)
+                if (vmTaller.TallerSeleccionado == null)
                 {
                     MessageBox.Show("Por favor, selecciona primero un taller.", "Aviso");
                     return;
@@ -144,8 +144,8 @@ namespace TP_ControlVehicular.Presentacion.Taller
                 var msg = MessageBox.Show("¿Dar de baja (lógico) este taller?\nSetear Activo = false?", "Confirmar baja", MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (msg != MessageBoxResult.Yes) return;
 
-                await vm.ToggleActivoAsync();
-                await vm.LoadAsync();
+                await vmTaller.ToggleActivoAsync();
+                await vmTaller.LoadAsync();
             }
         }
     }

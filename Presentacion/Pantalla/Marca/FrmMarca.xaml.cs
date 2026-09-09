@@ -1,11 +1,11 @@
-﻿using System.Windows;
-
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Marca
 {
-    /// <summary>
-    /// Lógica de interacción para FrmMarca.xaml
-    /// </summary>
     public partial class FrmMarca : Window
     {
         private readonly bool _esModificacion;
@@ -13,42 +13,97 @@ namespace TP_ControlVehicular.Presentacion.Marca
         public FrmMarca()
         {
             InitializeComponent();
-            lblTituloFormulario.Text = "Registrar Nuevo Marca";
             _esModificacion = false;
+            this.Title = "Registrar Nueva Marca";
+            ConfigurarViewModel(null);
+            Loaded += (s, e) => txtNombreMarca.Focus();
+            ConfigurarValidacionAlPerderFoco();
         }
-        // Constructor para Editar
-        /*public FrmCliente(UsuarioModel usuario)
+
+        public FrmMarca(MarcaDto marca)
         {
             InitializeComponent();
-            lblTituloFormulario.Text = "Modificar Usuario";
-            _usuarioEdicion = usuario;
             _esModificacion = true;
+            this.Title = "Modificar Marca";
+            ConfigurarViewModel(marca);
+            Loaded += (s, e) => txtNombreMarca.Focus();
+            ConfigurarValidacionAlPerderFoco();
+        }
 
-            txtNombre.Text = usuario.Nombre;
-            txtContrasena.Password = usuario.Contrasena;
-            cmbRol.SelectedIndex = usuario.IdRol - 1;
-            chkEstado.IsChecked = usuario.Estado;
-        }*/
-
-        private void BtnGuardar_Click(object sender, RoutedEventArgs e)
+        private void ConfigurarValidacionAlPerderFoco()
         {
-            // [AQUÍ HACES TU INSERCIÓN O UPDATE EN LA BASE DE DATOS]
-            // Ejemplo: Instanciar tu BLL/DAL y enviar los parámetros.
+            AddHandler(UIElement.LostFocusEvent, new RoutedEventHandler((s, e) =>
+            {
+                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vm)
+                {
+                    DependencyProperty? dp = null;
+                    if (element is TextBox)
+                        dp = TextBox.TextProperty;
+                    else if (element is ComboBox)
+                        dp = ComboBox.SelectedValueProperty;
+                    else if (element is DatePicker)
+                        dp = DatePicker.SelectedDateProperty;
 
-            /*  if (_esModificacion)
-              {
-                  _usuarioEdicion.Nombre = txtNombre.Text;
-                  _usuarioEdicion.Contrasena = txtContrasena.Password;
-                  _usuarioEdicion.Estado = chkEstado.IsChecked ?? false;
-              }*/
+                    if (dp != null)
+                    {
+                        var binding = BindingOperations.GetBinding(element, dp);
+                        var be = element.GetBindingExpression(dp);
+                        if (binding != null && binding.Path != null && !string.IsNullOrEmpty(binding.Path.Path))
+                        {
+                            be?.UpdateSource();
+                            vm.ValidateProperty(binding.Path.Path);
+                        }
+                    }
+                }
+            }));
+        }
 
-            // OPERACIÓN EXITOSA: Cambiar DialogResult a 'true' cierra la ventana automáticamente
-            this.DialogResult = true;
+        private void ConfigurarViewModel(MarcaDto? marca)
+        {
+            try
+            {
+                if (App.ServiceProvider.GetService(typeof(MarcaViewModel)) is MarcaViewModel vmMarca)
+                {
+                    DataContext = vmMarca;
+                    if (_esModificacion && marca != null)
+                    {
+                        vmMarca.MarcaSeleccionada = marca;
+                        vmMarca.NombreMarca = marca.NombreMarca;
+                    }
+                    else
+                    {
+                        vmMarca.MarcaSeleccionada = null;
+                        vmMarca.NombreMarca = string.Empty;
+                    }
+
+                    vmMarca.ClearAllErrors();
+                }
+            }
+            catch
+            {
+                // Silenciar si DI no está disponible
+            }
+        }
+
+        private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MarcaViewModel vmMarca)
+            {
+                var ok = await vmMarca.GuardarMarcaAsync();
+                if (ok)
+                {
+                    this.DialogResult = true;
+                }
+            }
+            else
+            {
+                this.DialogResult = false;
+            }
         }
 
         private void BtnCancelar_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false; // Cierra sin hacer nada
+            this.DialogResult = false;
         }
     }
 }

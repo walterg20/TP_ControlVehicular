@@ -1,0 +1,58 @@
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Rol.CtlRol"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Cabecera -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Gestión de Roles" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Administración de roles del sistema" FontSize="12" Foreground="Gray"/>
+        </StackPanel>
+
+        <!-- Barra superior -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="250"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0" Height="25" VerticalContentAlignment="Center"
+                     Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+                     Tag="Buscar rol..." />
+
+            <Button Grid.Column="1" Content="Nuevo Rol" Width="120" Height="25"
+                    HorizontalAlignment="Right" Click="BtnNuevo_Click"/>
+        </Grid>
+
+        <!-- DataGrid de Roles -->
+        <DataGrid x:Name="dgRoles" AutoGenerateColumns="False" ItemsSource="{Binding ListadoRolesFiltered}"
+                  SelectedItem="{Binding RolSeleccionado, Mode=TwoWay}"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  Margin="5" Grid.Row="2">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding IdRol}" Width="80"/>
+                <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
+                <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*"/>
+                <DataGridCheckBoxColumn Header="Estado" Binding="{Binding Estado}" Width="100"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Barra inferior -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Modificar Seleccionado" Width="150" Height="28" Margin="0,0,10,0" Click="BtnModificar_Click"/>
+            <Button Content="Cambiar Estado" Width="140" Height="28" Click="BtnBaja_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

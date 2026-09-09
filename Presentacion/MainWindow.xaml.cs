@@ -1,15 +1,17 @@
-﻿using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Cliente;
+using TP_ControlVehicular.Presentacion.Marca;
+using TP_ControlVehicular.Presentacion.Modelo;
+using TP_ControlVehicular.Presentacion.Pantalla.Dashboard;
+using TP_ControlVehicular.Presentacion.Pantalla.Login;
+using TP_ControlVehicular.Presentacion.Pantalla.Reporte;
+using TP_ControlVehicular.Presentacion.Rol;
 using TP_ControlVehicular.Presentacion.Taller;
+using TP_ControlVehicular.Presentacion.Usuario;
+using TP_ControlVehicular.Presentacion.Vehiculo;
+using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular
 {
@@ -18,54 +20,185 @@ namespace TP_ControlVehicular
     /// </summary>
     public partial class MainWindow : Window
     {
+        public UsuarioDto? UsuarioSesionActual { get; private set; }
+        private CtlLogin? _ctlLogin;
+
         public MainWindow()
         {
             InitializeComponent();
         }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            MostrarPantallaLogin();
+        }
+
+        public void MostrarPantallaLogin()
+        {
+            UsuarioSesionActual = null;
+            lblUsuarioNombre.Text = "👤 Usuario";
+            lblUsuarioRol.Text = "🛡️ Rol: -";
+
+            // Ocultar menú lateral y ajustar espacio a 0
+            pnlSidebar.Visibility = Visibility.Collapsed;
+            colMenu.Width = new GridLength(0);
+
+            // Instanciar o resolver CtlLogin desde DI
+            if (App.ServiceProvider != null)
+            {
+                _ctlLogin = App.ServiceProvider.GetService(typeof(CtlLogin)) as CtlLogin;
+            }
+
+            if (_ctlLogin == null)
+            {
+                var vm = App.ServiceProvider?.GetService(typeof(LoginViewModel)) as LoginViewModel;
+                if (vm != null)
+                {
+                    _ctlLogin = new CtlLogin(vm);
+                }
+                else
+                {
+                    _ctlLogin = new CtlLogin();
+                }
+            }
+
+            if (_ctlLogin.ViewModel != null)
+            {
+                _ctlLogin.ViewModel.LimpiarFormulario();
+                _ctlLogin.ViewModel.OnLoginSuccess -= OnLoginExitoso;
+                _ctlLogin.ViewModel.OnLoginSuccess += OnLoginExitoso;
+            }
+
+            // Inyectar CtlLogin en el área principal de la ventana
+            grdContenido.Children.Clear();
+            Grid.SetColumn(_ctlLogin, 0);
+            Grid.SetColumnSpan(_ctlLogin, 2);
+            grdContenido.Children.Add(_ctlLogin);
+        }
+
+        private void OnLoginExitoso(UsuarioDto usuario)
+        {
+            UsuarioSesionActual = usuario;
+
+            // Mostrar el nombre del usuario logueado y su rol en la tarjeta del menú
+            lblUsuarioNombre.Text = $"👤 {usuario.Nombre}";
+            var rol = string.IsNullOrWhiteSpace(usuario.RolNombre) ? "Sin Rol" : usuario.RolNombre;
+            lblUsuarioRol.Text = $"🛡️ Rol: {rol}";
+
+            // Aplicar restricciones de menú según el rol asignado
+            AplicarRestriccionesPorRol(rol);
+
+            if (_ctlLogin?.ViewModel != null)
+            {
+                _ctlLogin.ViewModel.OnLoginSuccess -= OnLoginExitoso;
+            }
+
+            // Limpiar y remover el formulario de Login
+            grdContenido.Children.Clear();
+            _ctlLogin = null;
+
+            // Mostrar el menú lateral y restaurar su ancho
+            colMenu.Width = new GridLength(240);
+            pnlSidebar.Visibility = Visibility.Visible;
+
+            // Mostrar el Dashboard por defecto tras iniciar sesión
+            AgregarPagina(new CtlDashboard());
+        }
+
+        private void AplicarRestriccionesPorRol(string rolNombre)
+        {
+            var rol = (rolNombre ?? string.Empty).Trim().ToLower();
+
+            // Resetear visibilidad (modo Administrador)
+            btnDashboard.Visibility = Visibility.Visible;
+            secOperaciones.Visibility = Visibility.Visible;
+            btnOrdenesTrabajo.Visibility = Visibility.Visible;
+            btnRepuestosServicios.Visibility = Visibility.Visible;
+            secAdministracion.Visibility = Visibility.Visible;
+            btnCliente.Visibility = Visibility.Visible;
+            btnVehiculo.Visibility = Visibility.Visible;
+            btnModelo.Visibility = Visibility.Visible;
+            btnMarca.Visibility = Visibility.Visible;
+            btnTaller.Visibility = Visibility.Visible;
+            btnUsuario.Visibility = Visibility.Visible;
+            btnRol.Visibility = Visibility.Visible;
+            secReportes.Visibility = Visibility.Visible;
+            btnReporteOrdenes.Visibility = Visibility.Visible;
+
+            if (rol.Contains("recepcion") || rol.Contains("recepcionista"))
+            {
+                // Recepcionista: No administra usuarios, roles ni talleres
+                btnUsuario.Visibility = Visibility.Collapsed;
+                btnRol.Visibility = Visibility.Collapsed;
+                btnTaller.Visibility = Visibility.Collapsed;
+            }
+            else if (rol.Contains("mecanic") || rol.Contains("mecánico"))
+            {
+                // Mecánico: Oculta administración de usuarios, roles, talleres y catálogos globales
+                btnUsuario.Visibility = Visibility.Collapsed;
+                btnRol.Visibility = Visibility.Collapsed;
+                btnTaller.Visibility = Visibility.Collapsed;
+                btnCliente.Visibility = Visibility.Collapsed;
+                btnModelo.Visibility = Visibility.Collapsed;
+                btnMarca.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void MenuItem_Click_Dashboard(object sender, RoutedEventArgs e)
+        {
+            AgregarPagina(new CtlDashboard());
+        }
+
+        private void MenuItem_Click_ReporteOrdenes(object sender, RoutedEventArgs e)
+        {
+            AgregarPagina(new CtlReporteOrdenes());
+        }
+
         private void MenuItem_Click_Cliente(object sender, RoutedEventArgs e)
         {
-            //var ctlCliente = App.ServiceProvider.GetRequiredService<CtlCliente>();
-            //ctlCliente.DataContext = App.ServiceProvider.GetRequiredService<ClienteViewModel>();
             AgregarPagina(new CtlCliente());
         }
+
         private void MenuItem_Click_Taller(object sender, RoutedEventArgs e)
         {
             AgregarPagina(new CtlTaller());
         }
+
+        private void MenuItem_Click_Usuario(object sender, RoutedEventArgs e)
+        {
+            AgregarPagina(new CtlUsuario());
+        }
+
+        private void MenuItem_Click_Rol(object sender, RoutedEventArgs e)
+        {
+            AgregarPagina(new CtlRol());
+        }
+
         private void MenuItem_Click_Vehiculo(object sender, RoutedEventArgs e)
         {
-            /*var ctlVehiculo = App.ServiceProvider.GetRequiredService<CtlVehiculo>();
-            ctlVehiculo.DataContext = App.ServiceProvider.GetRequiredService<VehiculoViewModel>();
-            AgregarPagina(ctlVehiculo);*/
+            AgregarPagina(new CtlVehiculo());
         }
 
-        // Menú Modelo
         private void MenuItem_Click_Modelo(object sender, RoutedEventArgs e)
         {
-            /*var ctlModelo = App.ServiceProvider.GetRequiredService<CtlModelo>();
-            ctlModelo.DataContext = App.ServiceProvider.GetRequiredService<ModeloViewModel>();
-            AgregarPagina(ctlModelo);*/
+            AgregarPagina(new CtlModelo());
         }
 
-        // Menú Marca
         private void MenuItem_Click_Marca(object sender, RoutedEventArgs e)
         {
-            /*var ctlMarca = App.ServiceProvider.GetRequiredService<CtlMarca>();
-            ctlMarca.DataContext = App.ServiceProvider.GetRequiredService<MarcaViewModel>();
-            AgregarPagina(ctlMarca);*/
+            AgregarPagina(new CtlMarca());
         }
 
         private void MenuItem_Click_Salir(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            // Al salir/cerrar sesión, volvemos a mostrar el login
+            MostrarPantallaLogin();
         }
+
         private void AgregarPagina(UserControl userControl)
         {
-            // Reemplaza el contenido actual por el UserControl proporcionado
             this.grdContenido.Children.Clear();
-            // Asegurar que el control ocupe todas las columnas del grid
             Grid.SetColumn(userControl, 0);
-            // ColumnSpan must be >= 1. Si no hay columnas definidas, usar 1.
             var span = Math.Max(1, this.grdContenido.ColumnDefinitions.Count);
             Grid.SetColumnSpan(userControl, span);
             this.grdContenido.Children.Add(userControl);

@@ -1,4 +1,4 @@
-﻿
+
 namespace TP_ControlVehicular.Negocio.DTOs
 {
     public class ClienteDto
@@ -12,5 +12,7 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string Email { get; set; }
         public string Telefono { get; set; }
         public bool Activo { get; set; }
+
+        public string NombreCompletoConDni => $"[{Dni}] {Nombre} {Apellido}".Trim();
     }
 }

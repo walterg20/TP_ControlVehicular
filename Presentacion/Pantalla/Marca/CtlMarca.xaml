@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Marca.CtlMarca"
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Marca.CtlMarca"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -73,12 +73,14 @@
         <DataGrid Grid.Row="2"
                   x:Name="dgMarcas"
                   ItemsSource="{Binding ListadoMarcasFiltered}"
+                  SelectedItem="{Binding MarcaSeleccionada, Mode=TwoWay}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
+                  CanUserAddRows="False"
                   SelectionMode="Single">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding IdMarca}" Width="100"/>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="100"/>
                 <DataGridTextColumn Header="Nombre de Marca" Binding="{Binding NombreMarca}" Width="*"/>
             </DataGrid.Columns>
         </DataGrid>

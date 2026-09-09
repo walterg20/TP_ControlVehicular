@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -24,11 +24,11 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             // Asignar ViewModel desde DI para que la vista tenga DataContext y podamos cargar datos
             try
             {
-                var vm = App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel)) as TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel;
-                if (vm is not null)
+                var vmCliente = App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel)) as TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel;
+                if (vmCliente is not null)
                 {
-                    this.DataContext = vm;
-                    this.Loaded += async (s, e) => { await vm.LoadAsync(); };
+                    this.DataContext = vmCliente;
+                    this.Loaded += async (s, e) => { await vmCliente.LoadAsync(); };
                 }
             }
             catch
@@ -39,10 +39,10 @@ namespace TP_ControlVehicular.Presentacion.Cliente
 
         private void BtnBuscar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
+            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
             {
                 // Asignar ItemsSource al filtro calculado
-                dgClientes.ItemsSource = vm.ListadoClientesFiltered;
+                dgClientes.ItemsSource = vmCliente.ListadoClientesFiltered;
             }
         }
         // Evento para simular la acción de "Editar" haciendo doble clic en la fila
@@ -59,7 +59,6 @@ namespace TP_ControlVehicular.Presentacion.Cliente
 
         private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Abrir formulario de creación vacío.", "Control Vehicular");
             // 1. Creamos la ventana modal
             FrmCliente modal = new FrmCliente();
 
@@ -73,15 +72,15 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             if (resultado == true)
             {
                 // Intentar recargar usando el DataContext (si es ClienteViewModel)
-                if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
+                if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
                 {
-                    await vm.LoadAsync();
+                    await vmCliente.LoadAsync();
                 }
                 else if (this.DataContext is null && this.Parent is FrameworkElement parent)
                 {
                     // Buscar en el control padre
-                    if (parent.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm2)
-                        await vm2.LoadAsync();
+                    if (parent.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmClientePadre)
+                        await vmClientePadre.LoadAsync();
                 }
             }
         }
@@ -99,9 +98,9 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             var result = MessageBox.Show($"¿Seguro que querés marcar como inactivo al cliente {selected.Nombre} {selected.Apellido}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result != MessageBoxResult.Yes) return;
 
-            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
+            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
             {
-                await vm.DeleteClienteAsync(selected.IdCliente);
+                await vmCliente.DeleteClienteAsync(selected.IdCliente);
             }
         }
         private async void BtnEditar_Click(object sender, RoutedEventArgs e)
@@ -113,18 +112,18 @@ namespace TP_ControlVehicular.Presentacion.Cliente
                 return;
             }
 
-            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
+            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
             {
                 // cargar datos en el mismo ViewModel usado por el formulario
-                vm.IdCliente = selected.IdCliente;
-                vm.Nombre = selected.Nombre;
-                vm.Apellido = selected.Apellido;
-                vm.Dni = selected.Dni;
-                vm.FechaNacimiento = selected.FechaNac;
-                vm.Direccion = selected.Direccion;
-                vm.Email = selected.Email;
-                vm.Telefono = selected.Telefono;
-                vm.Activo = selected.Activo;
+                vmCliente.IdCliente = selected.IdCliente;
+                vmCliente.Nombre = selected.Nombre;
+                vmCliente.Apellido = selected.Apellido;
+                vmCliente.Dni = selected.Dni;
+                vmCliente.FechaNacimiento = selected.FechaNac;
+                vmCliente.Direccion = selected.Direccion;
+                vmCliente.Email = selected.Email;
+                vmCliente.Telefono = selected.Telefono;
+                vmCliente.Activo = selected.Activo;
 
                 // Abrir modal (usa el mismo VM desde DI en FrmCliente)
                 var modal = new FrmCliente();
@@ -132,12 +131,12 @@ namespace TP_ControlVehicular.Presentacion.Cliente
                 var ok = modal.ShowDialog();
                 if (ok == true)
                 {
-                    await vm.LoadAsync();
+                    await vmCliente.LoadAsync();
                 }
                 else
                 {
                     // limpiar IdCliente si canceló
-                    vm.IdCliente = 0;
+                    vmCliente.IdCliente = 0;
                 }
             }
         }

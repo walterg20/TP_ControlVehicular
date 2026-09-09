@@ -1,0 +1,87 @@
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.Login.CtlLogin"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="550" d:DesignWidth="700">
+
+    <Grid Background="#F5F7FA">
+        <!-- Contenedor Centrado (Tarjeta con Bordes Redondeados rounded-xl y Sombra shadow-md) -->
+        <Border HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                Width="420" 
+                Background="White" 
+                CornerRadius="12" 
+                Padding="32">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="3" Direction="270" Color="#000000" Opacity="0.15"/>
+            </Border.Effect>
+
+            <StackPanel>
+                <!-- Icono & Encabezado -->
+                <TextBlock Text="🛠️" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                <TextBlock Text="TALLER PRO" FontSize="24" FontWeight="Bold" Foreground="#2C3E50" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                <TextBlock Text="Control Vehicular - Iniciar Sesión" FontSize="13" Foreground="#7F8C8D" HorizontalAlignment="Center" Margin="0,0,0,25"/>
+
+                <!-- Mensaje de Error / Notificación -->
+                <Border Background="#FDEDEC" BorderBrush="#F1948A" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,16"
+                        Visibility="{Binding HasErrorMessage, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚠️ " Foreground="#C0392B" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="#C0392B" FontSize="12" TextWrapping="Wrap" MaxWidth="320" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Campo Usuario -->
+                <TextBlock Text="Usuario" Foreground="#34495E" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBox x:Name="txtUsuario" 
+                         Text="{Binding NombreUsuario, UpdateSourceTrigger=PropertyChanged}" 
+                         Padding="10,8" 
+                         FontSize="14" 
+                         BorderBrush="#BDC3C7" 
+                         BorderThickness="1" 
+                         Margin="0,0,0,16">
+                    <TextBox.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </TextBox.Resources>
+                </TextBox>
+
+                <!-- Campo Contraseña -->
+                <TextBlock Text="Contraseña" Foreground="#34495E" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <PasswordBox x:Name="txtPassword" 
+                             PasswordChanged="TxtPassword_PasswordChanged"
+                             Padding="10,8" 
+                             FontSize="14" 
+                             BorderBrush="#BDC3C7" 
+                             BorderThickness="1" 
+                             Margin="0,0,0,24">
+                    <PasswordBox.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </PasswordBox.Resources>
+                </PasswordBox>
+
+                <!-- Botón Iniciar Sesión -->
+                <Button Content="Iniciar Sesión" 
+                        Command="{Binding IniciarSesionCommand}" 
+                        Background="#2980B9" 
+                        Foreground="White" 
+                        FontSize="15" 
+                        FontWeight="Bold" 
+                        Padding="12" 
+                        Cursor="Hand" 
+                        BorderThickness="0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="8"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

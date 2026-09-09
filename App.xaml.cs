@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,12 @@ using TP_ControlVehicular.Negocio.Services;
 using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.Marca;
 using TP_ControlVehicular.Presentacion.Modelo;
+using TP_ControlVehicular.Presentacion.Pantalla.Dashboard;
+using TP_ControlVehicular.Presentacion.Pantalla.Login;
+using TP_ControlVehicular.Presentacion.Pantalla.Reporte;
+using TP_ControlVehicular.Presentacion.Rol;
 using TP_ControlVehicular.Presentacion.Taller;
+using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
@@ -50,14 +55,37 @@ namespace TP_ControlVehicular
             services.AddScoped<IModeloRepository, ModeloRepository>();
             services.AddScoped<IMarcaRepository, MarcaRepository>();
             services.AddScoped<ITallerRepository, TallerRepository>();
+            services.AddScoped<IRolRepository, RolRepository>();
+            services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<IRegistroServicioRepository, RegistroServicioRepository>();
 
             // Handlers
             services.AddScoped<RegistrarClienteHandler>();
             services.AddScoped<RegistrarVehiculoHandler>();
             services.AddScoped<ListarVehiculosPorClienteHandler>();
+            services.AddScoped<ListarVehiculosHandler>();
+            services.AddScoped<ModificarVehiculoHandler>();
+            services.AddScoped<EliminarVehiculoHandler>();
+            services.AddScoped<ListarMarcaHandler>();
+            services.AddScoped<RegistrarMarcaHandler>();
+            services.AddScoped<ModificarMarcaHandler>();
+            services.AddScoped<EliminarMarcaHandler>();
+            services.AddScoped<ListarModelosHandler>();
+            services.AddScoped<RegistrarModeloHandler>();
+            services.AddScoped<ModificarModeloHandler>();
+            services.AddScoped<EliminarModeloHandler>();
             services.AddScoped<ListarTallerHandler>();
             services.AddScoped<RegistrarTallerHandler>();
             services.AddScoped<ModificarTallerHandler>();
+            services.AddScoped<RegistrarRolHandler>();
+            services.AddScoped<ModificarRolHandler>();
+            services.AddScoped<ListarRolHandler>();
+            services.AddScoped<RegistrarUsuarioHandler>();
+            services.AddScoped<ModificarUsuarioHandler>();
+            services.AddScoped<ListarUsuariosHandler>();
+            services.AddScoped<AutenticarUsuarioHandler>();
+            services.AddScoped<ObtenerDashboardHandler>();
+            services.AddScoped<ObtenerReporteOrdenesHandler>();
 
 
             // ViewModels
@@ -66,6 +94,11 @@ namespace TP_ControlVehicular
             services.AddScoped<ModeloViewModel>();
             services.AddScoped<MarcaViewModel>();
             services.AddScoped<TallerViewModel>();
+            services.AddScoped<RolViewModel>();
+            services.AddScoped<UsuarioViewModel>();
+            services.AddScoped<LoginViewModel>();
+            services.AddScoped<DashboardViewModel>();
+            services.AddScoped<ReporteOrdenesViewModel>();
 
             // UserControls
             services.AddScoped<CtlCliente>();
@@ -73,6 +106,11 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlModelo>();
             services.AddScoped<CtlMarca>();
             services.AddScoped<CtlTaller>();
+            services.AddScoped<CtlRol>();
+            services.AddScoped<CtlUsuario>();
+            services.AddScoped<CtlLogin>();
+            services.AddScoped<CtlDashboard>();
+            services.AddScoped<CtlReporteOrdenes>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();

@@ -1,91 +1,83 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using TP_ControlVehicular.Presentacion.Cliente;
+using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Vehiculo
 {
-    /// <summary>
-    /// Lógica de interacción para CtlVehiculo.xaml
-    /// </summary>
     public partial class CtlVehiculo : UserControl
     {
         public CtlVehiculo()
         {
             InitializeComponent();
-        }
-        // Evento para simular la acción de "Editar" haciendo doble clic en la fila
-        private void DgUsuarios_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            /*var usuarioSeleccionado; //= dgUsuarios.SelectedItem as UsuarioModel;
-
-            if (usuarioSeleccionado != null)
+            try
             {
-                MessageBox.Show($"Abriendo edición para: {usuarioSeleccionado.Nombre}", "Sistema MDI");
-                // Acá ponés la lógica para mandar este 'usuarioSeleccionado' a tu formulario
-            }*/
-        }
-
-        private void BtnNuevo_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Abrir formulario de creación vacío.", "Control Vehicular");
-            // 1. Creamos la ventana modal
-            FrmCliente modal = new FrmCliente();
-
-            // 2. Opcional: Centrar el modal respecto a la ventana principal de la app
-            modal.Owner = Window.GetWindow(this);
-
-            // 3. Abrimos el modal. El código se "detiene" aquí hasta que el usuario guarde o cierre
-            bool? resultado = modal.ShowDialog();
-
-            // 4. Si guardó correctamente (DialogResult = true), refrescamos
-            if (resultado == true)
+                if (App.ServiceProvider.GetService(typeof(VehiculoViewModel)) is VehiculoViewModel vmVehiculo)
+                {
+                    this.DataContext = vmVehiculo;
+                    this.Loaded += async (s, e) => { await vmVehiculo.LoadAsync(); };
+                }
+            }
+            catch
             {
-                //RefrescarGrillaDesdeBaseDatos();
+                // Silenciar si DI no está listo
             }
         }
 
-        private void BtnBorrar_Click(object sender, RoutedEventArgs e)
+        private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            // Captura la fila que el usuario dejó marcada con un clic común
-            // var usuarioSeleccionado = new(); //dgUsuarios.SelectedItem as UsuarioModel;
-
-            /* if (usuarioSeleccionado != null)
-             {
-                 var result = MessageBox.Show($"¿Seguro que querés eliminar a {usuarioSeleccionado.Nombre}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                 if (result == MessageBoxResult.Yes)
-                 {
-                     //Usuarios.Remove(usuarioSeleccionado);
-                 }
-             }
-             else
-             {
-                 MessageBox.Show("Por favor, selecciona primero un usuario de la lista haciendo un clic sobre él.", "Aviso");
-             }*/
+            var frm = new FrmVehiculo();
+            frm.Owner = Window.GetWindow(this);
+            var ok = frm.ShowDialog();
+            if (ok == true && this.DataContext is VehiculoViewModel vmVehiculo)
+            {
+                await vmVehiculo.LoadAsync();
+            }
         }
-        private void BtnEditar_Click(object sender, RoutedEventArgs e)
-        {
-            // Captura la fila que el usuario seleccionó con un clic común en la grilla
-            /* var usuarioSeleccionado = dgUsuarios.SelectedItem as UsuarioModel;
 
-             if (usuarioSeleccionado != null)
-             {
-                 MessageBox.Show($"Abriendo formulario de edición para: {usuarioSeleccionado.Nombre}", "Sistema MDI");
-                 // Acá ponés la lógica para pasar 'usuarioSeleccionado' a tu pantalla de carga
-             }
-             else
-             {
-                 MessageBox.Show("Por favor, selecciona un usuario de la lista antes de editar.", "Aviso");
-             }*/
+        private async void BtnEditar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is VehiculoViewModel vmVehiculo)
+            {
+                if (vmVehiculo.VehiculoSeleccionado == null)
+                {
+                    MessageBox.Show("Por favor, selecciona primero un vehículo.", "Aviso");
+                    return;
+                }
+
+                var frm = new FrmVehiculo(vmVehiculo.VehiculoSeleccionado);
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmVehiculo.LoadAsync();
+                }
+            }
+        }
+
+        private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is VehiculoViewModel vmVehiculo)
+            {
+                if (vmVehiculo.VehiculoSeleccionado == null)
+                {
+                    MessageBox.Show("Por favor, selecciona primero un vehículo para eliminar.", "Aviso");
+                    return;
+                }
+
+                var res = MessageBox.Show($"¿Está seguro que desea eliminar el vehículo con patente '{vmVehiculo.VehiculoSeleccionado.Patente}'?", "Confirmar Eliminación", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (res == MessageBoxResult.Yes)
+                {
+                    var ok = await vmVehiculo.EliminarVehiculoAsync(vmVehiculo.VehiculoSeleccionado.Id);
+                    if (ok)
+                    {
+                        MessageBox.Show("Vehículo eliminado correctamente.", "Éxito");
+                    }
+                    else
+                    {
+                        MessageBox.Show("No se pudo eliminar el vehículo.", "Error");
+                    }
+                }
+            }
         }
     }
 }

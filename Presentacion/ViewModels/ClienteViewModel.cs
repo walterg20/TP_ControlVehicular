@@ -1,4 +1,4 @@
-﻿
+
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -79,7 +79,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public string Direccion
         {
             get => _direccion;
-            set { _direccion = value; OnPropertyChanged(); }
+            set { _direccion = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
         private string _email = string.Empty;
@@ -118,9 +118,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 lista = Enumerable.Empty<TP_ControlVehicular.Entidad.Cliente>();
             }
 
-            foreach (var c in lista)
+            foreach (var cliente in lista)
             {
-                Clientes.Add(_mapper.Map<ClienteDto>(c));
+                Clientes.Add(_mapper.Map<ClienteDto>(cliente));
             }
         }
 
@@ -135,13 +135,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public async Task<bool> RegistrarClienteAsync()
         {
-            // Validar antes de intentar registrar
-            ValidateProperty(nameof(Nombre));
-            ValidateProperty(nameof(Apellido));
-            ValidateProperty(nameof(Dni));
-            ValidateProperty(nameof(Email));
-
-            if (HasErrors) return false;
+            if (!ValidateAll()) return false;
 
             var cliente = new TP_ControlVehicular.Entidad.Cliente
             {
@@ -206,48 +200,43 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         // Evento para notificar errores de registro con mensaje (p.ej. DNI duplicado)
         public event EventHandler<string>? RegistrationFailed;
 
-        private void ValidateProperty([CallerMemberName] string? propertyName = null)
+        public override bool ValidateProperty([CallerMemberName] string? propertyName = null)
         {
-            if (propertyName is null) return;
-            if (_errors.ContainsKey(propertyName)) _errors.Remove(propertyName);
-            var list = new List<string>();
+            if (propertyName is null) return true;
+            ClearErrors(propertyName);
 
             switch (propertyName)
             {
                 case nameof(Nombre):
-                    if (string.IsNullOrWhiteSpace(Nombre) || Nombre.Length < 2) list.Add("Nombre requerido (min 2 caracteres).");
+                    if (string.IsNullOrWhiteSpace(Nombre) || Nombre.Trim().Length < 5)
+                        SetError(nameof(Nombre), "Nombre requerido (mínimo 5 caracteres).");
                     break;
                 case nameof(Apellido):
-                    if (string.IsNullOrWhiteSpace(Apellido) || Apellido.Length < 2) list.Add("Apellido requerido (min 2 caracteres).");
+                    if (string.IsNullOrWhiteSpace(Apellido) || Apellido.Trim().Length < 5)
+                        SetError(nameof(Apellido), "Apellido requerido (mínimo 5 caracteres).");
                     break;
                 case nameof(Dni):
-                    if (string.IsNullOrWhiteSpace(Dni)) list.Add("DNI requerido.");
-                    else if (!Regex.IsMatch(Dni, "^\\d{7,8}$")) list.Add("DNI debe ser numérico (7-8 dígitos).");
+                    if (string.IsNullOrWhiteSpace(Dni))
+                        SetError(nameof(Dni), "DNI requerido.");
+                    else if (!Regex.IsMatch(Dni, @"^\d{7,8}$"))
+                        SetError(nameof(Dni), "DNI debe ser numérico (7-8 dígitos).");
                     break;
                 case nameof(Email):
-                    if (!string.IsNullOrWhiteSpace(Email) && !Regex.IsMatch(Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$")) list.Add("Email inválido.");
+                    if (!string.IsNullOrWhiteSpace(Email) && !Regex.IsMatch(Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                        SetError(nameof(Email), "Formato de correo electrónico inválido.");
                     break;
             }
 
-            if (list.Any()) _errors[propertyName] = list;
-            OnErrorsChanged(propertyName);
+            return !GetErrors(propertyName).Cast<object>().Any();
         }
 
-        public bool HasErrors => _errors.Any();
-
-        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
-
-        public IEnumerable GetErrors(string? propertyName)
+        public bool ValidateAll()
         {
-            if (string.IsNullOrEmpty(propertyName)) return _errors.SelectMany(kv => kv.Value);
-            return _errors.TryGetValue(propertyName, out var list) ? list : Enumerable.Empty<string>();
-        }
-
-        protected void OnErrorsChanged(string? propertyName)
-        {
-            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
-            // Actualizar disponibilidad del comando
-            if (RegistrarCommand is RelayCommand rc) rc.RaiseCanExecuteChanged();
+            ValidateProperty(nameof(Nombre));
+            ValidateProperty(nameof(Apellido));
+            ValidateProperty(nameof(Dni));
+            ValidateProperty(nameof(Email));
+            return !HasErrors;
         }
     }
 }

@@ -69,7 +69,14 @@
         </Grid>
 
         <!-- DataGrid de talleres -->
-        <DataGrid x:Name="dgTalleres" AutoGenerateColumns="False" Margin="5" Grid.Row="2">
+        <DataGrid x:Name="dgTalleres"
+                  ItemsSource="{Binding ListadoTalleresFiltered}"
+                  SelectedItem="{Binding TallerSeleccionado, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single"
+                  Margin="5" Grid.Row="2">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding IdTaller}" Width="80"/>
                 <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>

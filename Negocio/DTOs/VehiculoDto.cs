@@ -1,8 +1,10 @@
-﻿namespace TP_ControlVehicular.Negocio.DTOs
+namespace TP_ControlVehicular.Negocio.DTOs
 {
     public class VehiculoDto
     {
         public int Id { get; set; }
+        public int IdCliente { get; set; }
+        public int IdModelo { get; set; }
         public string Patente { get; set; } = string.Empty;
         public int Anio { get; set; }
         public int KmActual { get; set; }

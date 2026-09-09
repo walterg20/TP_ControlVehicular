@@ -1,49 +1,83 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using TP_ControlVehicular.Presentacion.ViewModels;
+
 namespace TP_ControlVehicular.Presentacion.Marca
 {
-    /// <summary>
-    /// Lógica de interacción para CtlMarca.xaml
-    /// </summary>
     public partial class CtlMarca : UserControl
     {
         public CtlMarca()
         {
             InitializeComponent();
-        }
-        private void BtnNuevo_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Abrir formulario de creación vacío.", "Control Vehicular");
-
-            FrmMarca modal = new FrmMarca();
-            modal.Owner = Window.GetWindow(this);
-            bool? resultado = modal.ShowDialog();
-            if (resultado == true)
+            try
             {
-                // Refrescar la grilla si es necesario
+                if (App.ServiceProvider.GetService(typeof(MarcaViewModel)) is MarcaViewModel vmMarca)
+                {
+                    this.DataContext = vmMarca;
+                    this.Loaded += async (s, e) => { await vmMarca.LoadAsync(); };
+                }
+            }
+            catch
+            {
+                // Silenciar si DI no está listo
             }
         }
 
-        private void BtnBorrar_Click(object sender, RoutedEventArgs e)
+        private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            // Implementar lógica de borrado aquí
-            // Por ejemplo: var marcaSeleccionada = dgMarcas.SelectedItem as MarcaModel;
+            var frm = new FrmMarca();
+            frm.Owner = Window.GetWindow(this);
+            var ok = frm.ShowDialog();
+            if (ok == true && this.DataContext is MarcaViewModel vmMarca)
+            {
+                await vmMarca.LoadAsync();
+            }
         }
 
-        private void BtnEditar_Click(object sender, RoutedEventArgs e)
+        private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
-            // Implementar lógica de edición aquí
-            // Por ejemplo: abrir FrmMarca con datos de la marca seleccionada
+            if (this.DataContext is MarcaViewModel vmMarca)
+            {
+                if (vmMarca.MarcaSeleccionada == null)
+                {
+                    MessageBox.Show("Por favor, selecciona primero una marca.", "Aviso");
+                    return;
+                }
+
+                var frm = new FrmMarca(vmMarca.MarcaSeleccionada);
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmMarca.LoadAsync();
+                }
+            }
+        }
+
+        private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MarcaViewModel vmMarca)
+            {
+                if (vmMarca.MarcaSeleccionada == null)
+                {
+                    MessageBox.Show("Por favor, selecciona primero una marca para eliminar.", "Aviso");
+                    return;
+                }
+
+                var res = MessageBox.Show($"¿Está seguro que desea eliminar la marca '{vmMarca.MarcaSeleccionada.NombreMarca}'?", "Confirmar Eliminación", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (res == MessageBoxResult.Yes)
+                {
+                    var ok = await vmMarca.EliminarMarcaAsync(vmMarca.MarcaSeleccionada.Id);
+                    if (ok)
+                    {
+                        MessageBox.Show("Marca eliminada correctamente.", "Éxito");
+                    }
+                    else
+                    {
+                        MessageBox.Show("No se pudo eliminar la marca (puede tener modelos asociados).", "Error");
+                    }
+                }
+            }
         }
     }
 }

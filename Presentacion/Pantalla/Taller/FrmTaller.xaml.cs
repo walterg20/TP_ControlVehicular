@@ -1,4 +1,6 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
@@ -15,6 +17,8 @@ namespace TP_ControlVehicular.Presentacion.Taller
             _esModificacion = false;
             this.Title = "Registrar Nuevo Taller";
             ConfigurarViewModel(null);
+            Loaded += (s, e) => txtNombre.Focus();
+            ConfigurarValidacionAlPerderFoco();
         }
 
         // Constructor para Modificar
@@ -24,28 +28,55 @@ namespace TP_ControlVehicular.Presentacion.Taller
             _esModificacion = true;
             this.Title = "Modificar Taller";
             ConfigurarViewModel(taller);
+            Loaded += (s, e) => txtNombre.Focus();
+            ConfigurarValidacionAlPerderFoco();
+        }
+
+        private void ConfigurarValidacionAlPerderFoco()
+        {
+            AddHandler(UIElement.LostFocusEvent, new RoutedEventHandler((s, e) =>
+            {
+                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vm)
+                {
+                    DependencyProperty? dp = null;
+                    if (element is TextBox)
+                        dp = TextBox.TextProperty;
+                    else if (element is ComboBox)
+                        dp = ComboBox.SelectedValueProperty;
+                    else if (element is DatePicker)
+                        dp = DatePicker.SelectedDateProperty;
+
+                    if (dp != null)
+                    {
+                        var binding = BindingOperations.GetBinding(element, dp);
+                        var be = element.GetBindingExpression(dp);
+                        if (binding != null && binding.Path != null && !string.IsNullOrEmpty(binding.Path.Path))
+                        {
+                            be?.UpdateSource();
+                            vm.ValidateProperty(binding.Path.Path);
+                        }
+                    }
+                }
+            }));
         }
 
         private void ConfigurarViewModel(TallerDto? taller)
         {
             try
             {
-                if (App.ServiceProvider.GetService(typeof(TallerViewModel)) is TallerViewModel vm)
+                if (App.ServiceProvider.GetService(typeof(TallerViewModel)) is TallerViewModel vmTaller)
                 {
-                    DataContext = vm;
+                    DataContext = vmTaller;
                     if (_esModificacion && taller != null)
                     {
-                        vm.TallerSeleccionado = taller;
-                        vm.Nombre = taller.Nombre;
-                        vm.Direccion = taller.Direccion;
-                        vm.Telefono = taller.Telefono;
-                        vm.Activo = taller.Activo;
+                        vmTaller.TallerSeleccionado = taller;
+                        vmTaller.Nombre = taller.Nombre;
+                        vmTaller.Direccion = taller.Direccion;
+                        vmTaller.Telefono = taller.Telefono;
+                        vmTaller.Activo = taller.Activo;
                     }
-                    vm.RegistrationCompleted += (s, ok) =>
-                    {
-                        // Cerrar la ventana en el hilo de la UI
-                        Dispatcher.Invoke(() => this.DialogResult = ok);
-                    };
+
+                    vmTaller.ClearAllErrors();
                 }
             }
             catch
@@ -56,10 +87,13 @@ namespace TP_ControlVehicular.Presentacion.Taller
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is TallerViewModel vm)
+            if (DataContext is TallerViewModel vmTaller)
             {
-                var ok = await vm.GuardarTallerAsync();
-                this.DialogResult = ok;
+                var ok = await vmTaller.GuardarTallerAsync();
+                if (ok)
+                {
+                    this.DialogResult = true;
+                }
             }
             else
             {

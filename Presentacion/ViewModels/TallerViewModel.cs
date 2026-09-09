@@ -12,17 +12,17 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 {
     public class TallerViewModel : BaseViewModel, INotifyDataErrorInfo
     {
-        private readonly ListarTallerHandler _listarHandler;
-        private readonly RegistrarTallerHandler _registrarHandler;
-        private readonly ModificarTallerHandler _modificarHandler;
+        private readonly ListarTallerHandler _listarTallerHandler;
+        private readonly RegistrarTallerHandler _registrarTallerHandler;
+        private readonly ModificarTallerHandler _modificarTallerHandler;
         private readonly IMapper _mapper;
         private readonly Dictionary<string, List<string>> _errors = new();
 
-        public TallerViewModel(ListarTallerHandler listarHandler, RegistrarTallerHandler registrarHandler, ModificarTallerHandler modificarHandler, IMapper mapper)
+        public TallerViewModel(ListarTallerHandler listarTallerHandler, RegistrarTallerHandler registrarTallerHandler, ModificarTallerHandler modificarTallerHandler, IMapper mapper)
         {
-            _listarHandler = listarHandler;
-            _registrarHandler = registrarHandler;
-            _modificarHandler = modificarHandler;
+            _listarTallerHandler = listarTallerHandler;
+            _registrarTallerHandler = registrarTallerHandler;
+            _modificarTallerHandler = modificarTallerHandler;
             _mapper = mapper;
             Talleres = new ObservableCollection<TallerDto>();
             ((ObservableCollection<TallerDto>)Talleres).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoTalleresFiltered));
@@ -42,7 +42,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public IEnumerable<TallerDto> ListadoTalleresFiltered =>
             string.IsNullOrWhiteSpace(TextoBusqueda)
                 ? Talleres
-                : Talleres.Where(t => (t.Nombre ?? string.Empty).IndexOf(TextoBusqueda, System.StringComparison.OrdinalIgnoreCase) >= 0);
+                : Talleres.Where(taller => (taller.Nombre ?? string.Empty).IndexOf(TextoBusqueda, System.StringComparison.OrdinalIgnoreCase) >= 0);
 
         private string _nombre = string.Empty;
         public string Nombre
@@ -55,7 +55,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public string Direccion
         {
             get => _direccion;
-            set { _direccion = value; OnPropertyChanged(); }
+            set { _direccion = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
         private string _telefono = string.Empty;
@@ -79,10 +79,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             Talleres.Clear();
             try
             {
-                var lista = await _listarHandler.HandleAsync();
-                foreach (var t in lista)
+                var lista = await _listarTallerHandler.HandleAsync();
+                foreach (var taller in lista)
                 {
-                    Talleres.Add(t);
+                    Talleres.Add(taller);
                 }
             }
             catch
@@ -100,8 +100,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         // si existe (IdTaller > 0) usa ModificarTallerHandler. Retorna true si tuvo éxito.
         public async Task<bool> GuardarTallerAsync()
         {
-            ValidateProperty(nameof(Nombre));
-            if (HasErrors) return false;
+            if (!ValidateAll()) return false;
 
             var tallerSeleccionado = TallerSeleccionado;
             if (tallerSeleccionado is null) return false;
@@ -119,12 +118,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (tallerSeleccionado.IdTaller == 0)
                 {
-                    var dto = await _registrarHandler.HandleAsync(taller);
+                    var dto = await _registrarTallerHandler.HandleAsync(taller);
                     Talleres.Add(dto);
                 }
                 else
                 {
-                    var dto = await _modificarHandler.HandleAsync(taller);
+                    var dto = await _modificarTallerHandler.HandleAsync(taller);
                     var index = -1;
                     for (int i = 0; i < Talleres.Count; i++)
                     {
@@ -153,37 +152,31 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         // Evento: error de registro con mensaje
         public event EventHandler<string>? RegistrationFailed;
 
-        private void ValidateProperty([CallerMemberName] string? propertyName = null)
+        public override bool ValidateProperty([CallerMemberName] string? propertyName = null)
         {
-            if (propertyName is null) return;
-            if (_errors.ContainsKey(propertyName)) _errors.Remove(propertyName);
-            var list = new List<string>();
+            if (propertyName is null) return true;
+            ClearErrors(propertyName);
 
             switch (propertyName)
             {
                 case nameof(Nombre):
-                    if (string.IsNullOrWhiteSpace(Nombre) || Nombre.Length < 2) list.Add("Nombre requerido (mín. 2 caracteres).");
+                    if (string.IsNullOrWhiteSpace(Nombre) || Nombre.Trim().Length < 5)
+                        SetError(nameof(Nombre), "Nombre del Taller requerido (mínimo 5 caracteres).");
+                    break;
+                case nameof(Direccion):
+                    if (string.IsNullOrWhiteSpace(Direccion) || Direccion.Trim().Length < 5)
+                        SetError(nameof(Direccion), "Dirección del Taller requerida (mínimo 5 caracteres).");
                     break;
             }
 
-            if (list.Any()) _errors[propertyName] = list;
-            OnErrorsChanged(propertyName);
+            return !GetErrors(propertyName).Cast<object>().Any();
         }
 
-        public bool HasErrors => _errors.Any();
-
-        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
-
-        public System.Collections.IEnumerable GetErrors(string? propertyName)
+        public bool ValidateAll()
         {
-            if (string.IsNullOrEmpty(propertyName)) return _errors.SelectMany(kv => kv.Value);
-            return _errors.TryGetValue(propertyName, out var list) ? list : Enumerable.Empty<string>();
-        }
-
-        protected void OnErrorsChanged(string? propertyName)
-        {
-            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
-            if (RegistrarCommand is RelayCommand rc) rc.RaiseCanExecuteChanged();
+            ValidateProperty(nameof(Nombre));
+            ValidateProperty(nameof(Direccion));
+            return !HasErrors;
         }
 
         // Para modificar un taller existente (cargar datos en el form)
@@ -207,7 +200,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             try
             {
-                var dto = await _modificarHandler.HandleAsync(taller);
+                var dto = await _modificarTallerHandler.HandleAsync(taller);
                 var index = -1;
                 for (int i = 0; i < Talleres.Count; i++)
                 {

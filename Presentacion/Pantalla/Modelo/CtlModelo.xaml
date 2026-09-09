@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Modelo.CtlModelo"
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Modelo.CtlModelo"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -39,15 +39,16 @@
         <DataGrid Grid.Row="2"
                   x:Name="dgModelos"
                   ItemsSource="{Binding ListadoModelosFiltered}"
+                  SelectedItem="{Binding ModeloSeleccionado, Mode=TwoWay}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
+                  CanUserAddRows="False"
                   SelectionMode="Single">
 
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding IdModelo}" Width="70"/>
-                <DataGridTextColumn Header="Nombre Modelo" Binding="{Binding NombreModelo}" Width="150"/>
-                <DataGridTextColumn Header="Marca" Binding="{Binding MarcaNombre}" Width="150"/>
-                <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="80"/>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="70"/>
+                <DataGridTextColumn Header="Nombre Modelo" Binding="{Binding NombreModelo}" Width="*"/>
+                <DataGridTextColumn Header="Marca" Binding="{Binding MarcaNombre}" Width="200"/>
             </DataGrid.Columns>
         </DataGrid>
 

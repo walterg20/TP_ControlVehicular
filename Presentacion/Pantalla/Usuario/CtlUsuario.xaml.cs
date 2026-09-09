@@ -1,91 +1,76 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using TP_ControlVehicular.Presentacion.Cliente;
+using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Usuario
 {
-    /// <summary>
-    /// Lógica de interacción para CtlUsuario.xaml
-    /// </summary>
     public partial class CtlUsuario : UserControl
     {
         public CtlUsuario()
         {
             InitializeComponent();
-        }
-        // Evento para simular la acción de "Editar" haciendo doble clic en la fila
-        private void DgUsuarios_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            /*var usuarioSeleccionado; //= dgUsuarios.SelectedItem as UsuarioModel;
-
-            if (usuarioSeleccionado != null)
+            try
             {
-                MessageBox.Show($"Abriendo edición para: {usuarioSeleccionado.Nombre}", "Sistema MDI");
-                // Acá ponés la lógica para mandar este 'usuarioSeleccionado' a tu formulario
-            }*/
-        }
-
-        private void BtnNuevo_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Abrir formulario de creación vacío.", "Sistema MDI");
-            // 1. Creamos la ventana modal
-            FrmUsuario modal = new FrmUsuario();
-
-            // 2. Opcional: Centrar el modal respecto a la ventana principal de la app
-            modal.Owner = Window.GetWindow(this);
-
-            // 3. Abrimos el modal. El código se "detiene" aquí hasta que el usuario guarde o cierre
-            bool? resultado = modal.ShowDialog();
-
-            // 4. Si guardó correctamente (DialogResult = true), refrescamos
-            if (resultado == true)
+                var vmUsuario = App.ServiceProvider.GetService(typeof(UsuarioViewModel)) as UsuarioViewModel;
+                if (vmUsuario is not null)
+                {
+                    this.DataContext = vmUsuario;
+                    this.Loaded += async (s, e) => { await vmUsuario.LoadAsync(); };
+                }
+            }
+            catch
             {
-                //RefrescarGrillaDesdeBaseDatos();
+                // Ignorar si DI no está listo
             }
         }
 
-        private void BtnBorrar_Click(object sender, RoutedEventArgs e)
+        private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            // Captura la fila que el usuario dejó marcada con un clic común
-            // var usuarioSeleccionado = new(); //dgUsuarios.SelectedItem as UsuarioModel;
-
-            /* if (usuarioSeleccionado != null)
-             {
-                 var result = MessageBox.Show($"¿Seguro que querés eliminar a {usuarioSeleccionado.Nombre}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                 if (result == MessageBoxResult.Yes)
-                 {
-                     //Usuarios.Remove(usuarioSeleccionado);
-                 }
-             }
-             else
-             {
-                 MessageBox.Show("Por favor, selecciona primero un usuario de la lista haciendo un clic sobre él.", "Aviso");
-             }*/
+            var frm = new FrmUsuario();
+            frm.Owner = Window.GetWindow(this);
+            var ok = frm.ShowDialog();
+            if (ok == true && this.DataContext is UsuarioViewModel vmUsuario)
+            {
+                await vmUsuario.LoadAsync();
+            }
         }
-        private void BtnEditar_Click(object sender, RoutedEventArgs e)
-        {
-            // Captura la fila que el usuario seleccionó con un clic común en la grilla
-            /* var usuarioSeleccionado = dgUsuarios.SelectedItem as UsuarioModel;
 
-             if (usuarioSeleccionado != null)
-             {
-                 MessageBox.Show($"Abriendo formulario de edición para: {usuarioSeleccionado.Nombre}", "Sistema MDI");
-                 // Acá ponés la lógica para pasar 'usuarioSeleccionado' a tu pantalla de carga
-             }
-             else
-             {
-                 MessageBox.Show("Por favor, selecciona un usuario de la lista antes de editar.", "Aviso");
-             }*/
+        private async void BtnModificar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is UsuarioViewModel vmUsuario)
+            {
+                if (vmUsuario.UsuarioSeleccionado == null)
+                {
+                    MessageBox.Show("Por favor, selecciona primero un usuario.", "Aviso");
+                    return;
+                }
+
+                var frm = new FrmUsuario(vmUsuario.UsuarioSeleccionado);
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmUsuario.LoadAsync();
+                }
+            }
+        }
+
+        private async void BtnBaja_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is UsuarioViewModel vmUsuario)
+            {
+                if (vmUsuario.UsuarioSeleccionado == null)
+                {
+                    MessageBox.Show("Por favor, selecciona primero un usuario.", "Aviso");
+                    return;
+                }
+
+                var msg = MessageBox.Show("¿Cambiar el estado del usuario seleccionado?", "Confirmar cambio", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (msg != MessageBoxResult.Yes) return;
+
+                await vmUsuario.ToggleEstadoAsync();
+                await vmUsuario.LoadAsync();
+            }
         }
     }
 }
