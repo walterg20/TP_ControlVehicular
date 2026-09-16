@@ -13,6 +13,11 @@ namespace TP_ControlVehicular.Negocio.Mappers
                 .ForMember(dest => dest.IdCliente, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FechaNac, opt => opt.MapFrom(src => src.FechaNacimiento));
 
+            CreateMap<Servicio, ServicioDto>()
+                .ForMember(dest => dest.IdServicio, opt => opt.MapFrom(src => src.IdServicio));
+            CreateMap<Rol, RolDto>();
+            CreateMap<Usuario, UsuarioDto>().ForMember(d => d.RolNombre, o => o.MapFrom(s => s.Rol.Nombre));
+
             // Vehiculo → VehiculoDto
             CreateMap<Vehiculo, VehiculoDto>()
                 .ForMember(dest => dest.ClienteNombre,

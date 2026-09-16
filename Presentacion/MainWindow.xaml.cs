@@ -10,6 +10,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.Taller;
+using TP_ControlVehicular.Presentacion.Servicio;
+using TP_ControlVehicular.Presentacion.Usuario;
 
 namespace TP_ControlVehicular
 {
@@ -31,6 +33,14 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_Taller(object sender, RoutedEventArgs e)
         {
             AgregarPagina(new CtlTaller());
+        }
+        private void MenuItem_Click_Servicio(object sender, RoutedEventArgs e)
+        {
+            AgregarPagina(new CtlServicio());
+        }
+        private void MenuItem_Click_Usuario(object sender, RoutedEventArgs e)
+        {
+            AgregarPagina(new CtlUsuario());
         }
         private void MenuItem_Click_Vehiculo(object sender, RoutedEventArgs e)
         {

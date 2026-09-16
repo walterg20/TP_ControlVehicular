@@ -9,6 +9,7 @@ using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Mappers;
 using TP_ControlVehicular.Negocio.Services;
 using TP_ControlVehicular.Presentacion.Cliente;
+using TP_ControlVehicular.Presentacion.Servicio;
 using TP_ControlVehicular.Presentacion.Marca;
 using TP_ControlVehicular.Presentacion.Modelo;
 using TP_ControlVehicular.Presentacion.Taller;
@@ -50,6 +51,9 @@ namespace TP_ControlVehicular
             services.AddScoped<IModeloRepository, ModeloRepository>();
             services.AddScoped<IMarcaRepository, MarcaRepository>();
             services.AddScoped<ITallerRepository, TallerRepository>();
+            services.AddScoped<IServicioRepository, ServicioRepository>();
+            services.AddScoped<IRolRepository, RolRepository>();
+            services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
             // Handlers
             services.AddScoped<RegistrarClienteHandler>();
@@ -58,6 +62,9 @@ namespace TP_ControlVehicular
             services.AddScoped<ListarTallerHandler>();
             services.AddScoped<RegistrarTallerHandler>();
             services.AddScoped<ModificarTallerHandler>();
+            services.AddScoped<RegistrarServicioHandler>();
+            services.AddScoped<RegistrarRolHandler>();
+            services.AddScoped<RegistrarUsuarioHandler>();
 
 
             // ViewModels
@@ -66,6 +73,9 @@ namespace TP_ControlVehicular
             services.AddScoped<ModeloViewModel>();
             services.AddScoped<MarcaViewModel>();
             services.AddScoped<TallerViewModel>();
+            services.AddScoped<ServicioViewModel>();
+            services.AddScoped<RolViewModel>();
+            services.AddScoped<UsuarioViewModel>();
 
             // UserControls
             services.AddScoped<CtlCliente>();
@@ -73,6 +83,7 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlModelo>();
             services.AddScoped<CtlMarca>();
             services.AddScoped<CtlTaller>();
+            services.AddScoped<CtlServicio>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();

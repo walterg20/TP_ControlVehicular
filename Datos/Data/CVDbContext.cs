@@ -13,6 +13,9 @@ namespace TP_ControlVehicular.Datos.Data
         public DbSet<Modelo> Modelos { get; set; } = null!;
         public DbSet<Marca> Marcas { get; set; } = null!;
         public DbSet<Taller> Talleres { get; set; } = null!;
+        public DbSet<Servicio> Servicios { get; set; } = null!;
+        public DbSet<Rol> Roles { get; set; } = null!;
+        public DbSet<Usuario> Usuarios { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TP_ControlVehicular.Datos.Data;
 
@@ -11,9 +12,11 @@ using TP_ControlVehicular.Datos.Data;
 namespace TP_ControlVehicular.Migrations
 {
     [DbContext(typeof(CVDbContext))]
-    partial class CVDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260916180542_AddServicio")]
+    partial class AddServicio
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -110,36 +113,6 @@ namespace TP_ControlVehicular.Migrations
                     b.ToTable("Modelo", (string)null);
                 });
 
-            modelBuilder.Entity("TP_ControlVehicular.Entidad.Rol", b =>
-                {
-                    b.Property<int>("IdRol")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id_rol");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdRol"));
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)")
-                        .HasColumnName("descripcion");
-
-                    b.Property<bool>("Estado")
-                        .HasColumnType("bit")
-                        .HasColumnName("estado");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("nombre");
-
-                    b.HasKey("IdRol");
-
-                    b.ToTable("Rol", (string)null);
-                });
-
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Servicio", b =>
                 {
                     b.Property<int>("IdServicio")
@@ -200,42 +173,6 @@ namespace TP_ControlVehicular.Migrations
                     b.ToTable("Taller", (string)null);
                 });
 
-            modelBuilder.Entity("TP_ControlVehicular.Entidad.Usuario", b =>
-                {
-                    b.Property<int>("IdUsuario")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id_usuario");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdUsuario"));
-
-                    b.Property<string>("Contrasena")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)")
-                        .HasColumnName("contrasena");
-
-                    b.Property<bool>("Estado")
-                        .HasColumnType("bit")
-                        .HasColumnName("estado");
-
-                    b.Property<int>("IdRol")
-                        .HasColumnType("int")
-                        .HasColumnName("id_rol");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)")
-                        .HasColumnName("nombre");
-
-                    b.HasKey("IdUsuario");
-
-                    b.HasIndex("IdRol");
-
-                    b.ToTable("Usuario", (string)null);
-                });
-
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Vehiculo", b =>
                 {
                     b.Property<int>("Id")
@@ -281,17 +218,6 @@ namespace TP_ControlVehicular.Migrations
                     b.Navigation("Marca");
                 });
 
-            modelBuilder.Entity("TP_ControlVehicular.Entidad.Usuario", b =>
-                {
-                    b.HasOne("TP_ControlVehicular.Entidad.Rol", "Rol")
-                        .WithMany("Usuarios")
-                        .HasForeignKey("IdRol")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Rol");
-                });
-
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Vehiculo", b =>
                 {
                     b.HasOne("TP_ControlVehicular.Entidad.Cliente", "Cliente")
@@ -324,11 +250,6 @@ namespace TP_ControlVehicular.Migrations
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Modelo", b =>
                 {
                     b.Navigation("Vehiculos");
-                });
-
-            modelBuilder.Entity("TP_ControlVehicular.Entidad.Rol", b =>
-                {
-                    b.Navigation("Usuarios");
                 });
 #pragma warning restore 612, 618
         }

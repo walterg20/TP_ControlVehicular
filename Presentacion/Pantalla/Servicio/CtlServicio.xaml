@@ -1,0 +1,37 @@
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Servicio.CtlServicio"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Control de Servicios" FontSize="20" FontWeight="Bold"/>
+            <TextBlock Text="Administración de servicios del sistema" FontSize="12" Foreground="Gray"/>
+        </StackPanel>
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Height="25" VerticalContentAlignment="Center" Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Grid.Column="1" Content="Buscar" Width="80" Height="25" Margin="10,0,0,0" Click="BtnBuscar_Click"/>
+            <Button Grid.Column="2" Content="Nuevo Servicio" Width="120" Height="25" HorizontalAlignment="Right" Click="BtnNuevo_Click"/>
+        </Grid>
+        <DataGrid Grid.Row="2" x:Name="dgServicios" ItemsSource="{Binding Servicios}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding IdServicio}" Width="70"/>
+                <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
+                <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=N2}" Width="150"/>
+                <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="80"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button Content="Editar Seleccionado" Width="140" Height="28" Margin="0,0,10,0" Click="BtnEditar_Click"/>
+            <Button Content="Eliminar Seleccionado" Width="140" Height="28" Click="BtnBorrar_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

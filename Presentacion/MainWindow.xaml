@@ -58,6 +58,12 @@
                     <!-- Botón Taller -->
                     <Button x:Name="btnTaller" Content="🔧 Talleres" Click="MenuItem_Click_Taller" 
                             Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                    <!-- Botón Servicio -->
+                    <Button x:Name="btnServicio" Content="🔧 Servicios" Click="MenuItem_Click_Servicio"
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                    <!-- Botón Usuario -->
+                    <Button x:Name="btnUsuario" Content="👤 Usuarios" Click="MenuItem_Click_Usuario"
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
                     <!-- ESPACIADOR -->
                     <Separator Background="#34495E" Margin="0,15"/>
                     

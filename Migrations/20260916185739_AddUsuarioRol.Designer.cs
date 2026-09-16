@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TP_ControlVehicular.Datos.Data;
 
@@ -11,9 +12,11 @@ using TP_ControlVehicular.Datos.Data;
 namespace TP_ControlVehicular.Migrations
 {
     [DbContext(typeof(CVDbContext))]
-    partial class CVDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260916185739_AddUsuarioRol")]
+    partial class AddUsuarioRol
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
