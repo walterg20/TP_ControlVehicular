@@ -1,1 +1,11 @@
-using Microsoft.EntityFrameworkCore; using TP_ControlVehicular.Datos.Data; using TP_ControlVehicular.Entidad; using TP_ControlVehicular.Negocio.Interfaces; namespace TP_ControlVehicular.Datos.Repositories; public class UsuarioRepository(CVDbContext context) : Repository<Usuario>(context), IUsuarioRepository { public async Task<IEnumerable<Usuario>> GetActivosAsync() => await context.Usuarios.Include(x=>x.Rol).Where(x=>x.Estado).ToListAsync(); }
+using Microsoft.EntityFrameworkCore;
+using TP_ControlVehicular.Datos.Data;
+using TP_ControlVehicular.Entidad;
+using TP_ControlVehicular.Negocio.Interfaces;
+namespace TP_ControlVehicular.Datos.Repositories;
+
+public class UsuarioRepository(CVDbContext context) : Repository<Usuario>(context), IUsuarioRepository
+{
+    public async Task<IEnumerable<Usuario>> GetActivosAsync() =>
+        await context.Usuarios.Include(x => x.Rol).Where(x => x.Estado).ToListAsync();
+}

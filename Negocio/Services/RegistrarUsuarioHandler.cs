@@ -1,1 +1,18 @@
-using AutoMapper; using TP_ControlVehicular.Entidad; using TP_ControlVehicular.Negocio.DTOs; using TP_ControlVehicular.Negocio.Interfaces; namespace TP_ControlVehicular.Negocio.Services; public class RegistrarUsuarioHandler(IUsuarioRepository repo, IMapper mapper) { public async Task<UsuarioDto> HandleAsync(Usuario item) { if(item.IdUsuario>0) await repo.UpdateAsync(item); else await repo.AddAsync(item); return mapper.Map<UsuarioDto>(item); } }
+using AutoMapper;
+using TP_ControlVehicular.Entidad;
+using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Negocio.Interfaces;
+namespace TP_ControlVehicular.Negocio.Services;
+
+public class RegistrarUsuarioHandler(IUsuarioRepository repo, IMapper mapper)
+{
+    public async Task<UsuarioDto> HandleAsync(Usuario item)
+    {
+        if (item.IdUsuario > 0)
+            await repo.UpdateAsync(item);
+        else
+            await repo.AddAsync(item);
+
+        return mapper.Map<UsuarioDto>(item);
+    }
+}

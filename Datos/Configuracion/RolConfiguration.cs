@@ -1,3 +1,17 @@
-using Microsoft.EntityFrameworkCore; using Microsoft.EntityFrameworkCore.Metadata.Builders; using TP_ControlVehicular.Entidad;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TP_ControlVehicular.Entidad;
 namespace TP_ControlVehicular.Datos.Configuracion;
-public class RolConfiguration : IEntityTypeConfiguration<Rol> { public void Configure(EntityTypeBuilder<Rol> b) { b.ToTable("Rol"); b.HasKey(x=>x.IdRol); b.Property(x=>x.IdRol).HasColumnName("id_rol"); b.Property(x=>x.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired(); b.Property(x=>x.Descripcion).HasColumnName("descripcion").HasMaxLength(250).IsRequired(); b.Property(x=>x.Estado).HasColumnName("estado").IsRequired(); } }
+
+public class RolConfiguration : IEntityTypeConfiguration<Rol>
+{
+    public void Configure(EntityTypeBuilder<Rol> builder)
+    {
+        builder.ToTable("Rol");
+        builder.HasKey(x => x.IdRol);
+        builder.Property(x => x.IdRol).HasColumnName("id_rol");
+        builder.Property(x => x.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+        builder.Property(x => x.Descripcion).HasColumnName("descripcion").HasMaxLength(250).IsRequired();
+        builder.Property(x => x.Estado).HasColumnName("estado").IsRequired();
+    }
+}
