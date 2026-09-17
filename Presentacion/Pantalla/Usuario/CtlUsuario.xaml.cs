@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Usuario
@@ -41,7 +42,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
             {
                 if (vmUsuario.UsuarioSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un usuario.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un usuario.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
@@ -61,12 +62,12 @@ namespace TP_ControlVehicular.Presentacion.Usuario
             {
                 if (vmUsuario.UsuarioSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un usuario.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un usuario.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                var msg = MessageBox.Show("¿Cambiar el estado del usuario seleccionado?", "Confirmar cambio", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (msg != MessageBoxResult.Yes) return;
+                if (!FrmConfirmacion.Mostrar("¿Cambiar el estado del usuario seleccionado?", "Confirmar cambio", Window.GetWindow(this)))
+                    return;
 
                 await vmUsuario.ToggleEstadoAsync();
                 await vmUsuario.LoadAsync();

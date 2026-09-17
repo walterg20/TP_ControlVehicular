@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         mc:Ignorable="d"
-        Title="Usuario" Height="400" Width="420"
+        Title="Usuario" Height="780" Width="450"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FocusManager.FocusedElement="{Binding ElementName=txtNombre}">
@@ -18,16 +18,22 @@
 
         <!-- Cabecera -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock x:Name="lblTituloFormulario" Text="Datos del Usuario" FontSize="20" FontWeight="Bold"/>
+            <TextBlock x:Name="lblTituloFormulario" Text="Datos del Usuario" FontSize="20" FontWeight="Bold" Foreground="#2C3E50"/>
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Disabled">
             <Grid VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="130"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -43,8 +49,62 @@
                                Visibility="{Binding (Validation.HasError), ElementName=txtNombre, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Contraseña:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Apellido:" FontWeight="Bold" Margin="0,5,5,2"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,16">
+                    <TextBox x:Name="txtApellido" Height="30"
+                             Text="{Binding Apellido, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtApellido, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=txtApellido, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="DNI:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,16">
+                    <TextBox x:Name="txtDni" Height="30"
+                             Text="{Binding Dni, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtDni, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=txtDni, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+                
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Email:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,16">
+                    <TextBox x:Name="txtEmail" Height="30"
+                             Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtEmail, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=txtEmail, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Teléfono:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="4" Grid.Column="1" Margin="0,0,0,16">
+                    <TextBox x:Name="txtTelefono" Height="30"
+                             Text="{Binding Telefono, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtTelefono, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=txtTelefono, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Fecha Nac.:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,0,0,16">
+                    <DatePicker x:Name="dtpFechaNacimiento" Height="30"
+                                SelectedDate="{Binding FechaNacimiento, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=dtpFechaNacimiento, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=dtpFechaNacimiento, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="Domicilio:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="6" Grid.Column="1" Margin="0,0,0,16">
+                    <TextBox x:Name="txtDomicilio" Height="60" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
+                             Text="{Binding Domicilio, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtDomicilio, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=txtDomicilio, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Contraseña:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="7" Grid.Column="1" Margin="0,0,0,16">
                     <TextBox x:Name="txtContrasena" Height="30"
                              Text="{Binding Contrasena, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                     <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtContrasena, FallbackValue=''}"
@@ -52,8 +112,8 @@
                                Visibility="{Binding (Validation.HasError), ElementName=txtContrasena, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Rol:" FontWeight="Bold" Margin="0,5,5,2"/>
-                <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,16">
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Rol:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="8" Grid.Column="1" Margin="0,0,0,16">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -62,23 +122,45 @@
                         <ComboBox x:Name="cmbRol" Grid.Column="0" Height="30" Margin="0,0,5,0"
                                   ItemsSource="{Binding RolesDisponibles}" DisplayMemberPath="Nombre" SelectedValuePath="IdRol"
                                   SelectedValue="{Binding IdRol, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                        <Button x:Name="btnAgregarRol" Grid.Column="1" Content="+" Width="30" Height="30"
-                                ToolTip="Agregar nuevo Rol" FontWeight="Bold" Click="BtnAgregarRol_Click"/>
+                        <Button x:Name="btnAgregarRol" Grid.Column="1" Content="➕" Width="30" Height="30"
+                                ToolTip="Agregar nuevo Rol" Background="#27AE60" Foreground="White" FontWeight="Bold" 
+                                BorderThickness="0" Cursor="Hand" Click="BtnAgregarRol_Click">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
                     </Grid>
                     <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbRol, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=cmbRol, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Estado:" FontWeight="Bold" Margin="0,5,5,2"/>
-                <CheckBox x:Name="chkEstado" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,16"
+                <TextBlock Grid.Row="9" Grid.Column="0" Text="Estado:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <CheckBox x:Name="chkEstado" Grid.Row="9" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,16"
                           IsChecked="{Binding Estado, Mode=TwoWay}"/>
             </Grid>
         </ScrollViewer>
 
+        <!-- Botones -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="2" Margin="0,20,0,0">
-            <Button Content="Guardar" Width="90" Height="32" IsDefault="True" Click="BtnGuardar_Click" Margin="0,0,12,0"/>
-            <Button Content="Cancelar" Width="90" Height="32" Click="BtnCancelar_Click"/>
+            <Button Content="Guardar" Width="95" Height="34" IsDefault="True" Click="BtnGuardar_Click" 
+                    Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,12,0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+            <Button Content="Cancelar" Width="95" Height="34" Click="BtnCancelar_Click" 
+                    Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
         </StackPanel>
     </Grid>
 </Window>

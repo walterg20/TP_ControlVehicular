@@ -16,6 +16,11 @@ namespace TP_ControlVehicular.Presentacion.Usuario
             InitializeComponent();
             _esModificacion = false;
             this.Title = "Registrar Nuevo Usuario";
+            
+            // Configurar límites del DatePicker (min: 80 años atrás, max: 18 años atrás)
+            dtpFechaNacimiento.DisplayDateStart = DateTime.Today.AddYears(-80);
+            dtpFechaNacimiento.DisplayDateEnd = DateTime.Today.AddYears(-18);
+
             ConfigurarViewModel(null);
             Loaded += (s, e) => txtNombre.Focus();
             ConfigurarValidacionAlPerderFoco();
@@ -26,6 +31,10 @@ namespace TP_ControlVehicular.Presentacion.Usuario
             InitializeComponent();
             _esModificacion = true;
             this.Title = "Modificar Usuario";
+
+            dtpFechaNacimiento.DisplayDateStart = DateTime.Today.AddYears(-80);
+            dtpFechaNacimiento.DisplayDateEnd = DateTime.Today.AddYears(-18);
+
             ConfigurarViewModel(usuario);
             Loaded += (s, e) => txtNombre.Focus();
             ConfigurarValidacionAlPerderFoco();
@@ -72,6 +81,17 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                     {
                         vmUsuario.UsuarioSeleccionado = usuario;
                         vmUsuario.Nombre = usuario.Nombre;
+                        vmUsuario.Apellido = usuario.Apellido;
+                        vmUsuario.Dni = usuario.Dni;
+                        vmUsuario.Email = usuario.Email;
+                        vmUsuario.Telefono = usuario.Telefono;
+                        vmUsuario.Domicilio = usuario.Domicilio;
+                        
+                        if (usuario.FechaNacimiento.Year < 1900)
+                            vmUsuario.FechaNacimiento = DateTime.Today.AddYears(-18);
+                        else
+                            vmUsuario.FechaNacimiento = usuario.FechaNacimiento;
+                            
                         vmUsuario.Contrasena = usuario.Contrasena;
                         vmUsuario.IdRol = usuario.IdRol;
                         vmUsuario.Estado = usuario.Estado;
@@ -80,6 +100,12 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                     {
                         vmUsuario.UsuarioSeleccionado = null;
                         vmUsuario.Nombre = string.Empty;
+                        vmUsuario.Apellido = string.Empty;
+                        vmUsuario.Dni = string.Empty;
+                        vmUsuario.Email = string.Empty;
+                        vmUsuario.Telefono = string.Empty;
+                        vmUsuario.Domicilio = string.Empty;
+                        vmUsuario.FechaNacimiento = DateTime.Today.AddYears(-18);
                         vmUsuario.Contrasena = string.Empty;
                         vmUsuario.IdRol = 0;
                         vmUsuario.Estado = true;

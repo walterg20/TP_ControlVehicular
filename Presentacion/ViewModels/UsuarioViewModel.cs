@@ -16,7 +16,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ModificarUsuarioHandler _modificarUsuarioHandler;
         private readonly IRolRepository _rolRepository;
         private readonly IMapper _mapper;
-        private readonly Dictionary<string, List<string>> _errors = new();
 
         public UsuarioViewModel(
             ListarUsuariosHandler listarUsuariosHandler,
@@ -36,6 +35,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             ((ObservableCollection<UsuarioDto>)Usuarios).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoUsuariosFiltered));
             Estado = true;
+            FechaNacimiento = DateTime.Today.AddYears(-20);
             RegistrarCommand = new RelayCommand(async () => await GuardarUsuarioAsync(), () => !HasErrors);
         }
 
@@ -53,6 +53,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             string.IsNullOrWhiteSpace(TextoBusqueda)
                 ? Usuarios
                 : Usuarios.Where(usuario => (usuario.Nombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
+                                   || (usuario.Apellido ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
+                                   || (usuario.Dni ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
                                    || (usuario.RolNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
 
         private int _idRol;
@@ -67,6 +69,48 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             get => _nombre;
             set { _nombre = value; OnPropertyChanged(); ValidateProperty(); }
+        }
+
+        private string _apellido = string.Empty;
+        public string Apellido
+        {
+            get => _apellido;
+            set { _apellido = value; OnPropertyChanged(); ValidateProperty(); }
+        }
+
+        private string _dni = string.Empty;
+        public string Dni
+        {
+            get => _dni;
+            set { _dni = value; OnPropertyChanged(); ValidateProperty(); }
+        }
+
+        private string _email = string.Empty;
+        public string Email
+        {
+            get => _email;
+            set { _email = value; OnPropertyChanged(); ValidateProperty(); }
+        }
+
+        private string _telefono = string.Empty;
+        public string Telefono
+        {
+            get => _telefono;
+            set { _telefono = value; OnPropertyChanged(); ValidateProperty(); }
+        }
+
+        private string _domicilio = string.Empty;
+        public string Domicilio
+        {
+            get => _domicilio;
+            set { _domicilio = value; OnPropertyChanged(); ValidateProperty(); }
+        }
+
+        private DateTime _fechaNacimiento;
+        public DateTime FechaNacimiento
+        {
+            get => _fechaNacimiento;
+            set { _fechaNacimiento = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
         private string _contrasena = string.Empty;
@@ -117,7 +161,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
             catch
             {
-                // Silenciar error en carga de roles
             }
         }
 
@@ -136,7 +179,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
             catch
             {
-                // Silenciar error en carga inicial
             }
         }
 
@@ -150,6 +192,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Id = usuarioSeleccionado?.IdUsuario ?? 0,
                 RolId = IdRol,
                 Nombre = Nombre,
+                Apellido = Apellido,
+                Dni = Dni,
+                Email = Email,
+                Telefono = Telefono,
+                Domicilio = Domicilio,
+                FechaNacimiento = FechaNacimiento,
                 Contrasena = Contrasena,
                 Estado = Estado
             };
@@ -197,6 +245,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Id = UsuarioSeleccionado.IdUsuario,
                 RolId = UsuarioSeleccionado.IdRol,
                 Nombre = UsuarioSeleccionado.Nombre,
+                Apellido = UsuarioSeleccionado.Apellido,
+                Dni = UsuarioSeleccionado.Dni,
+                Email = UsuarioSeleccionado.Email,
+                Telefono = UsuarioSeleccionado.Telefono,
+                Domicilio = UsuarioSeleccionado.Domicilio,
+                FechaNacimiento = UsuarioSeleccionado.FechaNacimiento,
                 Contrasena = UsuarioSeleccionado.Contrasena,
                 Estado = UsuarioSeleccionado.Estado
             };
@@ -232,8 +286,40 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             switch (propertyName)
             {
                 case nameof(Nombre):
-                    if (string.IsNullOrWhiteSpace(Nombre) || Nombre.Trim().Length < 5)
-                        SetError(nameof(Nombre), "Nombre requerido (mínimo 5 caracteres).");
+                    if (string.IsNullOrWhiteSpace(Nombre) || Nombre.Trim().Length < 2)
+                        SetError(nameof(Nombre), "Nombre requerido (mínimo 2 caracteres).");
+                    break;
+                case nameof(Apellido):
+                    if (string.IsNullOrWhiteSpace(Apellido))
+                        SetError(nameof(Apellido), "Apellido requerido.");
+                    break;
+                case nameof(Dni):
+                    if (string.IsNullOrWhiteSpace(Dni))
+                        SetError(nameof(Dni), "DNI requerido.");
+                    else if (!System.Text.RegularExpressions.Regex.IsMatch(Dni, @"^\d{7,10}$"))
+                        SetError(nameof(Dni), "DNI inválido (debe contener entre 7 y 10 dígitos numéricos).");
+                    break;
+                case nameof(Email):
+                    if (string.IsNullOrWhiteSpace(Email))
+                        SetError(nameof(Email), "Email requerido.");
+                    else if (!System.Text.RegularExpressions.Regex.IsMatch(Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                        SetError(nameof(Email), "Formato de email inválido.");
+                    break;
+                case nameof(Telefono):
+                    if (string.IsNullOrWhiteSpace(Telefono))
+                        SetError(nameof(Telefono), "Teléfono requerido.");
+                    else if (!System.Text.RegularExpressions.Regex.IsMatch(Telefono, @"^\d{3,4}\s?\d{6,7}$"))
+                        SetError(nameof(Telefono), "Formato de teléfono inválido (ej: 362 4615825).");
+                    break;
+                case nameof(Domicilio):
+                    if (string.IsNullOrWhiteSpace(Domicilio))
+                        SetError(nameof(Domicilio), "Domicilio requerido.");
+                    break;
+                case nameof(FechaNacimiento):
+                    var edad = DateTime.Today.Year - FechaNacimiento.Year;
+                    if (FechaNacimiento.Date > DateTime.Today.AddYears(-edad)) edad--;
+                    if (edad < 18)
+                        SetError(nameof(FechaNacimiento), "El usuario debe ser mayor de 18 años.");
                     break;
                 case nameof(Contrasena):
                     if (string.IsNullOrWhiteSpace(Contrasena))
@@ -253,6 +339,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public bool ValidateAll()
         {
             ValidateProperty(nameof(Nombre));
+            ValidateProperty(nameof(Apellido));
+            ValidateProperty(nameof(Dni));
+            ValidateProperty(nameof(Email));
+            ValidateProperty(nameof(Telefono));
+            ValidateProperty(nameof(Domicilio));
+            ValidateProperty(nameof(FechaNacimiento));
             ValidateProperty(nameof(Contrasena));
             ValidateProperty(nameof(IdRol));
             return !HasErrors;
