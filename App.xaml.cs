@@ -14,6 +14,7 @@ using TP_ControlVehicular.Presentacion.Modelo;
 using TP_ControlVehicular.Presentacion.Pantalla.Dashboard;
 using TP_ControlVehicular.Presentacion.Pantalla.Login;
 using TP_ControlVehicular.Presentacion.Pantalla.Reporte;
+using TP_ControlVehicular.Presentacion.Pantalla.Servicio;
 using TP_ControlVehicular.Presentacion.Rol;
 using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Usuario;
@@ -57,6 +58,7 @@ namespace TP_ControlVehicular
             services.AddScoped<ITallerRepository, TallerRepository>();
             services.AddScoped<IRolRepository, RolRepository>();
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<IServicioRepository, ServicioRepository>();
             services.AddScoped<IRegistroServicioRepository, RegistroServicioRepository>();
 
             // Handlers
@@ -86,6 +88,10 @@ namespace TP_ControlVehicular
             services.AddScoped<AutenticarUsuarioHandler>();
             services.AddScoped<ObtenerDashboardHandler>();
             services.AddScoped<ObtenerReporteOrdenesHandler>();
+            services.AddScoped<ListarServiciosHandler>();
+            services.AddScoped<RegistrarServicioHandler>();
+            services.AddScoped<ModificarServicioHandler>();
+            services.AddScoped<EliminarServicioHandler>();
 
 
             // ViewModels
@@ -99,8 +105,9 @@ namespace TP_ControlVehicular
             services.AddScoped<LoginViewModel>();
             services.AddScoped<DashboardViewModel>();
             services.AddScoped<ReporteOrdenesViewModel>();
+            services.AddScoped<ServicioViewModel>();
 
-            // UserControls
+            // UserControls & Windows
             services.AddScoped<CtlCliente>();
             services.AddScoped<CtlVehiculo>();
             services.AddScoped<CtlModelo>();
@@ -111,6 +118,8 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlLogin>();
             services.AddScoped<CtlDashboard>();
             services.AddScoped<CtlReporteOrdenes>();
+            services.AddScoped<CtlServicio>();
+            services.AddTransient<FrmServicio>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();

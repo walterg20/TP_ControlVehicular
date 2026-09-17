@@ -46,6 +46,10 @@ namespace TP_ControlVehicular.Negocio.Mappers
                 .ForMember(dest => dest.IdUsuario, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.IdRol, opt => opt.MapFrom(src => src.RolId))
                 .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.Rol != null ? src.Rol.Nombre : string.Empty));
+
+            // Servicio → ServicioDto
+            CreateMap<Servicio, ServicioDto>()
+                .ForMember(dest => dest.IdServicio, opt => opt.MapFrom(src => src.Id));
         }
     }
 }
