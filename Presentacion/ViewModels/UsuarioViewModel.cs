@@ -228,6 +228,23 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 RegistrationCompleted?.Invoke(this, true);
                 return true;
             }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            {
+                if (ex.InnerException != null)
+                {
+                    if (ex.InnerException.Message.Contains("IX_Usuarios_Dni"))
+                        RegistrationFailed?.Invoke(this, "El DNI ingresado ya se encuentra registrado en el sistema.");
+                    else if (ex.InnerException.Message.Contains("IX_Usuarios_Email"))
+                        RegistrationFailed?.Invoke(this, "El Email ingresado ya se encuentra registrado en el sistema.");
+                    else
+                        RegistrationFailed?.Invoke(this, "Error de base de datos al guardar el usuario: " + ex.InnerException.Message);
+                }
+                else
+                {
+                    RegistrationFailed?.Invoke(this, "Error al guardar el usuario en la base de datos.");
+                }
+                return false;
+            }
             catch (Exception ex)
             {
                 RegistrationFailed?.Invoke(this, "Error al guardar el usuario: " + ex.Message);
@@ -269,8 +286,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 }
                 if (index >= 0) Usuarios[index] = dto;
             }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            {
+                UsuarioSeleccionado.Estado = !UsuarioSeleccionado.Estado; // Rollback visual
+                RegistrationFailed?.Invoke(this, "Error de base de datos al actualizar estado del usuario: " + (ex.InnerException?.Message ?? ex.Message));
+            }
             catch (Exception ex)
             {
+                UsuarioSeleccionado.Estado = !UsuarioSeleccionado.Estado; // Rollback visual
                 RegistrationFailed?.Invoke(this, "Error al actualizar estado del usuario: " + ex.Message);
             }
         }
@@ -286,45 +309,43 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             switch (propertyName)
             {
                 case nameof(Nombre):
-                    if (string.IsNullOrWhiteSpace(Nombre) || Nombre.Trim().Length < 2)
+                    if (!Presentacion.Validaciones.ValidadorGlobal.EsTextoValido(Nombre, 2))
                         SetError(nameof(Nombre), "Nombre requerido (mínimo 2 caracteres).");
                     break;
                 case nameof(Apellido):
-                    if (string.IsNullOrWhiteSpace(Apellido))
+                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Apellido))
                         SetError(nameof(Apellido), "Apellido requerido.");
                     break;
                 case nameof(Dni):
-                    if (string.IsNullOrWhiteSpace(Dni))
+                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Dni))
                         SetError(nameof(Dni), "DNI requerido.");
-                    else if (!System.Text.RegularExpressions.Regex.IsMatch(Dni, @"^\d{7,10}$"))
+                    else if (!Presentacion.Validaciones.ValidadorGlobal.EsDniValido(Dni))
                         SetError(nameof(Dni), "DNI inválido (debe contener entre 7 y 10 dígitos numéricos).");
                     break;
                 case nameof(Email):
-                    if (string.IsNullOrWhiteSpace(Email))
+                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Email))
                         SetError(nameof(Email), "Email requerido.");
-                    else if (!System.Text.RegularExpressions.Regex.IsMatch(Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                    else if (!Presentacion.Validaciones.ValidadorGlobal.EsEmailValido(Email))
                         SetError(nameof(Email), "Formato de email inválido.");
                     break;
                 case nameof(Telefono):
-                    if (string.IsNullOrWhiteSpace(Telefono))
+                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Telefono))
                         SetError(nameof(Telefono), "Teléfono requerido.");
-                    else if (!System.Text.RegularExpressions.Regex.IsMatch(Telefono, @"^\d{3,4}\s?\d{6,7}$"))
+                    else if (!Presentacion.Validaciones.ValidadorGlobal.EsTelefonoValido(Telefono))
                         SetError(nameof(Telefono), "Formato de teléfono inválido (ej: 362 4615825).");
                     break;
                 case nameof(Domicilio):
-                    if (string.IsNullOrWhiteSpace(Domicilio))
+                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Domicilio))
                         SetError(nameof(Domicilio), "Domicilio requerido.");
                     break;
                 case nameof(FechaNacimiento):
-                    var edad = DateTime.Today.Year - FechaNacimiento.Year;
-                    if (FechaNacimiento.Date > DateTime.Today.AddYears(-edad)) edad--;
-                    if (edad < 18)
+                    if (!Presentacion.Validaciones.ValidadorGlobal.EsMayorDeEdad(FechaNacimiento, 18))
                         SetError(nameof(FechaNacimiento), "El usuario debe ser mayor de 18 años.");
                     break;
                 case nameof(Contrasena):
-                    if (string.IsNullOrWhiteSpace(Contrasena))
+                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Contrasena))
                         SetError(nameof(Contrasena), "Contraseña requerida.");
-                    else if (!System.Text.RegularExpressions.Regex.IsMatch(Contrasena, @"^(?=.*[A-Z])(?=.*\d)(?=.*[#@!$%^&*()_+\-=\[\]{};':""\\|,.<>\/?]).{6,}$"))
+                    else if (!Presentacion.Validaciones.ValidadorGlobal.EsContrasenaValida(Contrasena))
                         SetError(nameof(Contrasena), "La contraseña debe tener mín. 6 caracteres, incluir al menos una mayúscula, un número y un carácter especial (#, @, etc.).");
                     break;
                 case nameof(IdRol):
