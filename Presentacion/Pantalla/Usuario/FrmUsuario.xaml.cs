@@ -135,6 +135,12 @@ namespace TP_ControlVehicular.Presentacion.Usuario
         {
             if (DataContext is UsuarioViewModel vmUsuario)
             {
+                if (!vmUsuario.ValidateAll())
+                {
+                    Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso("Por favor, revise los campos marcados en rojo. Asegúrese de que la contraseña cumpla con los requisitos.", "Validación", Window.GetWindow(this));
+                    return;
+                }
+
                 var ok = await vmUsuario.GuardarUsuarioAsync();
                 if (ok)
                 {

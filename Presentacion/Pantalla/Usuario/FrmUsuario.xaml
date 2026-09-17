@@ -44,7 +44,7 @@
                 <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,16">
                     <TextBox x:Name="txtNombre" Height="30"
                              Text="{Binding Nombre, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtNombre, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtNombre, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=txtNombre, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
@@ -53,7 +53,7 @@
                 <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,16">
                     <TextBox x:Name="txtApellido" Height="30"
                              Text="{Binding Apellido, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtApellido, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtApellido, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=txtApellido, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
@@ -62,7 +62,7 @@
                 <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,16">
                     <TextBox x:Name="txtDni" Height="30"
                              Text="{Binding Dni, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtDni, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtDni, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=txtDni, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
@@ -71,7 +71,7 @@
                 <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,16">
                     <TextBox x:Name="txtEmail" Height="30"
                              Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtEmail, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtEmail, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=txtEmail, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
@@ -80,7 +80,7 @@
                 <StackPanel Grid.Row="4" Grid.Column="1" Margin="0,0,0,16">
                     <TextBox x:Name="txtTelefono" Height="30"
                              Text="{Binding Telefono, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtTelefono, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtTelefono, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=txtTelefono, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
@@ -89,7 +89,7 @@
                 <StackPanel Grid.Row="5" Grid.Column="1" Margin="0,0,0,16">
                     <DatePicker x:Name="dtpFechaNacimiento" Height="30"
                                 SelectedDate="{Binding FechaNacimiento, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=dtpFechaNacimiento, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=dtpFechaNacimiento, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=dtpFechaNacimiento, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
@@ -98,7 +98,7 @@
                 <StackPanel Grid.Row="6" Grid.Column="1" Margin="0,0,0,16">
                     <TextBox x:Name="txtDomicilio" Height="60" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
                              Text="{Binding Domicilio, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtDomicilio, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtDomicilio, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=txtDomicilio, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
@@ -107,7 +107,7 @@
                 <StackPanel Grid.Row="7" Grid.Column="1" Margin="0,0,0,16">
                     <TextBox x:Name="txtContrasena" Height="30"
                              Text="{Binding Contrasena, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtContrasena, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtContrasena, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=txtContrasena, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
@@ -132,7 +132,7 @@
                             </Button.Resources>
                         </Button>
                     </Grid>
-                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbRol, FallbackValue=''}"
+                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=cmbRol, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=cmbRol, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
