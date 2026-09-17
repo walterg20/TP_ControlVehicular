@@ -112,12 +112,20 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                     }
 
                     vmUsuario.ClearAllErrors();
+                    
+                    vmUsuario.RegistrationFailed -= VmUsuario_RegistrationFailed;
+                    vmUsuario.RegistrationFailed += VmUsuario_RegistrationFailed;
                 }
             }
             catch
             {
                 // Ignorar si DI no está disponible
             }
+        }
+
+        private void VmUsuario_RegistrationFailed(object? sender, string errorMessage)
+        {
+            Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso(errorMessage, "Error de Guardado", Window.GetWindow(this));
         }
 
         private async void BtnAgregarRol_Click(object sender, RoutedEventArgs e)
