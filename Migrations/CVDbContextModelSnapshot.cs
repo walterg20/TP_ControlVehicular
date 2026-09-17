@@ -318,9 +318,6 @@ namespace TP_ControlVehicular.Migrations
                     b.Property<int>("RolId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RolId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Telefono")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -335,8 +332,6 @@ namespace TP_ControlVehicular.Migrations
                         .IsUnique();
 
                     b.HasIndex("RolId");
-
-                    b.HasIndex("RolId1");
 
                     b.ToTable("Usuarios");
                 });
@@ -443,14 +438,10 @@ namespace TP_ControlVehicular.Migrations
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Usuario", b =>
                 {
                     b.HasOne("TP_ControlVehicular.Entidad.Rol", "Rol")
-                        .WithMany()
+                        .WithMany("Usuarios")
                         .HasForeignKey("RolId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("TP_ControlVehicular.Entidad.Rol", null)
-                        .WithMany("Usuarios")
-                        .HasForeignKey("RolId1");
 
                     b.Navigation("Rol");
                 });

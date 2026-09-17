@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -68,11 +68,7 @@ namespace TP_ControlVehicular.Migrations
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)");
 
-            migrationBuilder.AddColumn<int>(
-                name: "RolId1",
-                table: "Usuarios",
-                type: "int",
-                nullable: true);
+            migrationBuilder.Sql("UPDATE Usuarios SET Dni = CAST(Id AS NVARCHAR(15)), Email = CAST(Id AS NVARCHAR(15)) + '@temp.com' WHERE Dni = '' OR Email = ''");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Usuarios_Dni",
@@ -86,11 +82,6 @@ namespace TP_ControlVehicular.Migrations
                 column: "Email",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Usuarios_RolId1",
-                table: "Usuarios",
-                column: "RolId1");
-
             migrationBuilder.AddForeignKey(
                 name: "FK_Usuarios_Roles_RolId",
                 table: "Usuarios",
@@ -98,13 +89,6 @@ namespace TP_ControlVehicular.Migrations
                 principalTable: "Roles",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Usuarios_Roles_RolId1",
-                table: "Usuarios",
-                column: "RolId1",
-                principalTable: "Roles",
-                principalColumn: "Id");
         }
 
         /// <inheritdoc />
@@ -114,24 +98,12 @@ namespace TP_ControlVehicular.Migrations
                 name: "FK_Usuarios_Roles_RolId",
                 table: "Usuarios");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Usuarios_Roles_RolId1",
-                table: "Usuarios");
-
             migrationBuilder.DropIndex(
                 name: "IX_Usuarios_Dni",
                 table: "Usuarios");
 
             migrationBuilder.DropIndex(
                 name: "IX_Usuarios_Email",
-                table: "Usuarios");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Usuarios_RolId1",
-                table: "Usuarios");
-
-            migrationBuilder.DropColumn(
-                name: "RolId1",
                 table: "Usuarios");
 
             migrationBuilder.AlterColumn<string>(
