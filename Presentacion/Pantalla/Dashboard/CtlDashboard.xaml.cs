@@ -21,7 +21,6 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Dashboard
                     if (vm != null)
                     {
                         DataContext = vm;
-                        Loaded += async (s, e) => await vm.LoadAsync();
                     }
                 }
             }
@@ -29,12 +28,19 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Dashboard
             {
                 // Fallback handled gracefully
             }
+
+            Loaded += async (s, e) =>
+            {
+                if (ViewModel != null)
+                {
+                    await ViewModel.LoadAsync();
+                }
+            };
         }
 
         public CtlDashboard(DashboardViewModel viewModel) : this()
         {
             DataContext = viewModel;
-            Loaded += async (s, e) => await viewModel.LoadAsync();
         }
     }
 }

@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Modelo
@@ -40,7 +41,7 @@ namespace TP_ControlVehicular.Presentacion.Modelo
             {
                 if (vmModelo.ModeloSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un modelo.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un modelo.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
@@ -60,22 +61,21 @@ namespace TP_ControlVehicular.Presentacion.Modelo
             {
                 if (vmModelo.ModeloSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un modelo para eliminar.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un modelo para eliminar.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                var res = MessageBox.Show($"¿Está seguro que desea eliminar el modelo '{vmModelo.ModeloSeleccionado.NombreModelo}'?", "Confirmar Eliminación", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (res == MessageBoxResult.Yes)
+                if (!FrmConfirmacion.Mostrar($"¿Está seguro que desea eliminar el modelo '{vmModelo.ModeloSeleccionado.NombreModelo}'?", "Confirmar Eliminación", Window.GetWindow(this)))
+                    return;
+
+                var ok = await vmModelo.EliminarModeloAsync(vmModelo.ModeloSeleccionado.Id);
+                if (ok)
                 {
-                    var ok = await vmModelo.EliminarModeloAsync(vmModelo.ModeloSeleccionado.Id);
-                    if (ok)
-                    {
-                        MessageBox.Show("Modelo eliminado correctamente.", "Éxito");
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se pudo eliminar el modelo (puede tener vehículos asociados).", "Error");
-                    }
+                    FrmConfirmacion.MostrarAviso("Modelo eliminado correctamente.", "Éxito", Window.GetWindow(this), icono: "✅");
+                }
+                else
+                {
+                    FrmConfirmacion.MostrarAviso("No se pudo eliminar el modelo (puede tener vehículos asociados).", "Error", Window.GetWindow(this), icono: "❌");
                 }
             }
         }

@@ -18,7 +18,7 @@
 
         <!-- Cabecera -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock x:Name="lblTituloFormulario" Text="Datos del Vehículo" FontSize="20" FontWeight="Bold"/>
+            <TextBlock x:Name="lblTituloFormulario" Text="Datos del Vehículo" FontSize="20" FontWeight="Bold" Foreground="#2C3E50"/>
         </StackPanel>
 
         <!-- Formulario -->
@@ -50,8 +50,8 @@
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Cliente:" FontWeight="Bold" Margin="0,5,5,2"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,16">
                     <ComboBox x:Name="cmbCliente" Height="30"
-                              ItemsSource="{Binding ClientesDisponibles}" DisplayMemberPath="NombreCompletoConDni" SelectedValuePath="IdCliente"
-                              SelectedValue="{Binding IdCliente, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
+                               ItemsSource="{Binding ClientesDisponibles}" DisplayMemberPath="NombreCompletoConDni" SelectedValuePath="IdCliente"
+                               SelectedValue="{Binding IdCliente, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                     <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbCliente, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                Visibility="{Binding (Validation.HasError), ElementName=cmbCliente, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
@@ -67,8 +67,15 @@
                         <ComboBox x:Name="cmbMarca" Grid.Column="0" Height="30" Margin="0,0,5,0"
                                   ItemsSource="{Binding MarcasDisponibles}" DisplayMemberPath="NombreMarca" SelectedValuePath="Id"
                                   SelectedValue="{Binding IdMarca, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                        <Button x:Name="btnAgregarMarca" Grid.Column="1" Content="+" Width="30" Height="30"
-                                ToolTip="Agregar nueva Marca" FontWeight="Bold" Click="BtnAgregarMarca_Click"/>
+                        <Button x:Name="btnAgregarMarca" Grid.Column="1" Content="➕" Width="30" Height="30"
+                                ToolTip="Agregar nueva Marca" Background="#27AE60" Foreground="White" FontWeight="Bold" 
+                                BorderThickness="0" Cursor="Hand" Click="BtnAgregarMarca_Click">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
                     </Grid>
                     <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbMarca, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
@@ -85,8 +92,15 @@
                         <ComboBox x:Name="cmbModelo" Grid.Column="0" Height="30" Margin="0,0,5,0"
                                   ItemsSource="{Binding ModelosDisponibles}" DisplayMemberPath="NombreModelo" SelectedValuePath="Id"
                                   SelectedValue="{Binding IdModelo, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                        <Button x:Name="btnAgregarModelo" Grid.Column="1" Content="+" Width="30" Height="30"
-                                ToolTip="Agregar nuevo Modelo" FontWeight="Bold" Click="BtnAgregarModelo_Click"/>
+                        <Button x:Name="btnAgregarModelo" Grid.Column="1" Content="➕" Width="30" Height="30"
+                                ToolTip="Agregar nuevo Modelo" Background="#27AE60" Foreground="White" FontWeight="Bold" 
+                                BorderThickness="0" Cursor="Hand" Click="BtnAgregarModelo_Click">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
                     </Grid>
                     <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbModelo, FallbackValue=''}"
                                Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
@@ -115,8 +129,22 @@
 
         <!-- Botones -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="2" Margin="0,20,0,0">
-            <Button Content="Guardar" Width="90" Height="32" IsDefault="True" Click="BtnGuardar_Click" Margin="0,0,12,0"/>
-            <Button Content="Cancelar" Width="90" Height="32" Click="BtnCancelar_Click"/>
+            <Button Content="Guardar" Width="95" Height="34" IsDefault="True" Click="BtnGuardar_Click" 
+                    Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,12,0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+            <Button Content="Cancelar" Width="95" Height="34" Click="BtnCancelar_Click" 
+                    Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
         </StackPanel>
     </Grid>
 </Window>

@@ -4,91 +4,128 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.Resources>
-        <Style x:Key="WatermarkTextBoxStyle" TargetType="TextBox">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Grid>
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="True">
-                                <ScrollViewer x:Name="PART_ContentHost" Margin="0" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock x:Name="Watermark" Text="{TemplateBinding Tag}" Foreground="Gray" Margin="4,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed"/>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="Text" Value="">
-                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
-                            </Trigger>
-                            <Trigger Property="Text" Value="{x:Null}">
-                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
-                            </Trigger>
-                            <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Watermark" Property="Visibility" Value="Collapsed"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
-    <Grid Margin="20">
+             d:DesignHeight="600" d:DesignWidth="850">
+
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <!-- Encabezado -->
             <RowDefinition Height="Auto"/>
+            <!-- Barra de Búsqueda y Acción Superior -->
             <RowDefinition Height="*"/>
+            <!-- Tabla de Talleres -->
             <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+            <!-- Pie de Acciones -->
+        </Grid.RowDefinitions>
 
-        <!-- Cabecera -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="Control de Taller" FontSize="20" FontWeight="Bold"/>
-            <TextBlock Text="Administración de taller del sistema" FontSize="12" Foreground="Gray"/>
-        </StackPanel>
-        <!-- Barra superior -->
-        <Grid Grid.Row="1" Margin="0,0,0,15">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <TextBox Grid.Column="0" Height="25" VerticalContentAlignment="Center"
-             Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
-             Style="{StaticResource WatermarkTextBoxStyle}"
-             Tag="Buscar cliente..." />
-
-            <Button Grid.Column="1" Content="Buscar" Width="80" Height="25" Margin="10,0,0,0" Click="BtnBuscar_Click"/>
-
-            <Button Grid.Column="2" Content="Nuevo Taller" Width="120" Height="25"
-            HorizontalAlignment="Right" Click="BtnNuevo_Click"/>
+        <!-- ENCABEZADO -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="🔧 Control de Taller" FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
+                <TextBlock Text="Administración de taller del sistema" FontSize="12" Foreground="#7F8C8D" Margin="0,2,0,0"/>
+            </StackPanel>
         </Grid>
 
-        <!-- DataGrid de talleres -->
-        <DataGrid x:Name="dgTalleres"
-                  ItemsSource="{Binding ListadoTalleresFiltered}"
-                  SelectedItem="{Binding TallerSeleccionado, Mode=TwoWay}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  SelectionMode="Single"
-                  Margin="5" Grid.Row="2">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding IdTaller}" Width="80"/>
-                <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
-                <DataGridTextColumn Header="Dirección" Binding="{Binding Direccion}" Width="*"/>
-                <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="*"/>
-                <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
-        <!-- Barra inferior -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Editar Seleccionado" Width="140" Height="28" Margin="0,0,10,0" Click="BtnEditar_Click"/>
-            <Button Content="Eliminar Seleccionado" Width="140" Height="28" Click="BtnBorrar_Click"/>
-        </StackPanel>
+        <!-- BARRA DE BUSQUEDA Y NUEVO -->
+        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,10,0"/>
+                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="260" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                    <Button Content="Buscar" Width="80" Padding="8,6" Margin="10,0,0,0" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnBuscar_Click" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="➕ Nuevo Taller" Click="BtnNuevo_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- TABLA DE TALLERES -->
+        <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="20">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+            </Border.Effect>
+
+            <DataGrid x:Name="dgTalleres"
+                      ItemsSource="{Binding ListadoTalleresFiltered}"
+                      SelectedItem="{Binding TallerSeleccionado, Mode=TwoWay}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      SelectionMode="Single"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      RowHeaderWidth="0">
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#2C3E50"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="Padding" Value="10,8"/>
+                    </Style>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Padding" Value="8,6"/>
+                    </Style>
+                </DataGrid.Resources>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding IdTaller}" Width="80"/>
+                    <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
+                    <DataGridTextColumn Header="Dirección" Binding="{Binding Direccion}" Width="*"/>
+                    <DataGridTextColumn Header="Teléfono" Binding="{Binding Telefono}" Width="*"/>
+                    <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="80"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- PIE DE ACCIONES -->
+        <Border Grid.Row="3" Background="White" CornerRadius="12" Padding="16" Margin="0,16,0,0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="✏️ Editar Seleccionado" Click="BtnEditar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                <Button Content="🗑️ Eliminar Seleccionado" Click="BtnBorrar_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

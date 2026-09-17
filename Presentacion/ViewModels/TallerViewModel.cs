@@ -91,32 +91,41 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        public void LimpiarFormulario()
+        {
+            TallerSeleccionado = null;
+            Nombre = string.Empty;
+            Direccion = string.Empty;
+            Telefono = string.Empty;
+            Activo = true;
+            ClearAllErrors();
+        }
+
         public async Task<bool> RegistrarAsync()
         {
             return await GuardarTallerAsync();
         }
 
-        // Guarda un taller: si es nuevo (IdTaller == 0) usa RegistrarTallerHandler,
-        // si existe (IdTaller > 0) usa ModificarTallerHandler. Retorna true si tuvo éxito.
+        // Guarda un taller: si es nuevo (id == 0) usa RegistrarTallerHandler,
+        // si existe (id > 0) usa ModificarTallerHandler. Retorna true si tuvo éxito.
         public async Task<bool> GuardarTallerAsync()
         {
             if (!ValidateAll()) return false;
 
-            var tallerSeleccionado = TallerSeleccionado;
-            if (tallerSeleccionado is null) return false;
+            int id = TallerSeleccionado?.IdTaller ?? 0;
 
             var taller = new TP_ControlVehicular.Entidad.Taller
             {
-                Id = tallerSeleccionado.IdTaller,
-                Nombre = tallerSeleccionado.Nombre,
-                Direccion = tallerSeleccionado.Direccion,
-                Telefono = tallerSeleccionado.Telefono,
-                Activo = tallerSeleccionado.Activo
+                Id = id,
+                Nombre = Nombre.Trim(),
+                Direccion = Direccion.Trim(),
+                Telefono = (Telefono ?? string.Empty).Trim(),
+                Activo = Activo
             };
 
             try
             {
-                if (tallerSeleccionado.IdTaller == 0)
+                if (id == 0)
                 {
                     var dto = await _registrarTallerHandler.HandleAsync(taller);
                     Talleres.Add(dto);

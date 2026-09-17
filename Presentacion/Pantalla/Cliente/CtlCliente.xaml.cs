@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 
 namespace TP_ControlVehicular.Presentacion.Cliente
 {
@@ -91,12 +92,12 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             var selected = dgClientes.SelectedItem as TP_ControlVehicular.Negocio.DTOs.ClienteDto;
             if (selected is null)
             {
-                MessageBox.Show("Por favor, selecciona primero un cliente.", "Aviso");
+                FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
                 return;
             }
 
-            var result = MessageBox.Show($"¿Seguro que querés marcar como inactivo al cliente {selected.Nombre} {selected.Apellido}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes) return;
+            if (!FrmConfirmacion.Mostrar($"¿Seguro que querés marcar como inactivo al cliente {selected.Nombre} {selected.Apellido}?", "Confirmar baja", Window.GetWindow(this)))
+                return;
 
             if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
             {
@@ -108,7 +109,7 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             var selected = dgClientes.SelectedItem as TP_ControlVehicular.Negocio.DTOs.ClienteDto;
             if (selected is null)
             {
-                MessageBox.Show("Por favor, selecciona primero un cliente.", "Aviso");
+                FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
                 return;
             }
 

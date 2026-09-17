@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Taller
@@ -64,16 +65,20 @@ namespace TP_ControlVehicular.Presentacion.Taller
         {
             try
             {
-                if (App.ServiceProvider.GetService(typeof(TallerViewModel)) is TallerViewModel vmTaller)
+                if (App.ServiceProvider?.GetService(typeof(TallerViewModel)) is TallerViewModel vmTaller)
                 {
                     DataContext = vmTaller;
                     if (_esModificacion && taller != null)
                     {
                         vmTaller.TallerSeleccionado = taller;
-                        vmTaller.Nombre = taller.Nombre;
-                        vmTaller.Direccion = taller.Direccion;
-                        vmTaller.Telefono = taller.Telefono;
+                        vmTaller.Nombre = taller.Nombre ?? string.Empty;
+                        vmTaller.Direccion = taller.Direccion ?? string.Empty;
+                        vmTaller.Telefono = taller.Telefono ?? string.Empty;
                         vmTaller.Activo = taller.Activo;
+                    }
+                    else
+                    {
+                        vmTaller.LimpiarFormulario();
                     }
 
                     vmTaller.ClearAllErrors();
@@ -93,6 +98,10 @@ namespace TP_ControlVehicular.Presentacion.Taller
                 if (ok)
                 {
                     this.DialogResult = true;
+                }
+                else
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor, corrija los errores del formulario antes de continuar.", "Validación", this);
                 }
             }
             else

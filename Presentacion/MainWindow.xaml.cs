@@ -7,6 +7,7 @@ using TP_ControlVehicular.Presentacion.Modelo;
 using TP_ControlVehicular.Presentacion.Pantalla.Dashboard;
 using TP_ControlVehicular.Presentacion.Pantalla.Login;
 using TP_ControlVehicular.Presentacion.Pantalla.Reporte;
+using TP_ControlVehicular.Presentacion.Pantalla.Servicio;
 using TP_ControlVehicular.Presentacion.Rol;
 using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Usuario;
@@ -113,8 +114,8 @@ namespace TP_ControlVehicular
             btnDashboard.Visibility = Visibility.Visible;
             secOperaciones.Visibility = Visibility.Visible;
             btnOrdenesTrabajo.Visibility = Visibility.Visible;
-            btnRepuestosServicios.Visibility = Visibility.Visible;
             secAdministracion.Visibility = Visibility.Visible;
+            btnServicio.Visibility = Visibility.Visible;
             btnCliente.Visibility = Visibility.Visible;
             btnVehiculo.Visibility = Visibility.Visible;
             btnModelo.Visibility = Visibility.Visible;
@@ -141,6 +142,7 @@ namespace TP_ControlVehicular
                 btnCliente.Visibility = Visibility.Collapsed;
                 btnModelo.Visibility = Visibility.Collapsed;
                 btnMarca.Visibility = Visibility.Collapsed;
+                btnServicio.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -152,6 +154,18 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_ReporteOrdenes(object sender, RoutedEventArgs e)
         {
             AgregarPagina(new CtlReporteOrdenes());
+        }
+
+        private void MenuItem_Click_Servicio(object sender, RoutedEventArgs e)
+        {
+            if (App.ServiceProvider?.GetService(typeof(CtlServicio)) is CtlServicio ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlServicio());
+            }
         }
 
         private void MenuItem_Click_Cliente(object sender, RoutedEventArgs e)
@@ -193,6 +207,11 @@ namespace TP_ControlVehicular
         {
             // Al salir/cerrar sesión, volvemos a mostrar el login
             MostrarPantallaLogin();
+        }
+
+        private void BtnCerrarApp_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
         }
 
         private void AgregarPagina(UserControl userControl)

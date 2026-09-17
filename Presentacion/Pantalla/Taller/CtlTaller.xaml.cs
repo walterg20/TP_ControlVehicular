@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using TP_ControlVehicular.Presentacion.Cliente;
+using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Taller
@@ -10,10 +10,9 @@ namespace TP_ControlVehicular.Presentacion.Taller
         public CtlTaller()
         {
             InitializeComponent();
-            // Asignar ViewModel desde DI para que la vista tenga DataContext y podamos cargar datos
             try
             {
-                var vmTaller = App.ServiceProvider.GetService(typeof(TallerViewModel)) as TallerViewModel;
+                var vmTaller = App.ServiceProvider?.GetService(typeof(TallerViewModel)) as TallerViewModel;
                 if (vmTaller is not null)
                 {
                     this.DataContext = vmTaller;
@@ -22,83 +21,40 @@ namespace TP_ControlVehicular.Presentacion.Taller
             }
             catch
             {
-                // ignore DI resolution errors
+                // Silenciar si DI no está listo
             }
         }
-        private void BtnBuscar_Click(object sender, RoutedEventArgs e)
-        {
-          //  if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
-            //{
-                // Asignar ItemsSource al filtro calculado
-               // dgClientes.ItemsSource = vm.ListadoClientesFiltered;
-            //}
-        }
 
-        private async void BtnEditar_Click(object sender, RoutedEventArgs e)
-        {
-            //var selected = dgClientes.SelectedItem as TP_ControlVehicular.Negocio.DTOs.ClienteDto;
-            //if (selected is null)
-            //{
-            //    MessageBox.Show("Por favor, selecciona primero un cliente.", "Aviso");
-            //    return;
-            //}
-
-            ////if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
-            ////{
-            ////    // cargar datos en el mismo ViewModel usado por el formulario
-            ////    vm.IdCliente = selected.IdCliente;
-            ////    vm.Nombre = selected.Nombre;
-            ////    vm.Apellido = selected.Apellido;
-            ////    vm.Dni = selected.Dni;
-            ////    vm.FechaNacimiento = selected.FechaNac;
-            ////    vm.Direccion = selected.Direccion;
-            ////    vm.Email = selected.Email;
-            ////    vm.Telefono = selected.Telefono;
-            ////    vm.Activo = selected.Activo;
-
-            ////    // Abrir modal (usa el mismo VM desde DI en FrmCliente)
-            ////    var modal = new FrmCliente();
-            ////    modal.Owner = Window.GetWindow(this);
-            ////    var ok = modal.ShowDialog();
-            ////    if (ok == true)
-            ////    {
-            ////        await vm.LoadAsync();
-            ////    }
-            ////    else
-            ////    {
-            ////        // limpiar IdCliente si canceló
-            ////        vm.IdCliente = 0;
-            ////    }
-            //}
-
-        }
-        // El filtro de búsqueda se aplica al listado calculado, sin recargar de la BD
-        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+        private async void BtnBuscar_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is TallerViewModel vmTaller)
-            {
-                dgTalleres.ItemsSource = vmTaller.ListadoTalleresFiltered;
-            }
-        }
-
-        private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
-        {
-            var frm = new FrmTaller();
-            frm.Owner = Window.GetWindow(this);
-            var ok = frm.ShowDialog();
-            if (ok == true && this.DataContext is TallerViewModel vmTaller)
             {
                 await vmTaller.LoadAsync();
             }
         }
 
-        private async void BtnModificar_Click(object sender, RoutedEventArgs e)
+        private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is TallerViewModel vmTaller)
+            {
+                vmTaller.LimpiarFormulario();
+                var frm = new FrmTaller();
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmTaller.LoadAsync();
+                }
+            }
+        }
+
+        private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is TallerViewModel vmTaller)
             {
                 if (vmTaller.TallerSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un taller.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un taller de la lista.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
@@ -111,38 +67,19 @@ namespace TP_ControlVehicular.Presentacion.Taller
                 }
             }
         }
+
         private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
-        {
-            // Eliminación lógica: marcar Activo = false
-            //var selected = dgClientes.SelectedItem as TP_ControlVehicular.Negocio.DTOs.ClienteDto;
-            //if (selected is null)
-            //{
-            //    MessageBox.Show("Por favor, selecciona primero un cliente.", "Aviso");
-            //    return;
-            //}
-
-            //var result = MessageBox.Show($"¿Seguro que querés marcar como inactivo al cliente {selected.Nombre} {selected.Apellido}?", "Confirmar", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            //if (result != MessageBoxResult.Yes) return;
-
-            //if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vm)
-            //{
-            //    await vm.DeleteClienteAsync(selected.IdCliente);
-            //}
-        }
-
-        // Baja lógica: marca Activo = false usando ModificarTallerHandler
-        private async void BtnBaja_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is TallerViewModel vmTaller)
             {
                 if (vmTaller.TallerSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un taller.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un taller de la lista.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                var msg = MessageBox.Show("¿Dar de baja (lógico) este taller?\nSetear Activo = false?", "Confirmar baja", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (msg != MessageBoxResult.Yes) return;
+                if (!FrmConfirmacion.Mostrar($"¿Está seguro de dar de baja (lógica) al taller '{vmTaller.TallerSeleccionado.Nombre}'?", "Confirmar baja", Window.GetWindow(this)))
+                    return;
 
                 await vmTaller.ToggleActivoAsync();
                 await vmTaller.LoadAsync();

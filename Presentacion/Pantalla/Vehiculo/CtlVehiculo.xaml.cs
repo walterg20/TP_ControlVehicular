@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Vehiculo
@@ -40,7 +41,7 @@ namespace TP_ControlVehicular.Presentacion.Vehiculo
             {
                 if (vmVehiculo.VehiculoSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un vehículo.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un vehículo.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
@@ -60,22 +61,21 @@ namespace TP_ControlVehicular.Presentacion.Vehiculo
             {
                 if (vmVehiculo.VehiculoSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un vehículo para eliminar.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un vehículo para eliminar.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                var res = MessageBox.Show($"¿Está seguro que desea eliminar el vehículo con patente '{vmVehiculo.VehiculoSeleccionado.Patente}'?", "Confirmar Eliminación", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (res == MessageBoxResult.Yes)
+                if (!FrmConfirmacion.Mostrar($"¿Está seguro que desea eliminar el vehículo con patente '{vmVehiculo.VehiculoSeleccionado.Patente}'?", "Confirmar Eliminación", Window.GetWindow(this)))
+                    return;
+
+                var ok = await vmVehiculo.EliminarVehiculoAsync(vmVehiculo.VehiculoSeleccionado.Id);
+                if (ok)
                 {
-                    var ok = await vmVehiculo.EliminarVehiculoAsync(vmVehiculo.VehiculoSeleccionado.Id);
-                    if (ok)
-                    {
-                        MessageBox.Show("Vehículo eliminado correctamente.", "Éxito");
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se pudo eliminar el vehículo.", "Error");
-                    }
+                    FrmConfirmacion.MostrarAviso("Vehículo eliminado correctamente.", "Éxito", Window.GetWindow(this), icono: "✅");
+                }
+                else
+                {
+                    FrmConfirmacion.MostrarAviso("No se pudo eliminar el vehículo.", "Error", Window.GetWindow(this), icono: "❌");
                 }
             }
         }

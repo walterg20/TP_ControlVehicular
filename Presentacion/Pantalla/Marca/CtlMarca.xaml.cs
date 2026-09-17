@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Marca
@@ -40,7 +41,7 @@ namespace TP_ControlVehicular.Presentacion.Marca
             {
                 if (vmMarca.MarcaSeleccionada == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero una marca.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero una marca.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
@@ -60,22 +61,21 @@ namespace TP_ControlVehicular.Presentacion.Marca
             {
                 if (vmMarca.MarcaSeleccionada == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero una marca para eliminar.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero una marca para eliminar.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                var res = MessageBox.Show($"¿Está seguro que desea eliminar la marca '{vmMarca.MarcaSeleccionada.NombreMarca}'?", "Confirmar Eliminación", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (res == MessageBoxResult.Yes)
+                if (!FrmConfirmacion.Mostrar($"¿Está seguro que desea eliminar la marca '{vmMarca.MarcaSeleccionada.NombreMarca}'?", "Confirmar Eliminación", Window.GetWindow(this)))
+                    return;
+
+                var ok = await vmMarca.EliminarMarcaAsync(vmMarca.MarcaSeleccionada.Id);
+                if (ok)
                 {
-                    var ok = await vmMarca.EliminarMarcaAsync(vmMarca.MarcaSeleccionada.Id);
-                    if (ok)
-                    {
-                        MessageBox.Show("Marca eliminada correctamente.", "Éxito");
-                    }
-                    else
-                    {
-                        MessageBox.Show("No se pudo eliminar la marca (puede tener modelos asociados).", "Error");
-                    }
+                    FrmConfirmacion.MostrarAviso("Marca eliminada correctamente.", "Éxito", Window.GetWindow(this), icono: "✅");
+                }
+                else
+                {
+                    FrmConfirmacion.MostrarAviso("No se pudo eliminar la marca (puede tener modelos asociados).", "Error", Window.GetWindow(this), icono: "❌");
                 }
             }
         }

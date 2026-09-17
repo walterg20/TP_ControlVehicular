@@ -5,63 +5,123 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TP_ControlVehicular.Presentacion.Vehiculo"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="600" d:DesignWidth="850">
 
-
-    <Grid Margin="20">
+    <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <!-- Encabezado -->
             <RowDefinition Height="Auto"/>
+            <!-- Barra de Búsqueda y Acción Superior -->
             <RowDefinition Height="*"/>
+            <!-- Tabla de Vehículos -->
             <RowDefinition Height="Auto"/>
+            <!-- Pie de Acciones -->
         </Grid.RowDefinitions>
 
-        <!-- Cabecera -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock Text="Control de Vehículos" FontSize="20" FontWeight="Bold"/>
-            <TextBlock Text="Administración de vehículos registrados" FontSize="12" Foreground="Gray"/>
-        </StackPanel>
-
-        <!-- Barra superior -->
-        <Grid Grid.Row="1" Margin="0,0,0,15">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="250"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <TextBox Grid.Column="0" Height="25" VerticalContentAlignment="Center"
-                     Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
-                     Tag="Buscar vehículo..." />
-
-            <Button Grid.Column="1" Content="Nuevo Vehículo" Width="120" Height="25"
-                    HorizontalAlignment="Right" Click="BtnNuevo_Click"/>
+        <!-- ENCABEZADO -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="🚗 Control de Vehículos" FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
+                <TextBlock Text="Administración de vehículos registrados" FontSize="12" Foreground="#7F8C8D" Margin="0,2,0,0"/>
+            </StackPanel>
         </Grid>
 
-        <!-- Tabla de vehículos -->
-        <DataGrid Grid.Row="2"
-                  x:Name="dgVehiculos"
-                  ItemsSource="{Binding ListadoVehiculosFiltered}"
-                  SelectedItem="{Binding VehiculoSeleccionado, Mode=TwoWay}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  SelectionMode="Single">
+        <!-- BARRA DE BUSQUEDA Y NUEVO -->
+        <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
-                <DataGridTextColumn Header="Patente" Binding="{Binding Patente}" Width="100"/>
-                <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="*"/>
-                <DataGridTextColumn Header="Marca" Binding="{Binding MarcaNombre}" Width="120"/>
-                <DataGridTextColumn Header="Modelo" Binding="{Binding ModeloNombre}" Width="120"/>
-                <DataGridTextColumn Header="Año" Binding="{Binding Anio}" Width="70"/>
-                <DataGridTextColumn Header="Km Actual" Binding="{Binding KmActual}" Width="90"/>
-            </DataGrid.Columns>
-        </DataGrid>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,10,0"/>
+                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                             Width="300" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                </StackPanel>
 
-        <!-- Barra inferior -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Editar Seleccionado" Width="140" Height="28" Margin="0,0,10,0" Click="BtnEditar_Click"/>
-            <Button Content="Eliminar Seleccionado" Width="140" Height="28" Click="BtnBorrar_Click"/>
-        </StackPanel>
+                <Button Grid.Column="1" Content="➕ Nuevo Vehículo" Click="BtnNuevo_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </Grid>
+        </Border>
+
+        <!-- TABLA DE VEHICULOS -->
+        <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="20">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+            </Border.Effect>
+
+            <DataGrid x:Name="dgVehiculos"
+                      ItemsSource="{Binding ListadoVehiculosFiltered}"
+                      SelectedItem="{Binding VehiculoSeleccionado, Mode=TwoWay}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      CanUserAddRows="False"
+                      SelectionMode="Single"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column"
+                      Background="Transparent"
+                      BorderThickness="0"
+                      RowHeaderWidth="0">
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#2C3E50"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="Padding" Value="10,8"/>
+                    </Style>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Padding" Value="8,6"/>
+                    </Style>
+                </DataGrid.Resources>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                    <DataGridTextColumn Header="Patente" Binding="{Binding Patente}" Width="100"/>
+                    <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="*"/>
+                    <DataGridTextColumn Header="Marca" Binding="{Binding MarcaNombre}" Width="120"/>
+                    <DataGridTextColumn Header="Modelo" Binding="{Binding ModeloNombre}" Width="120"/>
+                    <DataGridTextColumn Header="Año" Binding="{Binding Anio}" Width="70"/>
+                    <DataGridTextColumn Header="Km Actual" Binding="{Binding KmActual}" Width="90"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- PIE DE ACCIONES -->
+        <Border Grid.Row="3" Background="White" CornerRadius="12" Padding="16" Margin="0,16,0,0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="✏️ Editar Seleccionado" Click="BtnEditar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                <Button Content="🗑️ Eliminar Seleccionado" Click="BtnBorrar_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

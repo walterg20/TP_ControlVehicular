@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Rol
@@ -41,7 +42,7 @@ namespace TP_ControlVehicular.Presentacion.Rol
             {
                 if (vmRol.RolSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un rol.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un rol.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
@@ -61,12 +62,12 @@ namespace TP_ControlVehicular.Presentacion.Rol
             {
                 if (vmRol.RolSeleccionado == null)
                 {
-                    MessageBox.Show("Por favor, selecciona primero un rol.", "Aviso");
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un rol.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                var msg = MessageBox.Show("¿Cambiar el estado del rol seleccionado?", "Confirmar cambio", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (msg != MessageBoxResult.Yes) return;
+                if (!FrmConfirmacion.Mostrar("¿Cambiar el estado del rol seleccionado?", "Confirmar cambio", Window.GetWindow(this)))
+                    return;
 
                 await vmRol.ToggleEstadoAsync();
                 await vmRol.LoadAsync();

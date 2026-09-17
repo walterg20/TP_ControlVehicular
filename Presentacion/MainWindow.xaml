@@ -49,13 +49,16 @@
                     <!-- SECCIÓN 1: OPERACIONES -->
                     <TextBlock x:Name="secOperaciones" Text="OPERACIONES" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5"/>
                     <Button x:Name="btnOrdenesTrabajo" Content="📋 Órdenes de Trabajo" Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
-                    <Button x:Name="btnRepuestosServicios" Content="📦 Repuestos / Servicios" Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
 
                     <!-- ESPACIADOR -->
                     <Separator Background="#34495E" Margin="0,15"/>
 
                     <!-- SECCIÓN 2: CATÁLOGOS / ABMs -->
                     <TextBlock x:Name="secAdministracion" Text="ADMINISTRACIÓN" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5"/>
+
+                    <!-- Botón Servicios -->
+                    <Button x:Name="btnServicio" Content="📦 Servicios" Click="MenuItem_Click_Servicio" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
 
                     <!-- Botón Cliente -->
                     <Button x:Name="btnCliente" Content="👤 Clientes" Click="MenuItem_Click_Cliente" 
@@ -111,6 +114,34 @@
         <Grid x:Name="grdContenido" Grid.Column="1" Background="#F5F7FA" Margin="15">
             <!-- Los UserControls se inyectan dinámicamente -->
         </Grid>
+
+        <!-- ==========================================
+             BOTÓN DE CIERRE DE APLICACIÓN (Top-Right)
+             ========================================== -->
+        <Button x:Name="btnCerrarApp" 
+                Content="✖" 
+                Click="BtnCerrarApp_Click"
+                Grid.ColumnSpan="2"
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Top"
+                Margin="0,12,15,0"
+                Width="36" 
+                Height="36"
+                Background="#E74C3C" 
+                Foreground="White" 
+                FontWeight="Bold" 
+                FontSize="16"
+                Cursor="Hand"
+                ToolTip="Cerrar Aplicación"
+                Panel.ZIndex="999">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
 
     </Grid>
 </Window>
