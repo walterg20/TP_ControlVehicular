@@ -7,6 +7,7 @@ namespace TP_ControlVehicular.Negocio.Interfaces
     {
         Task<List<Usuario>> GetActivosAsync();
         Task<Usuario?> GetByNombreAsync(string nombre);
+        Task<Usuario?> GetByDniAsync(string dni);
         Task<List<Usuario>> GetWithRolAsync();
     }
 }

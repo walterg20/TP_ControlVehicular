@@ -1,11 +1,13 @@
 using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Negocio.Context;
 using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.Marca;
 using TP_ControlVehicular.Presentacion.Modelo;
 using TP_ControlVehicular.Presentacion.Pantalla.Dashboard;
 using TP_ControlVehicular.Presentacion.Pantalla.Login;
+using TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio;
 using TP_ControlVehicular.Presentacion.Pantalla.Reporte;
 using TP_ControlVehicular.Presentacion.Pantalla.Servicio;
 using TP_ControlVehicular.Presentacion.Rol;
@@ -37,6 +39,7 @@ namespace TP_ControlVehicular
         public void MostrarPantallaLogin()
         {
             UsuarioSesionActual = null;
+            UserSession.CurrentUser = null;
             lblUsuarioNombre.Text = "👤 Usuario";
             lblUsuarioRol.Text = "🛡️ Rol: -";
 
@@ -80,6 +83,7 @@ namespace TP_ControlVehicular
         private void OnLoginExitoso(UsuarioDto usuario)
         {
             UsuarioSesionActual = usuario;
+            UserSession.CurrentUser = usuario;
 
             // Mostrar el nombre del usuario logueado y su rol en la tarjeta del menú
             lblUsuarioNombre.Text = $"👤 {usuario.Nombre}";
@@ -87,7 +91,7 @@ namespace TP_ControlVehicular
             lblUsuarioRol.Text = $"🛡️ Rol: {rol}";
 
             // Aplicar restricciones de menú según el rol asignado
-            AplicarRestriccionesPorRol(rol);
+            AplicarRestriccionesPorRol();
 
             if (_ctlLogin?.ViewModel != null)
             {
@@ -106,9 +110,10 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlDashboard());
         }
 
-        private void AplicarRestriccionesPorRol(string rolNombre)
+        private void AplicarRestriccionesPorRol()
         {
-            var rol = (rolNombre ?? string.Empty).Trim().ToLower();
+            var currentUser = UserSession.CurrentUser;
+            if (currentUser == null) return;
 
             // Resetear visibilidad (modo Administrador)
             btnDashboard.Visibility = Visibility.Visible;
@@ -118,28 +123,32 @@ namespace TP_ControlVehicular
             btnServicio.Visibility = Visibility.Visible;
             btnCliente.Visibility = Visibility.Visible;
             btnVehiculo.Visibility = Visibility.Visible;
-            btnModelo.Visibility = Visibility.Visible;
-            btnMarca.Visibility = Visibility.Visible;
+            btnModelo.Visibility = Visibility.Collapsed;
+            btnMarca.Visibility = Visibility.Collapsed;
             btnTaller.Visibility = Visibility.Visible;
             btnUsuario.Visibility = Visibility.Visible;
             btnRol.Visibility = Visibility.Visible;
             secReportes.Visibility = Visibility.Visible;
             btnReporteOrdenes.Visibility = Visibility.Visible;
 
-            if (rol.Contains("recepcion") || rol.Contains("recepcionista"))
+            int rolId = currentUser.IdRol;
+
+            if (rolId == (int)RolesSistema.Recepcionista)
             {
                 // Recepcionista: No administra usuarios, roles ni talleres
                 btnUsuario.Visibility = Visibility.Collapsed;
                 btnRol.Visibility = Visibility.Collapsed;
                 btnTaller.Visibility = Visibility.Collapsed;
             }
-            else if (rol.Contains("mecanic") || rol.Contains("mecánico"))
+            else if (rolId == (int)RolesSistema.Mecanico)
             {
-                // Mecánico: Oculta administración de usuarios, roles, talleres y catálogos globales
+                // Mecánico: Oculta sección administración completa
+                secAdministracion.Visibility = Visibility.Collapsed;
                 btnUsuario.Visibility = Visibility.Collapsed;
                 btnRol.Visibility = Visibility.Collapsed;
                 btnTaller.Visibility = Visibility.Collapsed;
                 btnCliente.Visibility = Visibility.Collapsed;
+                btnVehiculo.Visibility = Visibility.Collapsed;
                 btnModelo.Visibility = Visibility.Collapsed;
                 btnMarca.Visibility = Visibility.Collapsed;
                 btnServicio.Visibility = Visibility.Collapsed;
@@ -148,16 +157,32 @@ namespace TP_ControlVehicular
 
         private void MenuItem_Click_Dashboard(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlDashboard());
         }
 
         private void MenuItem_Click_ReporteOrdenes(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlReporteOrdenes());
+        }
+
+        private void MenuItem_Click_OrdenesTrabajo(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            if (App.ServiceProvider?.GetService(typeof(CtlOrdenServicio)) is CtlOrdenServicio ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlOrdenServicio());
+            }
         }
 
         private void MenuItem_Click_Servicio(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             if (App.ServiceProvider?.GetService(typeof(CtlServicio)) is CtlServicio ctl)
             {
                 AgregarPagina(ctl);
@@ -170,36 +195,43 @@ namespace TP_ControlVehicular
 
         private void MenuItem_Click_Cliente(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlCliente());
         }
 
         private void MenuItem_Click_Taller(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlTaller());
         }
 
         private void MenuItem_Click_Usuario(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlUsuario());
         }
 
         private void MenuItem_Click_Rol(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlRol());
         }
 
         private void MenuItem_Click_Vehiculo(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlVehiculo());
         }
 
         private void MenuItem_Click_Modelo(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlModelo());
         }
 
         private void MenuItem_Click_Marca(object sender, RoutedEventArgs e)
         {
+            ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlMarca());
         }
 
@@ -221,6 +253,29 @@ namespace TP_ControlVehicular
             var span = Math.Max(1, this.grdContenido.ColumnDefinitions.Count);
             Grid.SetColumnSpan(userControl, span);
             this.grdContenido.Children.Add(userControl);
+        }
+
+        private void ResaltarBotonActivo(Button botonActivo)
+        {
+            if (botonActivo == null) return;
+            var transparente = System.Windows.Media.Brushes.Transparent;
+            var normalWeight = FontWeights.Normal;
+
+            btnDashboard.Background = transparente; btnDashboard.FontWeight = normalWeight;
+            btnOrdenesTrabajo.Background = transparente; btnOrdenesTrabajo.FontWeight = normalWeight;
+            btnServicio.Background = transparente; btnServicio.FontWeight = normalWeight;
+            btnCliente.Background = transparente; btnCliente.FontWeight = normalWeight;
+            btnVehiculo.Background = transparente; btnVehiculo.FontWeight = normalWeight;
+            btnModelo.Background = transparente; btnModelo.FontWeight = normalWeight;
+            btnMarca.Background = transparente; btnMarca.FontWeight = normalWeight;
+            btnTaller.Background = transparente; btnTaller.FontWeight = normalWeight;
+            btnUsuario.Background = transparente; btnUsuario.FontWeight = normalWeight;
+            btnRol.Background = transparente; btnRol.FontWeight = normalWeight;
+            btnReporteOrdenes.Background = transparente; btnReporteOrdenes.FontWeight = normalWeight;
+
+            var colorAzul = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2980B9");
+            botonActivo.Background = new System.Windows.Media.SolidColorBrush(colorAzul);
+            botonActivo.FontWeight = FontWeights.Bold;
         }
     }
 }

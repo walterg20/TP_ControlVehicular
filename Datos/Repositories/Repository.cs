@@ -19,8 +19,17 @@ namespace TP_ControlVehicular.Datos.Repositories
             _cvDbContext = cvDbContext;
             _dbSet = _cvDbContext.Set<T>();
         }
-        public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
-        public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+        public async Task<T?> GetByIdAsync(int id) 
+        {
+            var keyName = _cvDbContext.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.Select(x => x.Name).SingleOrDefault();
+            if (keyName != null)
+            {
+                return await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => EF.Property<int>(e, keyName) == id);
+            }
+            return await _dbSet.FindAsync(id);
+        }
+        
+        public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.AsNoTracking().ToListAsync();
 
         public async Task AddAsync(T entity)
         {

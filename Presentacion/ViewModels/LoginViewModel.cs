@@ -4,18 +4,28 @@ using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
+    /// <summary>
+    /// ViewModel para la pantalla de inicio de sesión (CtlLogin).
+    /// Controla la vinculación de datos (DataBinding), estado del formulario, mensajes de error y la ejecución del comando de autenticación.
+    /// </summary>
     public class LoginViewModel : BaseViewModel
     {
         private readonly AutenticarUsuarioHandler _autenticarUsuarioHandler;
 
-        private string _nombreUsuario = string.Empty;
-        public string NombreUsuario
+        private string _dni = string.Empty;
+        /// <summary>
+        /// DNI ingresado por el usuario.
+        /// </summary>
+        public string Dni
         {
-            get => _nombreUsuario;
-            set => SetProperty(ref _nombreUsuario, value);
+            get => _dni;
+            set => SetProperty(ref _dni, value);
         }
 
         private string _contrasena = string.Empty;
+        /// <summary>
+        /// Contraseña ingresada por el usuario.
+        /// </summary>
         public string Contrasena
         {
             get => _contrasena;
@@ -23,6 +33,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
 
         private string _errorMessage = string.Empty;
+        /// <summary>
+        /// Mensaje de error a mostrar en la vista en caso de datos inválidos o fallos de login.
+        /// </summary>
         public string ErrorMessage
         {
             get => _errorMessage;
@@ -35,17 +48,29 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        /// <summary>
+        /// Indica si existe un mensaje de error activo para controlar la visibilidad del aviso en la UI.
+        /// </summary>
         public bool HasErrorMessage => !string.IsNullOrEmpty(ErrorMessage);
 
         private bool _isLoading;
+        /// <summary>
+        /// Indica si la autenticación se encuentra en progreso para deshabilitar botones y mostrar indicadores de carga.
+        /// </summary>
         public bool IsLoading
         {
             get => _isLoading;
             set => SetProperty(ref _isLoading, value);
         }
 
+        /// <summary>
+        /// Evento notificador hacia MainWindow cuando el login resulta exitoso.
+        /// </summary>
         public event Action<UsuarioDto>? OnLoginSuccess;
 
+        /// <summary>
+        /// Comando WPF enlazado al botón "Iniciar Sesión".
+        /// </summary>
         public ICommand IniciarSesionCommand { get; }
 
         public LoginViewModel(AutenticarUsuarioHandler autenticarUsuarioHandler)
@@ -54,14 +79,17 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IniciarSesionCommand = new RelayCommand(IniciarSesionAsync, () => !IsLoading);
         }
 
+        /// <summary>
+        /// Método de ejecución asíncrono del comando de inicio de sesión.
+        /// </summary>
         private async Task IniciarSesionAsync()
         {
             ErrorMessage = string.Empty;
 
-            // 1. Validaciones de formulario (cliente)
-            if (string.IsNullOrWhiteSpace(NombreUsuario) || string.IsNullOrWhiteSpace(Contrasena))
+            // 1. Validaciones básicas de presencia de campos obligatorios en el cliente
+            if (string.IsNullOrWhiteSpace(Dni) || string.IsNullOrWhiteSpace(Contrasena))
             {
-                ErrorMessage = "Por favor, ingrese usuario y contraseña.";
+                ErrorMessage = "Por favor, ingrese DNI y contraseña.";
                 return;
             }
 
@@ -70,16 +98,17 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             try
             {
-                // 2. Consulta y autenticación en capa de negocio / datos
-                var response = await _autenticarUsuarioHandler.HandleAsync(NombreUsuario.Trim(), Contrasena);
+                // 2. Invocación al Caso de Uso de Autenticación en la Capa de Negocio
+                var response = await _autenticarUsuarioHandler.HandleAsync(Dni.Trim(), Contrasena);
 
                 if (response.Resultado == ResultadoAutenticacion.Exitoso && response.Usuario != null)
                 {
+                    // 3. Notifica éxito pasando los datos del usuario autenticado
                     OnLoginSuccess?.Invoke(response.Usuario);
                 }
                 else
                 {
-                    // Captura errores específicos (Usuario no encontrado, contraseña incorrecta, error DB)
+                    // Captura y muestra en la interfaz el error retornado por la capa de negocio
                     ErrorMessage = response.Mensaje;
                 }
             }
@@ -90,9 +119,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        /// <summary>
+        /// Resetea los campos del formulario de login al cerrar sesión o volver a la pantalla.
+        /// </summary>
         public void LimpiarFormulario()
         {
-            NombreUsuario = string.Empty;
+            Dni = string.Empty;
             Contrasena = string.Empty;
             ErrorMessage = string.Empty;
             IsLoading = false;

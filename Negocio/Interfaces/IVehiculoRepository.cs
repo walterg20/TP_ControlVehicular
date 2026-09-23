@@ -5,6 +5,6 @@ namespace TP_ControlVehicular.Negocio.Interfaces
     public interface IVehiculoRepository : IRepository<Vehiculo>
     {
         Task<IEnumerable<Vehiculo>> GetByClienteAsync(int idCliente);
-        Task<IEnumerable<Vehiculo>> GetAllWithDetailsAsync();
+        Task<IEnumerable<Vehiculo>> GetAllWithDetailsAsync(int? mecanicoId = null);
     }
 }

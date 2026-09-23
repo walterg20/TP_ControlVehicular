@@ -15,18 +15,23 @@ namespace TP_ControlVehicular.Datos.Repositories
         }
 
         public async Task<List<Usuario>> GetActivosAsync() =>
-            await _cvDbContext.Usuarios
+            await _cvDbContext.Usuarios.AsNoTracking()
                 .Include(u => u.Rol)
                 .Where(u => u.Estado)
                 .ToListAsync();
 
         public async Task<Usuario?> GetByNombreAsync(string nombre) =>
-            await _cvDbContext.Usuarios
+            await _cvDbContext.Usuarios.AsNoTracking()
                 .Include(u => u.Rol)
                 .FirstOrDefaultAsync(u => u.Nombre == nombre);
 
+        public async Task<Usuario?> GetByDniAsync(string dni) =>
+            await _cvDbContext.Usuarios.AsNoTracking()
+                .Include(u => u.Rol)
+                .FirstOrDefaultAsync(u => u.Dni == dni);
+
         public async Task<List<Usuario>> GetWithRolAsync() =>
-            await _cvDbContext.Usuarios
+            await _cvDbContext.Usuarios.AsNoTracking()
                 .Include(u => u.Rol)
                 .ToListAsync();
     }

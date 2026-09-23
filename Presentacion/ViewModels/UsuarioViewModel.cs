@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -6,9 +7,12 @@ using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Validaciones;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
+    using Usuario = TP_ControlVehicular.Entidad.Usuario;
+
     public class UsuarioViewModel : BaseViewModel, INotifyDataErrorInfo
     {
         private readonly ListarUsuariosHandler _listarUsuariosHandler;
@@ -187,7 +191,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             if (!ValidateAll()) return false;
 
             var usuarioSeleccionado = UsuarioSeleccionado;
-            var usuario = new Entidad.Usuario
+            var usuario = new Usuario
             {
                 Id = usuarioSeleccionado?.IdUsuario ?? 0,
                 RolId = IdRol,
@@ -228,7 +232,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 RegistrationCompleted?.Invoke(this, true);
                 return true;
             }
-            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            catch (DbUpdateException ex)
             {
                 if (ex.InnerException != null)
                 {
@@ -257,7 +261,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             if (UsuarioSeleccionado == null) return;
             UsuarioSeleccionado.Estado = !UsuarioSeleccionado.Estado;
 
-            var usuario = new Entidad.Usuario
+            var usuario = new Usuario
             {
                 Id = UsuarioSeleccionado.IdUsuario,
                 RolId = UsuarioSeleccionado.IdRol,
@@ -301,6 +305,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public event EventHandler<bool>? RegistrationCompleted;
         public event EventHandler<string>? RegistrationFailed;
 
+        /// <summary>
+        /// Realiza la validación en tiempo real de una propiedad individual del formulario al perder el foco (LostFocus).
+        /// Utiliza la clase estática ValidadorGlobal para evaluar expresiones regulares (RegEx) y reglas de negocio.
+        /// Reporta los errores a la interfaz mediante INotifyDataErrorInfo (Validation.Errors en WPF).
+        /// </summary>
+        /// <param name="propertyName">Nombre de la propiedad modificada.</param>
+        /// <returns>True si la propiedad no tiene errores, False en caso contrario.</returns>
         public override bool ValidateProperty([CallerMemberName] string? propertyName = null)
         {
             if (propertyName is null) return true;
@@ -309,43 +320,43 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             switch (propertyName)
             {
                 case nameof(Nombre):
-                    if (!Presentacion.Validaciones.ValidadorGlobal.EsTextoValido(Nombre, 2))
+                    if (!ValidadorGlobal.EsTextoValido(Nombre, 2))
                         SetError(nameof(Nombre), "Nombre requerido (mínimo 2 caracteres).");
                     break;
                 case nameof(Apellido):
-                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Apellido))
+                    if (!ValidadorGlobal.EsRequerido(Apellido))
                         SetError(nameof(Apellido), "Apellido requerido.");
                     break;
                 case nameof(Dni):
-                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Dni))
+                    if (!ValidadorGlobal.EsRequerido(Dni))
                         SetError(nameof(Dni), "DNI requerido.");
-                    else if (!Presentacion.Validaciones.ValidadorGlobal.EsDniValido(Dni))
+                    else if (!ValidadorGlobal.EsDniValido(Dni))
                         SetError(nameof(Dni), "DNI inválido (debe contener entre 7 y 10 dígitos numéricos).");
                     break;
                 case nameof(Email):
-                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Email))
+                    if (!ValidadorGlobal.EsRequerido(Email))
                         SetError(nameof(Email), "Email requerido.");
-                    else if (!Presentacion.Validaciones.ValidadorGlobal.EsEmailValido(Email))
+                    else if (!ValidadorGlobal.EsEmailValido(Email))
                         SetError(nameof(Email), "Formato de email inválido.");
                     break;
                 case nameof(Telefono):
-                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Telefono))
+                    if (!ValidadorGlobal.EsRequerido(Telefono))
                         SetError(nameof(Telefono), "Teléfono requerido.");
-                    else if (!Presentacion.Validaciones.ValidadorGlobal.EsTelefonoValido(Telefono))
+                    else if (!ValidadorGlobal.EsTelefonoValido(Telefono))
                         SetError(nameof(Telefono), "Formato de teléfono inválido (ej: 362 4615825).");
                     break;
                 case nameof(Domicilio):
-                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Domicilio))
+                    if (!ValidadorGlobal.EsRequerido(Domicilio))
                         SetError(nameof(Domicilio), "Domicilio requerido.");
                     break;
                 case nameof(FechaNacimiento):
-                    if (!Presentacion.Validaciones.ValidadorGlobal.EsMayorDeEdad(FechaNacimiento, 18))
+                    if (!ValidadorGlobal.EsMayorDeEdad(FechaNacimiento, 18))
                         SetError(nameof(FechaNacimiento), "El usuario debe ser mayor de 18 años.");
                     break;
                 case nameof(Contrasena):
-                    if (!Presentacion.Validaciones.ValidadorGlobal.EsRequerido(Contrasena))
+                    if (!ValidadorGlobal.EsRequerido(Contrasena))
                         SetError(nameof(Contrasena), "Contraseña requerida.");
-                    else if (!Presentacion.Validaciones.ValidadorGlobal.EsContrasenaValida(Contrasena))
+                    else if (!ValidadorGlobal.EsContrasenaValida(Contrasena))
                         SetError(nameof(Contrasena), "La contraseña debe tener mín. 6 caracteres, incluir al menos una mayúscula, un número y un carácter especial (#, @, etc.).");
                     break;
                 case nameof(IdRol):
@@ -357,6 +368,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             return !GetErrors(propertyName).Cast<object>().Any();
         }
 
+        /// <summary>
+        /// Evalúa la totalidad de los campos del formulario antes de intentar guardar el registro.
+        /// </summary>
+        /// <returns>True si todos los campos son válidos y no existen errores en la vista.</returns>
         public bool ValidateAll()
         {
             ValidateProperty(nameof(Nombre));

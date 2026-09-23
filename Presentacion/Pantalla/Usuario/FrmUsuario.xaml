@@ -105,11 +105,69 @@
 
                 <TextBlock Grid.Row="7" Grid.Column="0" Text="Contraseña:" FontWeight="Bold" Margin="0,5,5,2"/>
                 <StackPanel Grid.Row="7" Grid.Column="1" Margin="0,0,0,16">
-                    <TextBox x:Name="txtContrasena" Height="30"
-                             Text="{Binding Contrasena, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                    <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtContrasena, FallbackValue=''}"
-                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
-                               Visibility="{Binding (Validation.HasError), ElementName=txtContrasena, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                    <!-- Botón para habilitar cambio de clave en modo edición -->
+                    <Button x:Name="btnSetearClave" 
+                            Content="🔑 Setear / Cambiar Clave" 
+                            Height="30" 
+                            Background="#E67E22" 
+                            Foreground="White" 
+                            FontWeight="SemiBold" 
+                            Cursor="Hand" 
+                            BorderThickness="0" 
+                            Visibility="Collapsed" 
+                            Click="BtnSetearClave_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <!-- Contenedor del campo de contraseña -->
+                    <StackPanel x:Name="pnlContrasenaInput" Visibility="Visible">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- TextBox para clave en texto plano -->
+                            <TextBox x:Name="txtContrasena" Grid.Column="0" Height="30" Margin="0,0,4,0"
+                                     Text="{Binding Contrasena, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+
+                            <!-- PasswordBox para clave oculta -->
+                            <PasswordBox x:Name="pwdContrasena" Grid.Column="0" Height="30" Margin="0,0,4,0"
+                                         Visibility="Collapsed" PasswordChanged="PwdContrasena_PasswordChanged"/>
+
+                            <!-- Botón Toggle Ver / Ocultar -->
+                            <Button x:Name="btnToggleVerClave" Grid.Column="1" Content="👁️" Width="32" Height="30" Margin="0,0,4,0"
+                                    ToolTip="Ver / Ocultar Contraseña" Background="#ECF0F1" Foreground="#2C3E50" FontWeight="Bold" 
+                                    BorderThickness="0" Cursor="Hand" Click="BtnToggleVerClave_Click">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="6"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+
+                            <!-- Botón Generar Clave Aleatoria -->
+                            <Button x:Name="btnGenerarClave" Grid.Column="2" Content="🎲 Generar" Height="30" Padding="8,0"
+                                    ToolTip="Generar contraseña aleatoria segura que cumple los requisitos de validación" 
+                                    Background="#2980B9" Foreground="White" FontWeight="SemiBold" 
+                                    BorderThickness="0" Cursor="Hand" Click="BtnGenerarClave_Click">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="6"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+                        </Grid>
+
+                        <TextBlock Text="{Binding (Validation.Errors)/ErrorContent, ElementName=txtContrasena, FallbackValue=''}"
+                                   Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                                   Visibility="{Binding (Validation.HasError), ElementName=txtContrasena, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                    </StackPanel>
                 </StackPanel>
 
                 <TextBlock Grid.Row="8" Grid.Column="0" Text="Rol:" FontWeight="Bold" Margin="0,5,5,2"/>

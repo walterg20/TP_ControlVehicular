@@ -38,7 +38,7 @@
 
                     <!-- BOTÓN DASHBOARD (ARRIBA DE OPERACIONES) -->
                     <Button x:Name="btnDashboard" Content="📊 Dashboard" Click="MenuItem_Click_Dashboard" 
-                            Margin="0,0,0,15" Padding="10,8" HorizontalContentAlignment="Left" Background="#2980B9" Foreground="White" BorderThickness="0" FontWeight="Bold">
+                            Margin="0,0,0,15" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" FontWeight="Bold">
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="8"/>
@@ -48,53 +48,104 @@
 
                     <!-- SECCIÓN 1: OPERACIONES -->
                     <TextBlock x:Name="secOperaciones" Text="OPERACIONES" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5"/>
-                    <Button x:Name="btnOrdenesTrabajo" Content="📋 Órdenes de Trabajo" Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
-
+                    <Button x:Name="btnOrdenesTrabajo" Click="MenuItem_Click_OrdenesTrabajo" Content="📋 Órdenes de Trabajo" Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
                     <!-- ESPACIADOR -->
                     <Separator Background="#34495E" Margin="0,15"/>
 
                     <!-- SECCIÓN 2: CATÁLOGOS / ABMs -->
-                    <TextBlock x:Name="secAdministracion" Text="ADMINISTRACIÓN" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5"/>
+                    <TextBlock x:Name="secAdministracion" Text="ADMINISTRACIÓN" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5" />
+
+
 
                     <!-- Botón Servicios -->
                     <Button x:Name="btnServicio" Content="📦 Servicios" Click="MenuItem_Click_Servicio" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                     <!-- Botón Cliente -->
                     <Button x:Name="btnCliente" Content="👤 Clientes" Click="MenuItem_Click_Cliente" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                     <!-- Botón Vehículo -->
                     <Button x:Name="btnVehiculo" Content="🚗 Vehículos" Click="MenuItem_Click_Vehiculo" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>       
 
                     <!-- Botón Modelo -->
-                    <Button x:Name="btnModelo" Content="🏷️ Modelos de Autos" Click="MenuItem_Click_Modelo" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                    <Button x:Name="btnModelo" Content="🗂️ Modelos de Autos" Click="MenuItem_Click_Modelo" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" 
+                            Foreground="White" BorderThickness="0" Visibility="Collapsed"/>
 
                     <!-- Botón Marca -->
-                    <Button x:Name="btnMarca" Content="🏢 Marcas" Click="MenuItem_Click_Marca" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                    <Button x:Name="btnMarca" Content="🏷️ Marcas" Click="MenuItem_Click_Marca" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" 
+                            Foreground="White" BorderThickness="0" Visibility="Collapsed"/>
 
                     <!-- Botón Taller -->
                     <Button x:Name="btnTaller" Content="🔧 Talleres" Click="MenuItem_Click_Taller" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                     <!-- Botón Usuario -->
                     <Button x:Name="btnUsuario" Content="🔑 Usuarios" Click="MenuItem_Click_Usuario" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                     <!-- Botón Rol -->
                     <Button x:Name="btnRol" Content="🛡️ Roles" Click="MenuItem_Click_Rol" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
-                    
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
                     <!-- ESPACIADOR -->
                     <Separator x:Name="sepReportes" Background="#34495E" Margin="0,15"/>
 
                     <!-- SECCIÓN 3: REPORTES -->
                     <TextBlock x:Name="secReportes" Text="REPORTES" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5"/>
                     <Button x:Name="btnReporteOrdenes" Content="📋 Reporte Órdenes" Click="MenuItem_Click_ReporteOrdenes" 
-                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0"/>
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                     <!-- ESPACIADOR -->
                     <Separator Background="#34495E" Margin="0,15"/>

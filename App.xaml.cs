@@ -47,7 +47,7 @@ namespace TP_ControlVehicular
             IConfiguration configuration = builder.Build();
 
             services.AddDbContext<CVDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
 
 
             // Repositorios
@@ -92,6 +92,9 @@ namespace TP_ControlVehicular
             services.AddScoped<RegistrarServicioHandler>();
             services.AddScoped<ModificarServicioHandler>();
             services.AddScoped<EliminarServicioHandler>();
+            services.AddScoped<ListarRegistroServiciosHandler>();
+            services.AddScoped<RegistrarRegistroServicioHandler>();
+            services.AddScoped<ModificarRegistroServicioHandler>();
 
 
             // ViewModels
@@ -106,6 +109,7 @@ namespace TP_ControlVehicular
             services.AddScoped<DashboardViewModel>();
             services.AddScoped<ReporteOrdenesViewModel>();
             services.AddScoped<ServicioViewModel>();
+            services.AddScoped<OrdenServicioViewModel>();
 
             // UserControls & Windows
             services.AddScoped<CtlCliente>();
@@ -120,6 +124,8 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlReporteOrdenes>();
             services.AddScoped<CtlServicio>();
             services.AddTransient<FrmServicio>();
+            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();
+            services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.FrmOrdenServicio>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();

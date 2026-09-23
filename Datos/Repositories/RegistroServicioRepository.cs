@@ -14,9 +14,9 @@ namespace TP_ControlVehicular.Datos.Repositories
             _cvDbContext = cvDbContext;
         }
 
-        public async Task<List<RegistroServicio>> GetReporteCompletoAsync()
+        public async Task<List<RegistroServicio>> GetReporteCompletoAsync(int? mecanicoId = null)
         {
-            return await _cvDbContext.RegistroServicios
+            var query = _cvDbContext.RegistroServicios
                 .Include(r => r.Vehiculo)
                     .ThenInclude(v => v.Cliente)
                 .Include(r => r.Vehiculo)
@@ -27,8 +27,14 @@ namespace TP_ControlVehicular.Datos.Repositories
                     .ThenInclude(d => d.Servicio)
                 .Include(r => r.Detalles)
                     .ThenInclude(d => d.Usuario) // Mecánico
-                .OrderByDescending(r => r.Fecha)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (mecanicoId.HasValue)
+            {
+                query = query.Where(r => r.Detalles.Any(d => d.UsuarioId == mecanicoId.Value));
+            }
+
+            return await query.OrderByDescending(r => r.Fecha).ToListAsync();
         }
     }
 }

@@ -366,3 +366,5 @@ FodyWeavers.xsd
 /openspec
 .agents/
 .opencode/
+docs/flujo_arquitectura_login.drawio
+docs/README_FLUJO_ARQUITECTURA.md

@@ -22,11 +22,21 @@ namespace TP_ControlVehicular.Datos.Repositories
                 .Where(v => v.ClienteId == idCliente)
                 .ToListAsync();
 
-        public async Task<IEnumerable<Vehiculo>> GetAllWithDetailsAsync() =>
-            await _cvDbContext.Vehiculos
+        public async Task<IEnumerable<Vehiculo>> GetAllWithDetailsAsync(int? mecanicoId = null)
+        {
+            var query = _cvDbContext.Vehiculos
                 .Include(v => v.Cliente)
                 .Include(v => v.Modelo)
                 .ThenInclude(m => m.Marca)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (mecanicoId.HasValue)
+            {
+                query = query.Where(v => _cvDbContext.RegistroServicios
+                    .Any(rs => rs.VehiculoId == v.Id && rs.Detalles.Any(ds => ds.UsuarioId == mecanicoId.Value)));
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }
