@@ -1,11 +1,13 @@
 using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Negocio.Context;
 using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.Marca;
 using TP_ControlVehicular.Presentacion.Modelo;
 using TP_ControlVehicular.Presentacion.Pantalla.Dashboard;
 using TP_ControlVehicular.Presentacion.Pantalla.Login;
+using TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio;
 using TP_ControlVehicular.Presentacion.Pantalla.Reporte;
 using TP_ControlVehicular.Presentacion.Pantalla.Servicio;
 using TP_ControlVehicular.Presentacion.Rol;
@@ -37,7 +39,7 @@ namespace TP_ControlVehicular
         public void MostrarPantallaLogin()
         {
             UsuarioSesionActual = null;
-            TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser = null;
+            UserSession.CurrentUser = null;
             lblUsuarioNombre.Text = "👤 Usuario";
             lblUsuarioRol.Text = "🛡️ Rol: -";
 
@@ -81,7 +83,7 @@ namespace TP_ControlVehicular
         private void OnLoginExitoso(UsuarioDto usuario)
         {
             UsuarioSesionActual = usuario;
-            TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser = usuario;
+            UserSession.CurrentUser = usuario;
 
             // Mostrar el nombre del usuario logueado y su rol en la tarjeta del menú
             lblUsuarioNombre.Text = $"👤 {usuario.Nombre}";
@@ -110,7 +112,7 @@ namespace TP_ControlVehicular
 
         private void AplicarRestriccionesPorRol()
         {
-            var currentUser = TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser;
+            var currentUser = UserSession.CurrentUser;
             if (currentUser == null) return;
 
             // Resetear visibilidad (modo Administrador)
@@ -131,14 +133,14 @@ namespace TP_ControlVehicular
 
             int rolId = currentUser.IdRol;
 
-            if (rolId == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Recepcionista)
+            if (rolId == (int)RolesSistema.Recepcionista)
             {
                 // Recepcionista: No administra usuarios, roles ni talleres
                 btnUsuario.Visibility = Visibility.Collapsed;
                 btnRol.Visibility = Visibility.Collapsed;
                 btnTaller.Visibility = Visibility.Collapsed;
             }
-            else if (rolId == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Mecanico)
+            else if (rolId == (int)RolesSistema.Mecanico)
             {
                 // Mecánico: Oculta sección administración completa
                 secAdministracion.Visibility = Visibility.Collapsed;
@@ -168,13 +170,13 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_OrdenesTrabajo(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            if (App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio)) is TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio ctl)
+            if (App.ServiceProvider?.GetService(typeof(CtlOrdenServicio)) is CtlOrdenServicio ctl)
             {
                 AgregarPagina(ctl);
             }
             else
             {
-                AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio());
+                AgregarPagina(new CtlOrdenServicio());
             }
         }
 

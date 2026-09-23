@@ -112,5 +112,37 @@ namespace TP_ControlVehicular.Presentacion.Validaciones
             if (fechaNacimiento.Date > DateTime.Today.AddYears(-edad)) edad--;
             return edad >= edadMinima;
         }
+
+        /// <summary>
+        /// Genera una contraseña aleatoria válida que cumple obligatoriamente con todas las políticas de complejidad
+        /// de EsContrasenaValida (mayúscula, minúscula, número y símbolo especial).
+        /// </summary>
+        /// <param name="length">Longitud deseada de la clave (mínimo 6, por defecto 10).</param>
+        /// <returns>Cadena aleatoria segura que retorna True al pasar por EsContrasenaValida.</returns>
+        public static string GenerarContrasenaRandom(int length = 10)
+        {
+            if (length < 6) length = 6;
+            const string mayusculas = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+            const string minusculas = "abcdefghijkmnopqrstuvwxyz";
+            const string numeros = "23456789";
+            const string especiales = "!@#$%*";
+
+            var random = new Random();
+            var chars = new List<char>
+            {
+                mayusculas[random.Next(mayusculas.Length)],
+                minusculas[random.Next(minusculas.Length)],
+                numeros[random.Next(numeros.Length)],
+                especiales[random.Next(especiales.Length)]
+            };
+
+            string todos = mayusculas + minusculas + numeros + especiales;
+            for (int i = chars.Count; i < length; i++)
+            {
+                chars.Add(todos[random.Next(todos.Length)]);
+            }
+
+            return new string(chars.OrderBy(_ => random.Next()).ToArray());
+        }
     }
 }
