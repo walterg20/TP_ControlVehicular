@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="spec\**" />
+    <EmbeddedResource Remove="spec\**" />
+    <None Remove="spec\**" />
+    <Page Remove="spec\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="appsettings.json" />
   </ItemGroup>
 
@@ -20,7 +27,6 @@
 
   <ItemGroup>
     <Folder Include="Migracion\" />
-    <Folder Include="spec\" />
     <Folder Include="Presentacion\ViewModels\" />
     <Folder Include="Presentacion\Pantalla\" />
   </ItemGroup>

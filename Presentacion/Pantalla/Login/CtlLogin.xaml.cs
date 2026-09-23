@@ -82,5 +82,13 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Login
                 txtPassword.Focus();
             }
         }
+
+        public void LimpiarUI()
+        {
+            _isSyncing = true;
+            txtPassword.Password = string.Empty;
+            txtPasswordVisible.Text = string.Empty;
+            _isSyncing = false;
+        }
     }
 }

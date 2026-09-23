@@ -136,5 +136,14 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         {
             this.DialogResult = false;
         }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            if (DataContext is OrdenServicioViewModel vm)
+            {
+                vm.RegistrationFailed -= Vm_RegistrationFailed;
+            }
+            base.OnClosed(e);
+        }
     }
 }
