@@ -9,7 +9,6 @@ Integrantes
 - Antonio Ledezma <antonioledezma@gmail.com>
 - Walter Velazco <walterg20@gmail.com>
 
-(Reemplazar los correos por los reales antes de entregar.)
 
 Stack y versiones
 ------------------
