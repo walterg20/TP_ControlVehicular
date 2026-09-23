@@ -1,0 +1,143 @@
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.Dashboard.CtlDashboard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="850">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Encabezado -->
+            <RowDefinition Height="Auto"/>
+            <!-- Tarjetas Métrica (3) -->
+            <RowDefinition Height="*"/>
+            <!-- Listado de Vehículos -->
+        </Grid.RowDefinitions>
+
+        <!-- ENCABEZADO -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="📊 Dashboard General" FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
+            </StackPanel>
+            <Button Content="🔄 Actualizar" 
+                    Command="{Binding CargarDashboardCommand}" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,0,45,0"
+                    Padding="14,8" 
+                    Background="#2980B9" 
+                    Foreground="White" 
+                    FontWeight="Bold" 
+                    BorderThickness="0" 
+                    Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="8"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </Grid>
+
+        <!-- TRES TARJETAS DE RESUMEN (rounded-xl & shadow-md) -->
+        <Grid Grid.Row="1" Margin="0,0,0,24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- TARJETA 1: Vehículos Activos -->
+            <Border Grid.Column="0" Background="#E8F8F5" CornerRadius="12" Padding="20" Margin="0,0,12,0">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+                </Border.Effect>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="🚗" FontSize="26" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Vehículos Activos" FontSize="14" FontWeight="Bold" Foreground="#1E8449" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding VehiculosActivosCount}" FontSize="32" FontWeight="Bold" Foreground="#27AE60"/>
+                    <TextBlock Text="Registrados en el taller" FontSize="11" Foreground="#7D6608" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- TARJETA 2: En Proceso -->
+            <Border Grid.Column="1" Background="#FEF9E7" CornerRadius="12" Padding="20" Margin="6,0,6,0">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+                </Border.Effect>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="📋" FontSize="26" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="En Proceso" FontSize="14" FontWeight="Bold" Foreground="#B7950B" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding EnProcesoCount}" FontSize="32" FontWeight="Bold" Foreground="#F39C12"/>
+                    <TextBlock Text="Órdenes de trabajo activas" FontSize="11" Foreground="#7D6608" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- TARJETA 3: Entregadas Hoy -->
+            <Border Grid.Column="2" Background="#F4ECF7" CornerRadius="12" Padding="20" Margin="12,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+                </Border.Effect>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="🚚" FontSize="26" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Entregadas Hoy" FontSize="14" FontWeight="Bold" Foreground="#6C3483" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding EntregadasHoyCount}" FontSize="32" FontWeight="Bold" Foreground="#8E44AD"/>
+                    <TextBlock Text="Órdenes finalizadas" FontSize="11" Foreground="#512E5F" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- LISTADO DE VEHÍCULOS EN EL TALLER -->
+        <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="20">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="🚗 Vehículos en el Taller" FontSize="16" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+
+                <DataGrid Grid.Row="1" 
+                          x:Name="dgVehiculos" 
+                          ItemsSource="{Binding VehiculosEnTaller}" 
+                          AutoGenerateColumns="False" 
+                          IsReadOnly="True" 
+                          GridLinesVisibility="Horizontal" 
+                          HeadersVisibility="Column" 
+                          Background="Transparent" 
+                          BorderThickness="0"
+                          RowHeaderWidth="0">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#2C3E50"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Padding" Value="10,8"/>
+                        </Style>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Padding" Value="8,6"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Patente" Binding="{Binding Patente}" Width="120"/>
+                        <DataGridTextColumn Header="Marca" Binding="{Binding MarcaNombre}" Width="130"/>
+                        <DataGridTextColumn Header="Modelo" Binding="{Binding ModeloNombre}" Width="140"/>
+                        <DataGridTextColumn Header="Año" Binding="{Binding Anio}" Width="90"/>
+                        <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="*"/>
+                        <DataGridTextColumn Header="Km Actual" Binding="{Binding KmActual, StringFormat={}{0:N0} km}" Width="110"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
