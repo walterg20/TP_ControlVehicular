@@ -1,0 +1,102 @@
+<Window x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.FrmOrdenServicio"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Orden de Servicio" Height="500" Width="470"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        FocusManager.FocusedElement="{Binding ElementName=cmbVehiculos}">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Cabecera -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock x:Name="lblTitulo" Text="Datos de la Orden de Servicio" FontSize="20" FontWeight="Bold" Foreground="#2C3E50"/>
+        </StackPanel>
+
+        <!-- Formulario -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="130"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Vehículo:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,0,16">
+                    <ComboBox x:Name="cmbVehiculos" Height="30"
+                              ItemsSource="{Binding VehiculosDisponibles}"
+                              SelectedValue="{Binding VehiculoId, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
+                              SelectedValuePath="IdVehiculo" DisplayMemberPath="Patente" />
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbVehiculos, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=cmbVehiculos, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Taller:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,16">
+                    <ComboBox x:Name="cmbTalleres" Height="30"
+                              ItemsSource="{Binding TalleresDisponibles}"
+                              SelectedValue="{Binding TallerId, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
+                              SelectedValuePath="IdTaller" DisplayMemberPath="Nombre" />
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbTalleres, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=cmbTalleres, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Kilometraje:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,0,0,16">
+                    <TextBox x:Name="txtKm" Height="30"
+                             Text="{Binding KmIngreso, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}" />
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtKm, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=txtKm, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Estado:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,0,0,16">
+                    <ComboBox x:Name="cmbEstado" Height="30"
+                              ItemsSource="{Binding EstadosDisponibles}"
+                              SelectedItem="{Binding Estado, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}" />
+                    <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbEstado, FallbackValue=''}"
+                               Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding (Validation.HasError), ElementName=cmbEstado, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Botones -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="2" Margin="0,20,0,0">
+            <Button Content="Guardar" Width="95" Height="34" IsDefault="True" Click="BtnGuardar_Click" 
+                    Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,12,0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+            <Button Content="Cancelar" Width="95" Height="34" Click="BtnCancelar_Click" 
+                    Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>
