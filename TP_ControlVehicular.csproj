@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -45,4 +45,4 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.11" />
   </ItemGroup>
 
-</Project>
+  <ItemGroup><Compile Remove="TP_ControlVehicular.Tests\**" /><EmbeddedResource Remove="TP_ControlVehicular.Tests\**" /><None Remove="TP_ControlVehicular.Tests\**" /><Page Remove="TP_ControlVehicular.Tests\**" /></ItemGroup></Project>

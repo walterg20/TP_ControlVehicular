@@ -368,3 +368,6 @@ FodyWeavers.xsd
 .opencode/
 docs/flujo_arquitectura_login.drawio
 docs/README_FLUJO_ARQUITECTURA.md
+
+# Proyecto de pruebas ignorado
+TP_ControlVehicular.Tests/
