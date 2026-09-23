@@ -11,6 +11,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         private readonly Dictionary<string, List<string>> _errors = new();
 
+        // Control de Permisos
+        public virtual bool PuedeCrear => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Administrador || TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Recepcionista;
+        
+        public virtual bool PuedeEditar => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Administrador || TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Recepcionista;
+
+        public virtual bool PuedeEliminar => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Administrador;
+
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null!)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

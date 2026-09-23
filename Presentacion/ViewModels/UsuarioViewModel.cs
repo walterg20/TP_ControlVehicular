@@ -301,6 +301,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public event EventHandler<bool>? RegistrationCompleted;
         public event EventHandler<string>? RegistrationFailed;
 
+        /// <summary>
+        /// Realiza la validación en tiempo real de una propiedad individual del formulario al perder el foco (LostFocus).
+        /// Utiliza la clase estática ValidadorGlobal para evaluar expresiones regulares (RegEx) y reglas de negocio.
+        /// Reporta los errores a la interfaz mediante INotifyDataErrorInfo (Validation.Errors en WPF).
+        /// </summary>
+        /// <param name="propertyName">Nombre de la propiedad modificada.</param>
+        /// <returns>True si la propiedad no tiene errores, False en caso contrario.</returns>
         public override bool ValidateProperty([CallerMemberName] string? propertyName = null)
         {
             if (propertyName is null) return true;
@@ -357,6 +364,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             return !GetErrors(propertyName).Cast<object>().Any();
         }
 
+        /// <summary>
+        /// Evalúa la totalidad de los campos del formulario antes de intentar guardar el registro.
+        /// </summary>
+        /// <returns>True si todos los campos son válidos y no existen errores en la vista.</returns>
         public bool ValidateAll()
         {
             ValidateProperty(nameof(Nombre));

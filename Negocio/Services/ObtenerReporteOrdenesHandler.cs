@@ -16,7 +16,14 @@ namespace TP_ControlVehicular.Negocio.Services
         {
             try
             {
-                var registros = await _registroServicioRepository.GetReporteCompletoAsync();
+                int? mecanicoId = null;
+                var currentUser = TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser;
+                if (currentUser != null && currentUser.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Mecanico)
+                {
+                    mecanicoId = currentUser.IdUsuario;
+                }
+
+                var registros = await _registroServicioRepository.GetReporteCompletoAsync(mecanicoId);
 
                 if (registros != null && registros.Count > 0)
                 {

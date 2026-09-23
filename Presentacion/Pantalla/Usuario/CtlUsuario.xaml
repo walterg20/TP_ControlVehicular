@@ -49,7 +49,7 @@
                     </TextBox>
                 </StackPanel>
 
-                <Button Grid.Column="1" Content="➕ Nuevo Usuario" Click="BtnNuevo_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                <Button Grid.Column="1" Content="➕ Nuevo Usuario" Click="BtnNuevo_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeCrear}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>

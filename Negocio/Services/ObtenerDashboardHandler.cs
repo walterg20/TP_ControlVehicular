@@ -17,7 +17,14 @@ namespace TP_ControlVehicular.Negocio.Services
 
         public async Task<DashboardMetricsDto> HandleAsync()
         {
-            var vehiculosEntities = await _vehiculoRepository.GetAllWithDetailsAsync();
+            int? mecanicoId = null;
+            var currentUser = TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser;
+            if (currentUser != null && currentUser.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Mecanico)
+            {
+                mecanicoId = currentUser.IdUsuario;
+            }
+
+            var vehiculosEntities = await _vehiculoRepository.GetAllWithDetailsAsync(mecanicoId);
             var vehiculosDtos = _mapper.Map<List<VehiculoDto>>(vehiculosEntities);
 
             int totalVehiculos = vehiculosDtos.Count;
