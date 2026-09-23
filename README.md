@@ -52,20 +52,20 @@ Coloca la secci√≥n ConnectionStrings en Presentacion/appsettings.json o en el ex
 
 
 
-ConfiguraciÛn inicial de la Base de Datos
+Configuraci√≥n inicial de la Base de Datos
 -----------------------------------------
 Para inicializar la base de datos con todas las tablas necesarias y cargar los datos de prueba (roles y usuarios), debes ejecutar el script SQL que se encuentra en la carpeta docs:
 
-**UbicaciÛn del script:** docs/BD_role_usuarios_script.sql
+**Ubicaci√≥n del script:** docs/BD_role_usuarios_script.sql
 
 **Pasos para usarlo:**
-1. Abre **SQL Server Management Studio (SSMS)** y conÈctate a tu servidor SQL.
+1. Abre **SQL Server Management Studio (SSMS)** y con√©ctate a tu servidor SQL.
 2. Abre el archivo docs/BD_role_usuarios_script.sql.
-3. Haz clic en el botÛn **Ejecutar** (Execute) o presiona F5.
-4. El script crear· autom·ticamente la base de datos TP_ControlVehicular, sus tablas y los usuarios iniciales.
+3. Haz clic en el bot√≥n **Ejecutar** (Execute) o presiona F5.
+4. El script crear√° autom√°ticamente la base de datos TP_ControlVehicular, sus tablas y los usuarios iniciales.
 
 **Usuarios de prueba disponibles:**
-Una vez ejecutado el script, puedes iniciar sesiÛn en la aplicaciÛn utilizando cualquiera de estas credenciales seg˙n el rol que quieras probar:
+Una vez ejecutado el script, puedes iniciar sesi√≥n en la aplicaci√≥n utilizando cualquiera de estas credenciales seg√∫n el rol que quieras probar:
 
 - Administrador:
   DNI: 11111111
@@ -75,6 +75,6 @@ Una vez ejecutado el script, puedes iniciar sesiÛn en la aplicaciÛn utilizando c
   DNI: 22222222
   Clave: recep123
 
-- Mec·nico:
+- Mec√°nico:
   DNI: 33333333
   Clave: meca123
