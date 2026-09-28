@@ -9,7 +9,6 @@ Integrantes
 - Antonio Ledezma <antonioledezma@gmail.com>
 - Walter Velazco <walterg20@gmail.com>
 
-(Reemplazar los correos por los reales antes de entregar.)
 
 Stack y versiones
 ------------------
@@ -35,7 +34,7 @@ Resumen funcional
 - La vista (WPF) consume ViewModels que exponen ICommand y propiedades.
 - El ViewModel invoca Handlers/Services en la capa Negocio.
 - Los servicios usan Repositories en la capa Datos, que exponen DbSet<T> del CVDbContext.
-- Entity Framework Core se encarga del mapeo ORM y de las migraciones.
+- Entity Framework Core se encarga del mapeo ORM.
 
 Configurar la conexión a la base de datos
 -----------------------------------------
@@ -49,34 +48,32 @@ La aplicación lee la cadena de conexión desde appsettings.json (clave: Default
 
 Coloca la sección ConnectionStrings en Presentacion/appsettings.json o en el exe folder. No commitear credenciales en el repo.
 
-Flujo de migraciones (recomendado)
-----------------------------------
-1) En la máquina de desarrollo (crear y commitear migración):
-   dotnet tool install --global dotnet-ef    # si no lo tienes
-   dotnet restore
-   dotnet build
-   dotnet ef migrations add <NombreMigracion> --project Datos --startup-project Presentacion --context CVDbContext
-   git add Datos/Migrations
-   git commit -m "Add migration <NombreMigracion>"
-   git push
-
-2) En otra máquina (tras clonar / pull):
-   dotnet restore
-   dotnet build
-   dotnet ef database update --project Datos --startup-project Presentacion --context CVDbContext
 
 
 
+Configuración inicial de la Base de Datos
+-----------------------------------------
+Para inicializar la base de datos con todas las tablas necesarias y cargar los datos de prueba (roles y usuarios), debes ejecutar el script SQL que se encuentra en la carpeta docs:
 
-Buenas prácticas y recomendaciones
----------------------------------
-- Commitear las migraciones (carpeta Migrations) al repo para que otras máquinas puedan aplicarlas.
-- No almacenar credenciales en el repositorio; usar variables de entorno o secret manager.
-- En entornos críticos, generar script SQL con dotnet ef migrations script y revisarlo antes de aplicar.
-- Mantener README actualizado con instrucciones de arranque y configuración de la BD.
+**Ubicación del script:** docs/BD_role_usuarios_script.sql
 
-Contacto y notas finales
-------------------------
-Actualiza la sección Integrantes con los correos reales. Si quieres, puedo:
-- Generar un ejemplo de appsettings.json listo para usar (sin credenciales).
-- Añadir el fragmento de auto-migrate directamente en App.xaml.cs y crear una migración de ejemplo.
+**Pasos para usarlo:**
+1. Abre **SQL Server Management Studio (SSMS)** y conéctate a tu servidor SQL.
+2. Abre el archivo docs/BD_role_usuarios_script.sql.
+3. Haz clic en el botón **Ejecutar** (Execute) o presiona F5.
+4. El script creará automáticamente la base de datos TP_ControlVehicular, sus tablas y los usuarios iniciales.
+
+**Usuarios de prueba disponibles:**
+Una vez ejecutado el script, puedes iniciar sesión en la aplicación utilizando cualquiera de estas credenciales según el rol que quieras probar:
+
+- Administrador:
+  DNI: 11111111
+  Clave: admin123
+
+- Recepcionista:
+  DNI: 22222222
+  Clave: recep123
+
+- Mecánico:
+  DNI: 33333333
+  Clave: meca123

@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TP_ControlVehicular.Datos.Data;
 
 #nullable disable
 
-namespace TP_ControlVehicular.Migrations
+namespace TP_ControlVehicular.Migracion
 {
     [DbContext(typeof(CVDbContext))]
-    partial class CVDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260926125131_AddObservacionesToDetalleServicio")]
+    partial class AddObservacionesToDetalleServicio
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,6 +87,10 @@ namespace TP_ControlVehicular.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Observaciones")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Origen")
                         .IsRequired()

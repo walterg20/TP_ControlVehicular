@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -16,6 +16,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ModificarRegistroServicioHandler _modificarHandler;
         private readonly IVehiculoRepository _vehiculoRepository;
         private readonly ITallerRepository _tallerRepository;
+        private readonly IServicioRepository _servicioRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IClienteRepository _clienteRepository;
         private readonly IMapper _mapper;
 
         public OrdenServicioViewModel(
@@ -24,6 +27,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ModificarRegistroServicioHandler modificarHandler,
             IVehiculoRepository vehiculoRepository,
             ITallerRepository tallerRepository,
+            IServicioRepository servicioRepository,
+            IUsuarioRepository usuarioRepository,
+            IClienteRepository clienteRepository,
             IMapper mapper)
         {
             _listarHandler = listarHandler;
@@ -31,12 +37,20 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _modificarHandler = modificarHandler;
             _vehiculoRepository = vehiculoRepository;
             _tallerRepository = tallerRepository;
+            _servicioRepository = servicioRepository;
+            _usuarioRepository = usuarioRepository;
+            _clienteRepository = clienteRepository;
             _mapper = mapper;
 
             Ordenes = new ObservableCollection<RegistroServicioDto>();
+            ClientesDisponibles = new ObservableCollection<ClienteDto>();
             VehiculosDisponibles = new ObservableCollection<VehiculoDto>();
             TalleresDisponibles = new ObservableCollection<TallerDto>();
             EstadosDisponibles = new ObservableCollection<string> { "Pendiente", "En Proceso", "Completado", "Cancelado" };
+            DetallesOrdenActual = new ObservableCollection<DetalleServicioDto>();
+            DetallesOrdenActual.CollectionChanged += (s, e) => OnPropertyChanged(nameof(Total));
+            ServiciosDisponibles = new ObservableCollection<ServicioDto>();
+            MecanicosDisponibles = new ObservableCollection<UsuarioDto>();
 
             ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoOrdenesFiltered));
             
@@ -45,9 +59,58 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
 
         public ObservableCollection<RegistroServicioDto> Ordenes { get; set; }
+        public ObservableCollection<ClienteDto> ClientesDisponibles { get; set; }
         public ObservableCollection<VehiculoDto> VehiculosDisponibles { get; set; }
         public ObservableCollection<TallerDto> TalleresDisponibles { get; set; }
         public ObservableCollection<string> EstadosDisponibles { get; set; }
+
+        public ObservableCollection<DetalleServicioDto> DetallesOrdenActual { get; set; }
+        public decimal Total => DetallesOrdenActual?.Sum(d => d.Precio * d.Cantidad) ?? 0;
+        public ObservableCollection<ServicioDto> ServiciosDisponibles { get; set; }
+        public ObservableCollection<UsuarioDto> MecanicosDisponibles { get; set; }
+
+        private List<VehiculoDto> _todosLosVehiculos = new();
+
+        private int _clienteId;
+        public int ClienteId
+        {
+            get => _clienteId;
+            set 
+            { 
+                _clienteId = value; 
+                OnPropertyChanged(); 
+                FiltrarVehiculosPorCliente(); 
+            }
+        }
+
+        private void FiltrarVehiculosPorCliente()
+        {
+            VehiculosDisponibles.Clear();
+            foreach (var v in _todosLosVehiculos.Where(v => _clienteId == 0 || v.IdCliente == _clienteId))
+            {
+                VehiculosDisponibles.Add(v);
+            }
+            if (!VehiculosDisponibles.Any(v => v.Id == VehiculoId))
+            {
+                VehiculoId = 0;
+            }
+        }
+
+        public void SeleccionarClientePorVehiculo(int vehiculoId)
+        {
+            var v = _todosLosVehiculos.FirstOrDefault(x => x.Id == vehiculoId);
+            if (v != null)
+            {
+                ClienteId = v.IdCliente;
+            }
+        }
+
+        private ServicioDto? _servicioBusquedaSeleccionado;
+        public ServicioDto? ServicioBusquedaSeleccionado
+        {
+            get => _servicioBusquedaSeleccionado;
+            set { _servicioBusquedaSeleccionado = value; OnPropertyChanged(); }
+        }
 
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
@@ -107,25 +170,65 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _estado = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
+        public bool PuedeCrear => (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual?.IdRol != 3;
+        public bool PuedeEliminar => (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual?.IdRol != 3;
+
         public RegistroServicioDto? OrdenSeleccionada { get; set; }
 
         public async Task LoadCombosAsync()
         {
+            int currentClienteId = ClienteId;
+            int currentVehiculoId = VehiculoId;
+            int currentTallerId = TallerId;
+
+            ClientesDisponibles.Clear();
+            _todosLosVehiculos.Clear();
             VehiculosDisponibles.Clear();
             TalleresDisponibles.Clear();
+            ServiciosDisponibles.Clear();
+            MecanicosDisponibles.Clear();
             
             try
             {
-                var vehiculos = await _vehiculoRepository.GetAllAsync(); // Asumiendo GetAllAsync
+                var clientes = await _clienteRepository.GetAllAsync();
+                foreach (var c in clientes)
+                {
+                    ClientesDisponibles.Add(_mapper.Map<ClienteDto>(c));
+                }
+
+                var vehiculos = await _vehiculoRepository.GetAllWithDetailsAsync(); // Use the specialized method to include Modelo and Marca
                 foreach (var v in vehiculos)
                 {
-                    VehiculosDisponibles.Add(_mapper.Map<VehiculoDto>(v));
+                    _todosLosVehiculos.Add(_mapper.Map<VehiculoDto>(v));
                 }
+                
+                ClienteId = currentClienteId; // This triggers FiltrarVehiculosPorCliente()
+                if (ClienteId == 0) FiltrarVehiculosPorCliente();
+                VehiculoId = currentVehiculoId;
 
                 var talleres = await _tallerRepository.GetAllAsync(); // Asumiendo GetAllAsync
                 foreach (var t in talleres)
                 {
                     TalleresDisponibles.Add(_mapper.Map<TallerDto>(t));
+                }
+                
+                TallerId = currentTallerId;
+                if (TallerId == 0 && TalleresDisponibles.Any())
+                {
+                    TallerId = TalleresDisponibles.First().IdTaller;
+                }
+
+                var servicios = await _servicioRepository.GetAllAsync();
+                foreach (var s in servicios)
+                {
+                    ServiciosDisponibles.Add(_mapper.Map<ServicioDto>(s));
+                }
+
+                var usuarios = await _usuarioRepository.GetAllAsync();
+                // Asumimos que RolId == 3 o similar es Mecánico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
+                foreach (var u in usuarios.Where(u => u.Rol?.Nombre?.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0 || u.RolId == 3))
+                {
+                    MecanicosDisponibles.Add(_mapper.Map<UsuarioDto>(u));
                 }
             }
             catch { }
@@ -147,6 +250,59 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             catch { }
         }
 
+        public async Task<bool> CancelarOrdenSeleccionadaAsync()
+        {
+            if (OrdenSeleccionada == null) return false;
+
+            var orden = new Entidad.RegistroServicio
+            {
+                Id = OrdenSeleccionada.Id,
+                VehiculoId = OrdenSeleccionada.VehiculoId,
+                TallerId = OrdenSeleccionada.TallerId,
+                UsuarioId = OrdenSeleccionada.UsuarioId,
+                Fecha = OrdenSeleccionada.Fecha,
+                KmIngreso = OrdenSeleccionada.KmIngreso,
+                Estado = "Cancelado",
+                Detalles = OrdenSeleccionada.Detalles?.Select(d => new Entidad.DetalleServicio
+                {
+                    Id = d.Id,
+                    RegistroServicioId = d.RegistroServicioId,
+                    ServicioId = d.ServicioId,
+                    UsuarioId = d.UsuarioId,
+                    Cantidad = d.Cantidad,
+                    Precio = d.Precio,
+                    Origen = d.Origen,
+                    Estado = d.Estado,
+                    
+                    Observaciones = d.Observaciones
+                }).ToList() ?? new List<Entidad.DetalleServicio>()
+            };
+
+            try
+            {
+                var dto = await _modificarHandler.HandleAsync(orden);
+                var index = -1;
+                for (int i = 0; i < Ordenes.Count; i++)
+                {
+                    if (Ordenes[i].Id == dto.Id)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+                if (index >= 0)
+                {
+                    Ordenes[index] = dto;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                RegistrationFailed?.Invoke(this, "Error al cancelar la orden: " + ex.Message);
+                return false;
+            }
+        }
+
         public async Task<bool> GuardarOrdenAsync()
         {
             if (!ValidateAll()) return false;
@@ -159,7 +315,19 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 UsuarioId = UsuarioId > 0 ? UsuarioId : 1, // Por seguridad si no se setea desde UI
                 Fecha = Fecha,
                 KmIngreso = KmIngreso,
-                Estado = Estado
+                Estado = Estado,
+                Detalles = DetallesOrdenActual.Select(d => new Entidad.DetalleServicio
+                {
+                    Id = d.Id,
+                    ServicioId = d.ServicioId,
+                    RegistroServicioId = OrdenSeleccionada?.Id ?? 0,
+                    UsuarioId = d.UsuarioId,
+                    Cantidad = d.Cantidad > 0 ? d.Cantidad : 1,
+                    Precio = d.Precio,
+                    Observaciones = d.Observaciones ?? string.Empty,
+                    Origen = d.Origen ?? "Manual",
+                    Estado = d.Realizado ? "Realizado" : "Pendiente"
+                }).ToList()
             };
 
             try
@@ -226,6 +394,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public bool ValidateAll()
         {
+            
             ValidateProperty(nameof(VehiculoId));
             ValidateProperty(nameof(TallerId));
             ValidateProperty(nameof(KmIngreso));
@@ -234,3 +403,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
     }
 }
+
+
+
+
+
+
+
+
+

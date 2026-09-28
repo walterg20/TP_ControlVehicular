@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
@@ -29,21 +29,17 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             }
         }
 
-        private void BtnNuevaOrden_Click(object sender, RoutedEventArgs e)
+                private void BtnNuevaOrden_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is OrdenServicioViewModel vm)
             {
+                if (!vm.PuedeCrear) { Compartido.FrmConfirmacion.MostrarAviso("No tiene permisos para crear órdenes.", "Acceso Denegado", Window.GetWindow(this)); return; }
                 // Limpiar selección actual si la hubiera
                 vm.OrdenSeleccionada = null;
                 
-                var frm = new FrmOrdenServicio
+                if (Application.Current.MainWindow is MainWindow mainWindow)
                 {
-                    Owner = Window.GetWindow(this)
-                };
-                
-                if (frm.ShowDialog() == true)
-                {
-                    // La recarga ya se realiza al guardar o al cerrar
+                    mainWindow.AgregarPagina(new CtlOrdenServicioForm());
                 }
             }
         }
@@ -58,18 +54,18 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     return;
                 }
 
-                var frm = new FrmOrdenServicio(vm.OrdenSeleccionada)
+                if (Application.Current.MainWindow is MainWindow mainWindow)
                 {
-                    Owner = Window.GetWindow(this)
-                };
-                frm.ShowDialog();
+                    mainWindow.AgregarPagina(new CtlOrdenServicioForm(vm.OrdenSeleccionada));
+                }
             }
         }
 
-        private async void BtnEliminar_Click(object sender, RoutedEventArgs e)
+                private async void BtnEliminar_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is OrdenServicioViewModel vm)
             {
+                if (!vm.PuedeEliminar) { Compartido.FrmConfirmacion.MostrarAviso("No tiene permisos para eliminar órdenes.", "Acceso Denegado", Window.GetWindow(this)); return; }
                 if (vm.OrdenSeleccionada == null)
                 {
                     Compartido.FrmConfirmacion.MostrarAviso("Por favor, seleccione una orden de servicio.", "Aviso", Window.GetWindow(this));
@@ -82,15 +78,13 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 
                 if (confirmacion)
                 {
-                    var estadoAnterior = vm.OrdenSeleccionada.Estado;
-                    vm.Estado = "Cancelado";
-                    var ok = await vm.GuardarOrdenAsync();
-                    if(!ok)
-                    {
-                        vm.Estado = estadoAnterior;
-                    }
+                    var ok = await vm.CancelarOrdenSeleccionadaAsync();
                 }
             }
         }
     }
 }
+
+
+
+

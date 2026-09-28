@@ -73,6 +73,8 @@ namespace TP_ControlVehicular
                 _ctlLogin.ViewModel.OnLoginSuccess += OnLoginExitoso;
             }
 
+            _ctlLogin.LimpiarUI();
+
             // Inyectar CtlLogin en el área principal de la ventana
             grdContenido.Children.Clear();
             Grid.SetColumn(_ctlLogin, 0);
@@ -246,7 +248,7 @@ namespace TP_ControlVehicular
             Application.Current.Shutdown();
         }
 
-        private void AgregarPagina(UserControl userControl)
+        public void AgregarPagina(UserControl userControl)
         {
             this.grdContenido.Children.Clear();
             Grid.SetColumn(userControl, 0);

@@ -11,5 +11,7 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string ClienteNombre { get; set; } = string.Empty;
         public string ModeloNombre { get; set; } = string.Empty;
         public string MarcaNombre { get; set; } = string.Empty;
+
+        public string DescripcionCompleta => $"{MarcaNombre} {ModeloNombre} [{Patente}]".Trim();
     }
 }

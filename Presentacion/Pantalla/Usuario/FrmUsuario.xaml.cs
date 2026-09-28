@@ -230,5 +230,14 @@ namespace TP_ControlVehicular.Presentacion.Usuario
         {
             this.DialogResult = false;
         }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            if (DataContext is UsuarioViewModel vm)
+            {
+                vm.RegistrationFailed -= VmUsuario_RegistrationFailed;
+            }
+            base.OnClosed(e);
+        }
     }
 }

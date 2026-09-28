@@ -3,20 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TP_ControlVehicular.Datos.Data;
 
 #nullable disable
 
-namespace TP_ControlVehicular.Migrations
+namespace TP_ControlVehicular.Migracion
 {
     [DbContext(typeof(CVDbContext))]
-    [Migration("20260909220245_AddUsuariosYRoles")]
-    partial class AddUsuariosYRoles
+    partial class CVDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,6 +69,54 @@ namespace TP_ControlVehicular.Migrations
                     b.ToTable("Cliente", (string)null);
                 });
 
+            modelBuilder.Entity("TP_ControlVehicular.Entidad.DetalleServicio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Observaciones")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("RegistroServicioId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServicioId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RegistroServicioId");
+
+                    b.HasIndex("ServicioId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("DetalleServicio", (string)null);
+                });
+
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Marca", b =>
                 {
                     b.Property<int>("Id")
@@ -113,6 +158,45 @@ namespace TP_ControlVehicular.Migrations
                     b.ToTable("Modelo", (string)null);
                 });
 
+            modelBuilder.Entity("TP_ControlVehicular.Entidad.RegistroServicio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("KmIngreso")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TallerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("VehiculoId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TallerId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.HasIndex("VehiculoId");
+
+                    b.ToTable("RegistroServicio", (string)null);
+                });
+
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Rol", b =>
                 {
                     b.Property<int>("Id")
@@ -135,6 +219,30 @@ namespace TP_ControlVehicular.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("TP_ControlVehicular.Entidad.Servicio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Servicio", (string)null);
                 });
 
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Taller", b =>
@@ -176,21 +284,56 @@ namespace TP_ControlVehicular.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Contrasena")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Dni")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<string>("Domicilio")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime>("FechaNacimiento")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("RolId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Dni")
+                        .IsUnique();
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.HasIndex("RolId");
 
@@ -231,6 +374,33 @@ namespace TP_ControlVehicular.Migrations
                     b.ToTable("Vehiculo", (string)null);
                 });
 
+            modelBuilder.Entity("TP_ControlVehicular.Entidad.DetalleServicio", b =>
+                {
+                    b.HasOne("TP_ControlVehicular.Entidad.RegistroServicio", "RegistroServicio")
+                        .WithMany("Detalles")
+                        .HasForeignKey("RegistroServicioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TP_ControlVehicular.Entidad.Servicio", "Servicio")
+                        .WithMany("Detalles")
+                        .HasForeignKey("ServicioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TP_ControlVehicular.Entidad.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RegistroServicio");
+
+                    b.Navigation("Servicio");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Modelo", b =>
                 {
                     b.HasOne("TP_ControlVehicular.Entidad.Marca", "Marca")
@@ -242,12 +412,39 @@ namespace TP_ControlVehicular.Migrations
                     b.Navigation("Marca");
                 });
 
+            modelBuilder.Entity("TP_ControlVehicular.Entidad.RegistroServicio", b =>
+                {
+                    b.HasOne("TP_ControlVehicular.Entidad.Taller", "Taller")
+                        .WithMany()
+                        .HasForeignKey("TallerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TP_ControlVehicular.Entidad.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TP_ControlVehicular.Entidad.Vehiculo", "Vehiculo")
+                        .WithMany()
+                        .HasForeignKey("VehiculoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Taller");
+
+                    b.Navigation("Usuario");
+
+                    b.Navigation("Vehiculo");
+                });
+
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Usuario", b =>
                 {
                     b.HasOne("TP_ControlVehicular.Entidad.Rol", "Rol")
                         .WithMany("Usuarios")
                         .HasForeignKey("RolId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Rol");
@@ -287,9 +484,19 @@ namespace TP_ControlVehicular.Migrations
                     b.Navigation("Vehiculos");
                 });
 
+            modelBuilder.Entity("TP_ControlVehicular.Entidad.RegistroServicio", b =>
+                {
+                    b.Navigation("Detalles");
+                });
+
             modelBuilder.Entity("TP_ControlVehicular.Entidad.Rol", b =>
                 {
                     b.Navigation("Usuarios");
+                });
+
+            modelBuilder.Entity("TP_ControlVehicular.Entidad.Servicio", b =>
+                {
+                    b.Navigation("Detalles");
                 });
 #pragma warning restore 612, 618
         }

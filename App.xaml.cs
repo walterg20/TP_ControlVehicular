@@ -125,7 +125,7 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlServicio>();
             services.AddTransient<FrmServicio>();
             services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();
-            services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.FrmOrdenServicio>();
+            services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();
