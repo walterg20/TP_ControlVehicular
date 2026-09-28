@@ -13,6 +13,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string Telefono { get; set; }
         public bool Activo { get; set; }
 
-        public string NombreCompletoConDni => $"[{Dni}] {Nombre} {Apellido}".Trim();
+        public string NombreCompletoConDni => $"{Nombre} {Apellido} [{Dni}]".Trim();
     }
 }

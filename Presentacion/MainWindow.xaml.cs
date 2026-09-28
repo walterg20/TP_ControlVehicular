@@ -248,7 +248,7 @@ namespace TP_ControlVehicular
             Application.Current.Shutdown();
         }
 
-        private void AgregarPagina(UserControl userControl)
+        public void AgregarPagina(UserControl userControl)
         {
             this.grdContenido.Children.Clear();
             Grid.SetColumn(userControl, 0);

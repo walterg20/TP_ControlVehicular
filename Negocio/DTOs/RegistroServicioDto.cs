@@ -15,5 +15,8 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string VehiculoDetalle { get; set; } = string.Empty; // e.g. "Toyota Corolla"
         public string TallerNombre { get; set; } = string.Empty;
         public string RecepcionistaNombre { get; set; } = string.Empty;
+
+        // Lista de detalles para la grilla de checkout (inspección)
+        public List<DetalleServicioDto> Detalles { get; set; } = new List<DetalleServicioDto>();
     }
 }

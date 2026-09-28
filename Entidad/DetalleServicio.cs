@@ -10,6 +10,7 @@ namespace TP_ControlVehicular.Entidad
         public decimal Precio { get; set; }
         public string Origen { get; set; } = "Taller";
         public string Estado { get; set; } = "Realizado";
+        public string Observaciones { get; set; } = string.Empty;
 
         public RegistroServicio RegistroServicio { get; set; } = null!;
         public Usuario Usuario { get; set; } = null!; // Mecánico

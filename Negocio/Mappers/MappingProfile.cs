@@ -57,7 +57,13 @@ namespace TP_ControlVehicular.Negocio.Mappers
                 .ForMember(dest => dest.VehiculoDetalle, opt => opt.MapFrom(src => src.Vehiculo != null && src.Vehiculo.Modelo != null && src.Vehiculo.Modelo.Marca != null 
                     ? $"{src.Vehiculo.Modelo.Marca.NombreMarca} {src.Vehiculo.Modelo.NombreModelo}" : string.Empty))
                 .ForMember(dest => dest.TallerNombre, opt => opt.MapFrom(src => src.Taller != null ? src.Taller.Nombre : string.Empty))
-                .ForMember(dest => dest.RecepcionistaNombre, opt => opt.MapFrom(src => src.Usuario != null ? $"{src.Usuario.Nombre} {src.Usuario.Apellido}".Trim() : string.Empty));
+                .ForMember(dest => dest.RecepcionistaNombre, opt => opt.MapFrom(src => src.Usuario != null ? $"{src.Usuario.Nombre} {src.Usuario.Apellido}".Trim() : string.Empty))
+                .ForMember(dest => dest.Detalles, opt => opt.MapFrom(src => src.Detalles));
+
+            // DetalleServicio -> DetalleServicioDto
+            CreateMap<DetalleServicio, DetalleServicioDto>()
+                .ForMember(dest => dest.ServicioNombre, opt => opt.MapFrom(src => src.Servicio != null ? src.Servicio.Nombre : string.Empty))
+                .ForMember(dest => dest.Realizado, opt => opt.MapFrom(src => src.Estado == "Realizado"));
 
         }
     }

@@ -14,6 +14,13 @@ namespace TP_ControlVehicular.Datos.Repositories
             _cvDbContext = cvDbContext;
         }
 
+        public new async Task UpdateAsync(RegistroServicio entity)
+        {
+            _cvDbContext.ChangeTracker.Clear();
+            _cvDbContext.RegistroServicios.Update(entity);
+            await _cvDbContext.SaveChangesAsync();
+        }
+
         public async Task<List<RegistroServicio>> GetReporteCompletoAsync(int? mecanicoId = null)
         {
             var query = _cvDbContext.RegistroServicios
