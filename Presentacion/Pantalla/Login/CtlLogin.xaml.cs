@@ -14,6 +14,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Login
         public CtlLogin()
         {
             InitializeComponent();
+            txtDni.Focus();
             try
             {
                 if (App.ServiceProvider != null)
