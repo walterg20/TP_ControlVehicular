@@ -66,8 +66,8 @@
                     <Button Grid.Column="1" x:Name="btnNuevoVehiculo" Content="➕" Width="30" Height="30" Margin="5,0,0,0" ToolTip="Nuevo Vehículo" Click="BtnNuevoVehiculo_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
                 </Grid>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Taller:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center"/>
-                <ComboBox Grid.Row="1" Grid.Column="1" x:Name="cmbTalleres" Height="30" Margin="0,0,0,10"
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Taller:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center" Visibility="Collapsed"/>
+                <ComboBox Grid.Row="2" Grid.Column="1" x:Name="cmbTalleres" Height="30" Margin="0,0,0,10" Visibility="Collapsed"
                           ItemsSource="{Binding TalleresDisponibles}"
                           SelectedValue="{Binding TallerId, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
                           SelectedValuePath="IdTaller" DisplayMemberPath="Nombre" />
@@ -76,8 +76,8 @@
                 <TextBox Grid.Row="1" Grid.Column="4" x:Name="txtKm" Height="30" Margin="0,0,0,10"
                          Text="{Binding KmIngreso, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}" />
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Estado:" FontWeight="Bold" Margin="0,5,10,2" VerticalAlignment="Center"/>
-                <ComboBox Grid.Row="2" Grid.Column="1" x:Name="cmbEstado" Height="30" Margin="0,0,0,5"
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Estado:" FontWeight="Bold" Margin="0,5,10,2" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="1" Grid.Column="1" x:Name="cmbEstado" Height="30" Margin="0,0,0,5"
                           ItemsSource="{Binding EstadosDisponibles}"
                           SelectedItem="{Binding Estado, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}" />
             </Grid>
