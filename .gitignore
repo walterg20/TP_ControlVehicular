@@ -371,3 +371,5 @@ docs/README_FLUJO_ARQUITECTURA.md
 
 # Proyecto de pruebas ignorado
 TP_ControlVehicular.Tests/
+/appsettings.json
+/MEMORY.md
