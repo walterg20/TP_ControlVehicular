@@ -132,6 +132,7 @@ namespace TP_ControlVehicular
             btnRol.Visibility = Visibility.Visible;
             secReportes.Visibility = Visibility.Visible;
             btnReporteOrdenes.Visibility = Visibility.Visible;
+            btnReporteGerencial.Visibility = Visibility.Visible;
 
             int rolId = currentUser.IdRol;
 
@@ -163,10 +164,30 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlDashboard());
         }
 
+        private void MenuItem_Click_ReporteGerencial(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            if (App.ServiceProvider?.GetService(typeof(ReporteGerencialView)) is ReporteGerencialView ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new ReporteGerencialView(App.ServiceProvider?.GetService(typeof(ReporteGerencialViewModel)) as ReporteGerencialViewModel));
+            }
+        }
+
         private void MenuItem_Click_ReporteOrdenes(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlReporteOrdenes());
+            if (App.ServiceProvider?.GetService(typeof(CtlReporteOrdenes)) is CtlReporteOrdenes ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlReporteOrdenes());
+            }
         }
 
         private void MenuItem_Click_OrdenesTrabajo(object sender, RoutedEventArgs e)
@@ -274,6 +295,7 @@ namespace TP_ControlVehicular
             btnUsuario.Background = transparente; btnUsuario.FontWeight = normalWeight;
             btnRol.Background = transparente; btnRol.FontWeight = normalWeight;
             btnReporteOrdenes.Background = transparente; btnReporteOrdenes.FontWeight = normalWeight;
+            btnReporteGerencial.Background = transparente; btnReporteGerencial.FontWeight = normalWeight;
 
             var colorAzul = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2980B9");
             botonActivo.Background = new System.Windows.Media.SolidColorBrush(colorAzul);

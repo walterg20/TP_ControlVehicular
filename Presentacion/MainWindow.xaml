@@ -146,6 +146,14 @@
                             </Style>
                         </Button.Resources>
                     </Button>
+                    <Button x:Name="btnReporteGerencial" Content="📈 Reporte Gerencial" Click="MenuItem_Click_ReporteGerencial" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                     <!-- ESPACIADOR -->
                     <Separator Background="#34495E" Margin="0,15"/>

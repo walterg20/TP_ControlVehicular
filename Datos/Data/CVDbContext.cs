@@ -17,11 +17,19 @@ namespace TP_ControlVehicular.Datos.Data
         public DbSet<Servicio> Servicios { get; set; } = null!;
         public DbSet<RegistroServicio> RegistroServicios { get; set; } = null!;
         public DbSet<DetalleServicio> DetalleServicios { get; set; } = null!;
+        public DbSet<Factura> Facturas { get; set; } = null!;
+        public DbSet<MetodoPago> MetodosPago { get; set; } = null!;
+        public DbSet<Pago> Pagos { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(CVDbContext).Assembly);
+            
+            modelBuilder.Entity<TP_ControlVehicular.Negocio.DTOs.Reportes.ReporteIngresosDto>().HasNoKey();
+            modelBuilder.Entity<TP_ControlVehicular.Negocio.DTOs.Reportes.ReporteTiemposResolucionDto>().HasNoKey();
+
             base.OnModelCreating(modelBuilder);
         }
     }
 }
+

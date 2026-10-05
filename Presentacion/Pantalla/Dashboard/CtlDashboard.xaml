@@ -9,11 +9,9 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Encabezado -->
             <RowDefinition Height="Auto"/>
-            <!-- Tarjetas Métrica (3) -->
             <RowDefinition Height="*"/>
-            <!-- Listado de Vehículos -->
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- ENCABEZADO -->
@@ -94,7 +92,7 @@
         </Grid>
 
         <!-- LISTADO DE VEHÍCULOS EN EL TALLER -->
-        <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="20">
+        <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,20">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
@@ -108,7 +106,7 @@
                 <TextBlock Grid.Row="0" Text="🚗 Vehículos en el Taller" FontSize="16" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
 
                 <DataGrid Grid.Row="1" 
-                          x:Name="dgVehiculos" 
+                          x:Name="grdVehiculos" 
                           ItemsSource="{Binding VehiculosEnTaller}" 
                           AutoGenerateColumns="False" 
                           IsReadOnly="True" 
@@ -139,5 +137,7 @@
                 </DataGrid>
             </Grid>
         </Border>
+
+
     </Grid>
 </UserControl>

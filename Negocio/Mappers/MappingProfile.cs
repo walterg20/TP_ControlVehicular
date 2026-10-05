@@ -8,12 +8,12 @@ namespace TP_ControlVehicular.Negocio.Mappers
     {
         public MappingProfile()
         {
-            // Cliente → ClienteDto
+            // Cliente â†’ ClienteDto
             CreateMap<Cliente, ClienteDto>()
                 .ForMember(dest => dest.IdCliente, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FechaNac, opt => opt.MapFrom(src => src.FechaNacimiento));
 
-            // Vehiculo → VehiculoDto
+            // Vehiculo â†’ VehiculoDto
             CreateMap<Vehiculo, VehiculoDto>()
                 .ForMember(dest => dest.IdCliente, opt => opt.MapFrom(src => src.ClienteId))
                 .ForMember(dest => dest.IdModelo, opt => opt.MapFrom(src => src.ModeloId))
@@ -24,35 +24,36 @@ namespace TP_ControlVehicular.Negocio.Mappers
                 .ForMember(dest => dest.MarcaNombre,
                            opt => opt.MapFrom(src => src.Modelo != null && src.Modelo.Marca != null ? src.Modelo.Marca.NombreMarca : string.Empty));
 
-            // Modelo → ModeloDto
+            // Modelo â†’ ModeloDto
             CreateMap<Modelo, ModeloDto>()
                 .ForMember(dest => dest.IdMarca, opt => opt.MapFrom(src => src.MarcaId))
                 .ForMember(dest => dest.MarcaNombre,
                            opt => opt.MapFrom(src => src.Marca != null ? src.Marca.NombreMarca : string.Empty));
 
-            // Marca → MarcaDto
+            // Marca â†’ MarcaDto
             CreateMap<Marca, MarcaDto>();
 
-            // Taller → TallerDto
+            // Taller â†’ TallerDto
             CreateMap<Taller, TallerDto>()
                 .ForMember(dest => dest.IdTaller, opt => opt.MapFrom(src => src.Id));
 
-            // Rol → RolDto
+            // Rol â†’ RolDto
             CreateMap<Rol, RolDto>()
                 .ForMember(dest => dest.IdRol, opt => opt.MapFrom(src => src.Id));
 
-            // Usuario → UsuarioDto
+            // Usuario â†’ UsuarioDto
             CreateMap<Usuario, UsuarioDto>()
                 .ForMember(dest => dest.IdUsuario, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.IdRol, opt => opt.MapFrom(src => src.RolId))
                 .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.Rol != null ? src.Rol.Nombre : string.Empty));
 
-            // Servicio → ServicioDto
+            // Servicio â†’ ServicioDto
             CreateMap<Servicio, ServicioDto>()
                 .ForMember(dest => dest.IdServicio, opt => opt.MapFrom(src => src.Id));
 
             // RegistroServicio -> RegistroServicioDto
             CreateMap<RegistroServicio, RegistroServicioDto>()
+                .ForMember(dest => dest.ClienteDetalle, opt => opt.MapFrom(src => src.Vehiculo != null && src.Vehiculo.Cliente != null ? $"{src.Vehiculo.Cliente.Nombre} {src.Vehiculo.Cliente.Apellido} [{src.Vehiculo.Cliente.Dni}]" : string.Empty))
                 .ForMember(dest => dest.VehiculoPatente, opt => opt.MapFrom(src => src.Vehiculo != null ? src.Vehiculo.Patente : string.Empty))
                 .ForMember(dest => dest.VehiculoDetalle, opt => opt.MapFrom(src => src.Vehiculo != null && src.Vehiculo.Modelo != null && src.Vehiculo.Modelo.Marca != null 
                     ? $"{src.Vehiculo.Modelo.Marca.NombreMarca} {src.Vehiculo.Modelo.NombreModelo}" : string.Empty))
@@ -65,6 +66,8 @@ namespace TP_ControlVehicular.Negocio.Mappers
                 .ForMember(dest => dest.ServicioNombre, opt => opt.MapFrom(src => src.Servicio != null ? src.Servicio.Nombre : string.Empty))
                 .ForMember(dest => dest.Realizado, opt => opt.MapFrom(src => src.Estado == "Realizado"));
 
+            CreateMap<Factura, FacturaDto>();
         }
     }
 }
+

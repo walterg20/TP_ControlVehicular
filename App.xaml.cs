@@ -33,12 +33,17 @@ namespace TP_ControlVehicular
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            
+            // Configurar licencia de QuestPDF (Community)
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
             var services = new ServiceCollection();
             // Registrar logging para que AutoMapper y otros componentes que lo requieran
             // puedan resolverse desde el contenedor de dependencias.
             services.AddLogging();
             // AutoMapper
             services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
+
             // DbContext
             var builder = new ConfigurationBuilder()
                             .SetBasePath(AppContext.BaseDirectory)
@@ -60,6 +65,11 @@ namespace TP_ControlVehicular
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<IServicioRepository, ServicioRepository>();
             services.AddScoped<IRegistroServicioRepository, RegistroServicioRepository>();
+            services.AddScoped<IReporteRepository, ReporteRepository>();
+            services.AddScoped<IFacturaRepository, FacturaRepository>();
+            services.AddScoped<IPagoRepository, PagoRepository>();
+            services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
+            services.AddScoped<IBillingService, BillingService>();
 
             // Handlers
             services.AddScoped<RegistrarClienteHandler>();
@@ -88,6 +98,8 @@ namespace TP_ControlVehicular
             services.AddScoped<AutenticarUsuarioHandler>();
             services.AddScoped<ObtenerDashboardHandler>();
             services.AddScoped<ObtenerReporteOrdenesHandler>();
+            services.AddScoped<ObtenerReporteIngresosHandler>();
+            services.AddScoped<ObtenerReporteTiemposResolucionHandler>();
             services.AddScoped<ListarServiciosHandler>();
             services.AddScoped<RegistrarServicioHandler>();
             services.AddScoped<ModificarServicioHandler>();
@@ -95,7 +107,11 @@ namespace TP_ControlVehicular
             services.AddScoped<ListarRegistroServiciosHandler>();
             services.AddScoped<RegistrarRegistroServicioHandler>();
             services.AddScoped<ModificarRegistroServicioHandler>();
+            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler>();
+            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler>();
 
+            // Servicios Especiales
+            services.AddTransient<TP_ControlVehicular.Negocio.Servicios.Reportes.IReporteService, TP_ControlVehicular.Negocio.Servicios.Reportes.QuestPdfReporteService>();
 
             // ViewModels
             services.AddScoped<ClienteViewModel>();
@@ -108,6 +124,7 @@ namespace TP_ControlVehicular
             services.AddScoped<LoginViewModel>();
             services.AddScoped<DashboardViewModel>();
             services.AddScoped<ReporteOrdenesViewModel>();
+            services.AddScoped<ReporteGerencialViewModel>();
             services.AddScoped<ServicioViewModel>();
             services.AddScoped<OrdenServicioViewModel>();
 
@@ -122,6 +139,7 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlLogin>();
             services.AddScoped<CtlDashboard>();
             services.AddScoped<CtlReporteOrdenes>();
+            services.AddScoped<ReporteGerencialView>();
             services.AddScoped<CtlServicio>();
             services.AddTransient<FrmServicio>();
             services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();

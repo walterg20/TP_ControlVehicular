@@ -373,3 +373,5 @@ docs/README_FLUJO_ARQUITECTURA.md
 TP_ControlVehicular.Tests/
 /appsettings.json
 /MEMORY.md
+
+.codegraph/
