@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.Interfaces;
@@ -34,7 +34,7 @@ namespace TP_ControlVehicular.Datos.Repositories
                     .ThenInclude(d => d.Servicio)
                 .Include(r => r.Detalles)
                     .ThenInclude(d => d.Usuario) // Mecánico
-                .AsQueryable();
+                .AsNoTracking().AsQueryable();
 
             if (mecanicoId.HasValue)
             {

@@ -19,6 +19,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly IServicioRepository _servicioRepository;
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IClienteRepository _clienteRepository;
+        private readonly TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler _generarComprobanteOrdenHandler;
+        private readonly TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler _generarComprobantePagoHandler;
         private readonly IMapper _mapper;
 
         public OrdenServicioViewModel(
@@ -30,6 +32,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IServicioRepository servicioRepository,
             IUsuarioRepository usuarioRepository,
             IClienteRepository clienteRepository,
+            TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler generarComprobanteOrdenHandler,
+            TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler generarComprobantePagoHandler,
             IMapper mapper)
         {
             _listarHandler = listarHandler;
@@ -40,6 +44,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _servicioRepository = servicioRepository;
             _usuarioRepository = usuarioRepository;
             _clienteRepository = clienteRepository;
+            _generarComprobanteOrdenHandler = generarComprobanteOrdenHandler;
+            _generarComprobantePagoHandler = generarComprobantePagoHandler;
             _mapper = mapper;
 
             Ordenes = new ObservableCollection<RegistroServicioDto>();
@@ -170,10 +176,29 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _estado = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
-        public bool PuedeCrear => (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual?.IdRol != 3;
-        public bool PuedeEliminar => (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual?.IdRol != 3;
+        private bool EsMecanico => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == 3;
+        private bool EsRecepcionista => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == 2;
+        public bool PuedeCrear => !EsMecanico;
+        public bool PuedeEliminar => !EsMecanico && OrdenSeleccionada != null;
+        public bool PuedeImprimirRecepcion => !EsMecanico && OrdenSeleccionada != null;
 
-        public RegistroServicioDto? OrdenSeleccionada { get; set; }
+        private RegistroServicioDto? _ordenSeleccionada;
+        public RegistroServicioDto? OrdenSeleccionada
+        {
+            get => _ordenSeleccionada;
+            set
+            {
+                _ordenSeleccionada = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PuedePagar));
+                OnPropertyChanged(nameof(PuedeVerComprobantePago));
+                OnPropertyChanged(nameof(PuedeEliminar));
+                OnPropertyChanged(nameof(PuedeImprimirRecepcion));
+            }
+        }
+
+        public bool PuedePagar => EsRecepcionista && OrdenSeleccionada?.Estado == "Finalizado";
+        public bool PuedeVerComprobantePago => !EsMecanico && OrdenSeleccionada?.Estado == "Pagado";
 
         public async Task LoadCombosAsync()
         {
@@ -225,7 +250,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 }
 
                 var usuarios = await _usuarioRepository.GetAllAsync();
-                // Asumimos que RolId == 3 o similar es Mecánico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
+                // Asumimos que RolId == 3 o similar es MecÃ¡nico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
                 foreach (var u in usuarios.Where(u => u.Rol?.Nombre?.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0 || u.RolId == 3))
                 {
                     MecanicosDisponibles.Add(_mapper.Map<UsuarioDto>(u));
@@ -236,6 +261,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public async Task LoadAsync()
         {
+            OnPropertyChanged(nameof(PuedeCrear));
+            OnPropertyChanged(nameof(PuedeEliminar));
+            OnPropertyChanged(nameof(PuedeImprimirRecepcion));
+            OnPropertyChanged(nameof(PuedePagar));
+            OnPropertyChanged(nameof(PuedeVerComprobantePago));
+            
             Ordenes.Clear();
             await LoadCombosAsync();
 
@@ -373,7 +404,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 case nameof(VehiculoId):
                     if (VehiculoId <= 0)
-                        SetError(nameof(VehiculoId), "Debe seleccionar un Vehículo.");
+                        SetError(nameof(VehiculoId), "Debe seleccionar un VehÃ­culo.");
                     break;
                 case nameof(TallerId):
                     if (TallerId <= 0)
@@ -400,6 +431,35 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ValidateProperty(nameof(KmIngreso));
             ValidateProperty(nameof(Estado));
             return !HasErrors;
+        }
+
+        public event EventHandler<Negocio.DTOs.Reportes.ComprobanteOrdenDto>? MostrarComprobanteOrdenRequested;
+        public event EventHandler<Negocio.DTOs.Reportes.ComprobantePagoDto>? MostrarComprobantePagoRequested;
+
+        private ICommand? _generarComprobanteOrdenCommand;
+        public ICommand GenerarComprobanteOrdenCommand => _generarComprobanteOrdenCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(async () => await GenerarComprobanteOrdenAsync());
+
+        private ICommand? _generarComprobantePagoCommand;
+        public ICommand GenerarComprobantePagoCommand => _generarComprobantePagoCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(async () => await GenerarComprobantePagoAsync());
+
+        private async Task GenerarComprobanteOrdenAsync()
+        {
+            if (OrdenSeleccionada == null || OrdenSeleccionada.Id <= 0) return;
+            var comprobante = await _generarComprobanteOrdenHandler.HandleAsync(OrdenSeleccionada.Id);
+            if (comprobante != null)
+            {
+                MostrarComprobanteOrdenRequested?.Invoke(this, comprobante);
+            }
+        }
+
+        private async Task GenerarComprobantePagoAsync()
+        {
+            if (OrdenSeleccionada == null || OrdenSeleccionada.Id <= 0) return;
+            var comprobante = await _generarComprobantePagoHandler.HandleAsync(OrdenSeleccionada.Id);
+            if (comprobante != null)
+            {
+                MostrarComprobantePagoRequested?.Invoke(this, comprobante);
+            }
         }
     }
 }

@@ -138,10 +138,10 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                         if (esMecanico)
                         {
                             cmbClientes.IsEnabled = false;
-                                btnNuevoCliente.IsEnabled = false;
-                                btnNuevoVehiculo.IsEnabled = false;
-                                btnNuevoServicio.IsEnabled = false;
-                                cmbVehiculos.IsEnabled = false;
+                            btnNuevoCliente.IsEnabled = false;
+                            btnNuevoVehiculo.IsEnabled = false;
+                            btnNuevoServicio.IsEnabled = false;
+                            cmbVehiculos.IsEnabled = false;
                             cmbTalleres.IsEnabled = false;
                             cmbEstado.IsEnabled = false;
                             txtKm.IsEnabled = false;

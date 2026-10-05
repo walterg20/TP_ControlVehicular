@@ -11,10 +11,13 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string Estado { get; set; } = string.Empty;
 
         // Propiedades de navegación aplanadas para la grilla
+        public string ClienteDetalle { get; set; } = string.Empty;
         public string VehiculoPatente { get; set; } = string.Empty;
         public string VehiculoDetalle { get; set; } = string.Empty; // e.g. "Toyota Corolla"
         public string TallerNombre { get; set; } = string.Empty;
         public string RecepcionistaNombre { get; set; } = string.Empty;
+
+        public string EstaPagadoStr => Estado == "Pagado" ? "Sí" : "No";
 
         // Lista de detalles para la grilla de checkout (inspección)
         public List<DetalleServicioDto> Detalles { get; set; } = new List<DetalleServicioDto>();

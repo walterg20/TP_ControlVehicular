@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
@@ -20,6 +20,10 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 if (App.ServiceProvider?.GetService(typeof(OrdenServicioViewModel)) is OrdenServicioViewModel vm)
                 {
                     this.DataContext = vm;
+                    vm.MostrarComprobanteOrdenRequested -= Vm_MostrarComprobanteOrdenRequested;
+                    vm.MostrarComprobanteOrdenRequested += Vm_MostrarComprobanteOrdenRequested;
+                    vm.MostrarComprobantePagoRequested -= Vm_MostrarComprobantePagoRequested;
+                    vm.MostrarComprobantePagoRequested += Vm_MostrarComprobantePagoRequested;
                     await vm.LoadAsync();
                 }
             }
@@ -29,7 +33,25 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             }
         }
 
-                private void BtnNuevaOrden_Click(object sender, RoutedEventArgs e)
+        private void Vm_MostrarComprobanteOrdenRequested(object? sender, TP_ControlVehicular.Negocio.DTOs.Reportes.ComprobanteOrdenDto e)
+        {
+            var reporteService = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<TP_ControlVehicular.Negocio.Servicios.Reportes.IReporteService>(App.ServiceProvider);
+            var pdfBytes = reporteService.GenerarComprobanteRecepcion(e);
+            string tempFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ComprobanteRecepcion_{e.OrdenId}.pdf");
+            System.IO.File.WriteAllBytes(tempFile, pdfBytes);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(tempFile) { UseShellExecute = true });
+        }
+
+        private void Vm_MostrarComprobantePagoRequested(object? sender, TP_ControlVehicular.Negocio.DTOs.Reportes.ComprobantePagoDto e)
+        {
+            var reporteService = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<TP_ControlVehicular.Negocio.Servicios.Reportes.IReporteService>(App.ServiceProvider);
+            var pdfBytes = reporteService.GenerarComprobantePago(e);
+            string tempFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ComprobantePago_{e.OrdenId}.pdf");
+            System.IO.File.WriteAllBytes(tempFile, pdfBytes);
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(tempFile) { UseShellExecute = true });
+        }
+
+        private void BtnNuevaOrden_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is OrdenServicioViewModel vm)
             {
@@ -61,7 +83,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             }
         }
 
-                private async void BtnEliminar_Click(object sender, RoutedEventArgs e)
+        private async void BtnEliminar_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is OrdenServicioViewModel vm)
             {
@@ -82,9 +104,54 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 }
             }
         }
+
+        private void BtnPagar_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is OrdenServicioViewModel vm)
+            {
+                if (vm.OrdenSeleccionada == null)
+                {
+                    Compartido.FrmConfirmacion.MostrarAviso("Por favor, seleccione una orden de servicio para pagar.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+
+                decimal total = System.Linq.Enumerable.Sum(vm.OrdenSeleccionada.Detalles ?? new System.Collections.Generic.List<Negocio.DTOs.DetalleServicioDto>(), d => d.Precio * d.Cantidad);
+
+                var billingService = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Negocio.Interfaces.IBillingService>(App.ServiceProvider);
+                var frmPago = new FrmPago(billingService, vm.OrdenSeleccionada.Id, total);
+                frmPago.Owner = Window.GetWindow(this);
+                if (frmPago.ShowDialog() == true)
+                {
+                    _ = vm.LoadAsync();
+                }
+            }
+        }
+
+        private void BtnComprobanteOrden_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is OrdenServicioViewModel vm)
+            {
+                if (vm.OrdenSeleccionada == null)
+                {
+                    Compartido.FrmConfirmacion.MostrarAviso("Por favor, seleccione una orden de servicio.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+                vm.GenerarComprobanteOrdenCommand.Execute(null);
+            }
+        }
+
+        private void BtnComprobantePago_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is OrdenServicioViewModel vm)
+            {
+                if (vm.OrdenSeleccionada == null)
+                {
+                    Compartido.FrmConfirmacion.MostrarAviso("Por favor, seleccione una orden de servicio.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+
+                vm.GenerarComprobantePagoCommand.Execute(null);
+            }
+        }
     }
 }
-
-
-
-
