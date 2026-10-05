@@ -1,0 +1,72 @@
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.Reportes.CtlReporteServicios"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+    <Grid Margin="20">
+        <Border CornerRadius="12" Background="White" Padding="20">
+            <Border.Effect>
+                <DropShadowEffect Color="Gray" BlurRadius="10" ShadowDepth="2" Opacity="0.08"/>
+            </Border.Effect>
+            
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Text="Reporte de Servicios Realizados" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+                
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Fecha Desde:" FontWeight="SemiBold"/>
+                        <DatePicker x:Name="dtpFechaDesde" SelectedDate="{Binding FechaDesde}" Width="120" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Fecha Hasta:" FontWeight="SemiBold"/>
+                        <DatePicker x:Name="dtpFechaHasta" SelectedDate="{Binding FechaHasta}" Width="120" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    
+                    <StackPanel Margin="0,0,20,0" Visibility="{Binding IsMecanicoSelectorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Mecánico ID:" FontWeight="SemiBold"/>
+                        <!-- In a real app this would be a ComboBox of Mechanics, but we bind ID for now -->
+                        <TextBox x:Name="txtMecanicoId" Text="{Binding MecanicoSeleccionadoId, UpdateSourceTrigger=PropertyChanged}" Width="120" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    
+                    <Button x:Name="cmdGenerar" Content="Generar Reporte" Command="{Binding CmdGenerarReporte}" 
+                            Width="120" Height="30" Margin="0,20,0,0" Background="#007ACC" Foreground="White"/>
+                </StackPanel>
+                
+                <TextBlock Grid.Row="1" Text="{Binding MensajeError}" Foreground="Red" Margin="0,60,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                
+                <DataGrid x:Name="dbgReporte" Grid.Row="2" ItemsSource="{Binding Reporte}" 
+                          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                          HeadersVisibility="Column" AlternatingRowBackground="#F0F0F0"
+                          BorderBrush="#CCCCCC" BorderThickness="0" Background="Transparent" RowHeaderWidth="0">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#2C3E50"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Padding" Value="10,8"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat={}{0:dd/MM/yyyy}}" Width="*"/>
+                        <DataGridTextColumn Header="Patente" Binding="{Binding Patente}" Width="*"/>
+                        <DataGridTextColumn Header="Servicio" Binding="{Binding Servicio}" Width="2*"/>
+                        <DataGridTextColumn Header="Cantidad" Binding="{Binding Cantidad}" Width="*"/>
+                        <DataGridTextColumn Header="Importe" Binding="{Binding Importe, StringFormat=c}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,103 @@
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.Reportes.CtlReportesRecepcion"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Sección Historial de Vehículo -->
+        <Border Grid.Row="0" Background="White" CornerRadius="12" Margin="5" Padding="15">
+            <Border.Effect>
+                <DropShadowEffect Opacity="0.08" Direction="270" BlurRadius="10" ShadowDepth="2" />
+            </Border.Effect>
+            <StackPanel>
+                <TextBlock Text="Historial de Vehículo" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" Margin="0,5">
+                    <TextBlock Text="Patente:" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox x:Name="txtPatente" Text="{Binding Patente, UpdateSourceTrigger=PropertyChanged}" Width="150" Margin="0,0,10,0" Height="30" VerticalContentAlignment="Center">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                    <Button x:Name="btnGenerarHistorial" Content="Generar Historial" Command="{Binding GenerarHistorialCommand}" Width="120" Background="#2980B9" Foreground="White" Height="30">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Background="White" CornerRadius="12" Margin="5" Padding="15">
+            <Border.Effect>
+                <DropShadowEffect Opacity="0.08" Direction="270" BlurRadius="10" ShadowDepth="2" />
+            </Border.Effect>
+            <DataGrid x:Name="dgResultadosHistorial" ItemsSource="{Binding ResultadosHistorial}" AutoGenerateColumns="True" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" IsReadOnly="True">
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#2C3E50" />
+                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="Padding" Value="10,8" />
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+            </DataGrid>
+        </Border>
+
+        <!-- Sección Vehículos por Cliente -->
+        <Border Grid.Row="2" Background="White" CornerRadius="12" Margin="5" Padding="15">
+            <Border.Effect>
+                <DropShadowEffect Opacity="0.08" Direction="270" BlurRadius="10" ShadowDepth="2" />
+            </Border.Effect>
+            <StackPanel>
+                <TextBlock Text="Vehículos por Cliente" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" Margin="0,5">
+                    <TextBlock Text="DNI:" VerticalAlignment="Center" Margin="0,0,5,0" />
+                    <TextBox x:Name="txtDNI" Text="{Binding DNI, UpdateSourceTrigger=PropertyChanged}" Width="150" Margin="0,0,10,0" Height="30" VerticalContentAlignment="Center">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+                    <Button x:Name="btnGenerarVehiculos" Content="Generar Reporte" Command="{Binding GenerarVehiculosClienteCommand}" Width="120" Background="#2980B9" Foreground="White" Height="30">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Background="White" CornerRadius="12" Margin="5" Padding="15">
+            <Border.Effect>
+                <DropShadowEffect Opacity="0.08" Direction="270" BlurRadius="10" ShadowDepth="2" />
+            </Border.Effect>
+            <DataGrid x:Name="dgResultadosVehiculos" ItemsSource="{Binding ResultadosVehiculos}" AutoGenerateColumns="True" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" IsReadOnly="True">
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#2C3E50" />
+                        <Setter Property="Foreground" Value="White" />
+                        <Setter Property="FontWeight" Value="Bold" />
+                        <Setter Property="Padding" Value="10,8" />
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>
