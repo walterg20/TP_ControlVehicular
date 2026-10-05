@@ -1,0 +1,86 @@
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.Taller.CtlMisTrabajos"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <Grid Margin="20">
+        <Border CornerRadius="12" Background="White" Padding="20">
+            <Border.Effect>
+                <DropShadowEffect Color="Gray" BlurRadius="10" ShadowDepth="2" Opacity="0.08"/>
+            </Border.Effect>
+            
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Text="Mis Trabajos Asignados" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+                
+                <Button x:Name="cmdCargar" Grid.Row="1" Content="Cargar Trabajos" Command="{Binding CmdCargarTrabajos}" 
+                        Width="120" Height="30" HorizontalAlignment="Left" Margin="0,0,0,10" Background="#007ACC" Foreground="White"/>
+                
+                <DataGrid x:Name="grdTrabajos" Grid.Row="2" ItemsSource="{Binding TrabajosAsignados}" 
+                          SelectedItem="{Binding TrabajoSeleccionado}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                          HeadersVisibility="Column" AlternatingRowBackground="#F0F0F0"
+                          BorderBrush="#CCCCCC" BorderThickness="0" Background="Transparent" RowHeaderWidth="0" Margin="0,0,0,20">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#2C3E50"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Padding" Value="10,8"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID Registro" Binding="{Binding Id}" Width="*"/>
+                        <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat={}{0:dd/MM/yyyy}}" Width="*"/>
+                        <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="*"/>
+                        <DataGridTextColumn Header="KM Ingreso" Binding="{Binding KmIngreso}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                
+                <StackPanel Grid.Row="3" Background="#FAFAFA" Margin="0,0,0,0">
+                    <TextBlock Text="Cargar Detalle de Servicio" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
+                    
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Servicio ID:" Grid.Row="0" Grid.Column="0" Margin="0,0,10,10" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtServicioId" Text="{Binding NuevoDetalle.ServicioId, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0" Grid.Column="1" Margin="0,0,20,10" Height="25"/>
+
+                        <TextBlock Text="Cantidad:" Grid.Row="0" Grid.Column="2" Margin="0,0,10,10" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtCantidad" Text="{Binding NuevoDetalle.Cantidad, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0" Grid.Column="3" Margin="0,0,0,10" Height="25"/>
+
+                        <TextBlock Text="Precio Unitario:" Grid.Row="1" Grid.Column="0" Margin="0,0,10,10" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtPrecio" Text="{Binding NuevoDetalle.Precio, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Margin="0,0,20,10" Height="25"/>
+
+                        <TextBlock Text="Observaciones:" Grid.Row="1" Grid.Column="2" Margin="0,0,10,10" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtObservaciones" Text="{Binding NuevoDetalle.Observaciones, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="3" Margin="0,0,0,10" Height="25"/>
+                    </Grid>
+                    
+                    <Button x:Name="cmdGuardar" Content="Guardar Detalle" Command="{Binding CmdGuardarDetalle}" 
+                            Width="150" Height="30" HorizontalAlignment="Right" Margin="0,10,0,10" Background="#28A745" Foreground="White"/>
+                            
+                    <TextBlock Text="{Binding MensajeError}" Foreground="Red" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding MensajeExito}" Foreground="Green" FontWeight="Bold"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
