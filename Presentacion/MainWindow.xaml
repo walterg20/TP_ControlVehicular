@@ -154,6 +154,22 @@
                             </Style>
                         </Button.Resources>
                     </Button>
+                    <Button x:Name="btnReporteOperativo" Content="🚙 Reporte Operativo" Click="MenuItem_Click_ReporteOperativo" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button x:Name="btnMisTrabajos" Content="🔧 Mis Trabajos" Click="MenuItem_Click_MisTrabajos" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                     <!-- ESPACIADOR -->
                     <Separator Background="#34495E" Margin="0,15"/>

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,6 +21,8 @@ using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Reportes;
+using TP_ControlVehicular.Datos.Repositories;
 
 namespace TP_ControlVehicular
 {
@@ -51,6 +53,7 @@ namespace TP_ControlVehicular
                             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             IConfiguration configuration = builder.Build();
+            services.AddSingleton<IConfiguration>(configuration);
 
             services.AddDbContext<CVDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
@@ -67,6 +70,7 @@ namespace TP_ControlVehicular
             services.AddScoped<IServicioRepository, ServicioRepository>();
             services.AddScoped<IRegistroServicioRepository, RegistroServicioRepository>();
             services.AddScoped<IReporteRepository, ReporteRepository>();
+            services.AddScoped<TP_ControlVehicular.Negocio.Reportes.IReporteGerencialRepository, TP_ControlVehicular.Datos.Repositories.ReporteGerencialRepository>();
             services.AddScoped<IFacturaRepository, FacturaRepository>();
             services.AddScoped<IPagoRepository, PagoRepository>();
             services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
@@ -169,3 +173,4 @@ namespace TP_ControlVehicular
     }
 
 }
+

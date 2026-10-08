@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Context;
@@ -133,6 +133,8 @@ namespace TP_ControlVehicular
             secReportes.Visibility = Visibility.Visible;
             btnReporteOrdenes.Visibility = Visibility.Visible;
             btnReporteGerencial.Visibility = Visibility.Visible;
+            btnReporteOperativo.Visibility = Visibility.Visible;
+            btnMisTrabajos.Visibility = Visibility.Visible;
 
             int rolId = currentUser.IdRol;
 
@@ -143,6 +145,7 @@ namespace TP_ControlVehicular
                 btnRol.Visibility = Visibility.Collapsed;
                 btnTaller.Visibility = Visibility.Collapsed;
                 btnReporteGerencial.Visibility = Visibility.Collapsed;
+                btnReporteOperativo.Visibility = Visibility.Visible;
             }
             else if (rolId == (int)RolesSistema.Mecanico)
             {
@@ -157,6 +160,7 @@ namespace TP_ControlVehicular
                 btnMarca.Visibility = Visibility.Collapsed;
                 btnServicio.Visibility = Visibility.Collapsed;
                 btnReporteGerencial.Visibility = Visibility.Collapsed;
+                btnMisTrabajos.Visibility = Visibility.Visible;
             }
         }
 
@@ -166,17 +170,29 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlDashboard());
         }
 
-        private void MenuItem_Click_ReporteGerencial(object sender, RoutedEventArgs e)
+                private void MenuItem_Click_ReporteGerencial(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            if (App.ServiceProvider?.GetService(typeof(ReporteGerencialView)) is ReporteGerencialView ctl)
+            if (App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteGerencial)) is TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteGerencial ctl)
             {
                 AgregarPagina(ctl);
             }
             else
             {
-                AgregarPagina(new ReporteGerencialView(App.ServiceProvider?.GetService(typeof(ReporteGerencialViewModel)) as ReporteGerencialViewModel));
+                AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteGerencial());
             }
+        }
+
+        private void MenuItem_Click_ReporteOperativo(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            AgregarPagina(new UserControl { Content = new TextBlock { Text = "Reportes Operativos en construcción...", FontSize = 24, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
+        }
+
+        private void MenuItem_Click_MisTrabajos(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            AgregarPagina(new UserControl { Content = new TextBlock { Text = "Mis Trabajos en construcción...", FontSize = 24, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
         }
 
         private void MenuItem_Click_ReporteOrdenes(object sender, RoutedEventArgs e)
@@ -298,6 +314,8 @@ namespace TP_ControlVehicular
             btnRol.Background = transparente; btnRol.FontWeight = normalWeight;
             btnReporteOrdenes.Background = transparente; btnReporteOrdenes.FontWeight = normalWeight;
             btnReporteGerencial.Background = transparente; btnReporteGerencial.FontWeight = normalWeight;
+            btnReporteOperativo.Background = transparente; btnReporteOperativo.FontWeight = normalWeight;
+            btnMisTrabajos.Background = transparente; btnMisTrabajos.FontWeight = normalWeight;
 
             var colorAzul = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2980B9");
             botonActivo.Background = new System.Windows.Media.SolidColorBrush(colorAzul);
@@ -305,3 +323,5 @@ namespace TP_ControlVehicular
         }
     }
 }
+
+

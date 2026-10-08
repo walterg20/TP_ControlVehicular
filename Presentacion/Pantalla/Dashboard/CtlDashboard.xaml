@@ -19,22 +19,6 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="📊 Dashboard General" FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
             </StackPanel>
-            <Button Content="🔄 Actualizar" 
-                    Command="{Binding CargarDashboardCommand}" 
-                    HorizontalAlignment="Right" 
-                    Margin="0,0,45,0"
-                    Padding="14,8" 
-                    Background="#2980B9" 
-                    Foreground="White" 
-                    FontWeight="Bold" 
-                    BorderThickness="0" 
-                    Cursor="Hand">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="8"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
         </Grid>
 
         <!-- TRES TARJETAS DE RESUMEN (rounded-xl & shadow-md) -->
