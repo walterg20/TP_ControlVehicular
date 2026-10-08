@@ -14,6 +14,7 @@ namespace TP_ControlVehicular.Negocio.DTOs
         
         public int Cantidad { get; set; }
         public decimal Precio { get; set; }
+        public int OrdenEjecucion { get; set; }
         public string Origen { get; set; } = string.Empty;
         public string Estado { get; set; } = string.Empty;
     }

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -52,7 +52,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
             VehiculosDisponibles = new ObservableCollection<VehiculoDto>();
             TalleresDisponibles = new ObservableCollection<TallerDto>();
-            EstadosDisponibles = new ObservableCollection<string> { "Pendiente", "En Proceso", "Completado", "Cancelado" };
+            EstadosDisponibles = new ObservableCollection<string> { "Abierta", "En Proceso", "Completada", "Cancelada" };
             DetallesOrdenActual = new ObservableCollection<DetalleServicioDto>();
             DetallesOrdenActual.CollectionChanged += (s, e) => OnPropertyChanged(nameof(Total));
             ServiciosDisponibles = new ObservableCollection<ServicioDto>();
@@ -197,8 +197,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        public bool PuedePagar => EsRecepcionista && OrdenSeleccionada?.Estado == "Finalizado";
-        public bool PuedeVerComprobantePago => !EsMecanico && OrdenSeleccionada?.Estado == "Pagado";
+        public bool PuedePagar => EsRecepcionista && OrdenSeleccionada?.Estado == "Completada";
+        public bool PuedeVerComprobantePago => !EsMecanico && OrdenSeleccionada?.Estado == "Pagada";
 
         public async Task LoadCombosAsync()
         {
@@ -250,7 +250,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 }
 
                 var usuarios = await _usuarioRepository.GetAllAsync();
-                // Asumimos que RolId == 3 o similar es MecÃ¡nico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
+                // Asumimos que RolId == 3 o similar es Mecánico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
                 foreach (var u in usuarios.Where(u => u.Rol?.Nombre?.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0 || u.RolId == 3))
                 {
                     MecanicosDisponibles.Add(_mapper.Map<UsuarioDto>(u));
@@ -304,6 +304,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     Precio = d.Precio,
                     Origen = d.Origen,
                     Estado = d.Estado,
+                    OrdenEjecucion = d.OrdenEjecucion,
                     
                     Observaciones = d.Observaciones
                 }).ToList() ?? new List<Entidad.DetalleServicio>()
@@ -357,7 +358,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     Precio = d.Precio,
                     Observaciones = d.Observaciones ?? string.Empty,
                     Origen = d.Origen ?? "Manual",
-                    Estado = d.Realizado ? "Realizado" : "Pendiente"
+                    Estado = d.Realizado ? "Finalizada" : (!string.IsNullOrEmpty(d.Estado) ? d.Estado : "Pendiente"),
+                    OrdenEjecucion = d.OrdenEjecucion
                 }).ToList()
             };
 
@@ -404,7 +406,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 case nameof(VehiculoId):
                     if (VehiculoId <= 0)
-                        SetError(nameof(VehiculoId), "Debe seleccionar un VehÃ­culo.");
+                        SetError(nameof(VehiculoId), "Debe seleccionar un Vehículo.");
                     break;
                 case nameof(TallerId):
                     if (TallerId <= 0)

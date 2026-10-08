@@ -1,6 +1,6 @@
 using TP_ControlVehicular.Negocio.DTOs.Reportes;
 
-namespace TP_ControlVehicular.Negocio.Servicios.Reportes
+namespace TP_ControlVehicular.Negocio.Reportes
 {
     public interface IReporteService
     {

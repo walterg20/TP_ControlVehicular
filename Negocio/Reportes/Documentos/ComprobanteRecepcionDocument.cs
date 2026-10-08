@@ -3,7 +3,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using TP_ControlVehicular.Negocio.DTOs.Reportes;
 
-namespace TP_ControlVehicular.Negocio.Servicios.Reportes.Documentos
+namespace TP_ControlVehicular.Negocio.Reportes.Documentos
 {
     public class ComprobanteRecepcionDocument : IDocument
     {

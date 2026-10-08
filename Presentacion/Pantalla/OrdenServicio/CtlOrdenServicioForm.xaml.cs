@@ -18,9 +18,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             ConfigurarViewModel(null);
             ConfigurarValidacionAlPerderFoco();
             this.Unloaded += (s, e) => {
-                if (DataContext is OrdenServicioViewModel vm)
+                if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
-                    vm.RegistrationFailed -= Vm_RegistrationFailed;
+                    vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
                 }
             };
         }
@@ -33,9 +33,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             ConfigurarViewModel(orden);
             ConfigurarValidacionAlPerderFoco();
             this.Unloaded += (s, e) => {
-                if (DataContext is OrdenServicioViewModel vm)
+                if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
-                    vm.RegistrationFailed -= Vm_RegistrationFailed;
+                    vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
                 }
             };
         }
@@ -44,7 +44,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         {
             AddHandler(UIElement.LostFocusEvent, new RoutedEventHandler((s, e) =>
             {
-                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vm)
+                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vmOrdenServicioForm)
                 {
                     DependencyProperty? dp = null;
                     if (element is TextBox) dp = TextBox.TextProperty;
@@ -60,7 +60,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                         {
                             var be = element.GetBindingExpression(binding.Path.Path == "Estado" ? ComboBox.SelectedItemProperty : dp);
                             be?.UpdateSource();
-                            vm.ValidateProperty(binding.Path.Path);
+                            vmOrdenServicioForm.ValidateProperty(binding.Path.Path);
                         }
                     }
                 }
@@ -71,31 +71,31 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         {
             try
             {
-                if (App.ServiceProvider?.GetService(typeof(OrdenServicioViewModel)) is OrdenServicioViewModel vm)
+                if (App.ServiceProvider?.GetService(typeof(OrdenServicioViewModel)) is OrdenServicioViewModel vmOrdenServicioForm)
                 {
-                    DataContext = vm;
+                    DataContext = vmOrdenServicioForm;
                     
-                    if (vm.VehiculosDisponibles.Count == 0 || vm.TalleresDisponibles.Count == 0 || vm.ServiciosDisponibles.Count == 0)
-                        await vm.LoadCombosAsync();
+                    if (vmOrdenServicioForm.VehiculosDisponibles.Count == 0 || vmOrdenServicioForm.TalleresDisponibles.Count == 0 || vmOrdenServicioForm.ServiciosDisponibles.Count == 0)
+                        await vmOrdenServicioForm.LoadCombosAsync();
 
-                    vm.DetallesOrdenActual.Clear();
+                    vmOrdenServicioForm.DetallesOrdenActual.Clear();
 
                     if (_esModificacion && orden != null)
                     {
-                        vm.OrdenSeleccionada = orden;
-                        vm.SeleccionarClientePorVehiculo(orden.VehiculoId);
-                        vm.VehiculoId = orden.VehiculoId;
-                        vm.TallerId = orden.TallerId;
-                        vm.UsuarioId = orden.UsuarioId;
-                        vm.Fecha = orden.Fecha;
-                        vm.KmIngreso = orden.KmIngreso;
-                        vm.Estado = orden.Estado;
+                        vmOrdenServicioForm.OrdenSeleccionada = orden;
+                        vmOrdenServicioForm.SeleccionarClientePorVehiculo(orden.VehiculoId);
+                        vmOrdenServicioForm.VehiculoId = orden.VehiculoId;
+                        vmOrdenServicioForm.TallerId = orden.TallerId;
+                        vmOrdenServicioForm.UsuarioId = orden.UsuarioId;
+                        vmOrdenServicioForm.Fecha = orden.Fecha;
+                        vmOrdenServicioForm.KmIngreso = orden.KmIngreso;
+                        vmOrdenServicioForm.Estado = orden.Estado;
 
                         if (orden.Detalles != null)
                         {
                             foreach (var det in orden.Detalles)
                             {
-                                vm.DetallesOrdenActual.Add(new DetalleServicioDto
+                                vmOrdenServicioForm.DetallesOrdenActual.Add(new DetalleServicioDto
                                 {
                                     Id = det.Id,
                                     RegistroServicioId = det.RegistroServicioId,
@@ -107,29 +107,30 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                                     Cantidad = det.Cantidad,
                                     Precio = det.Precio,
                                     Origen = det.Origen,
-                                    Estado = det.Estado
+                                    Estado = det.Estado,
+                                    OrdenEjecucion = det.OrdenEjecucion
                                 });
                             }
                         }
                     }
                     else
                     {
-                        vm.OrdenSeleccionada = null;
-                        vm.VehiculoId = 0;
-                        vm.TallerId = 0;
-                        vm.KmIngreso = 0;
-                        vm.Fecha = DateTime.Now;
-                        vm.Estado = "Pendiente";
+                        vmOrdenServicioForm.OrdenSeleccionada = null;
+                        vmOrdenServicioForm.VehiculoId = 0;
+                        vmOrdenServicioForm.TallerId = 0;
+                        vmOrdenServicioForm.KmIngreso = 0;
+                        vmOrdenServicioForm.Fecha = DateTime.Now;
+                        vmOrdenServicioForm.Estado = "Pendiente";
                         
                         if (Application.Current.MainWindow is MainWindow mainWin && mainWin.UsuarioSesionActual != null)
                         {
-                            vm.UsuarioId = mainWin.UsuarioSesionActual.IdUsuario;
+                            vmOrdenServicioForm.UsuarioId = mainWin.UsuarioSesionActual.IdUsuario;
                         }
                     }
 
-                    vm.ClearAllErrors();
-                    vm.RegistrationFailed -= Vm_RegistrationFailed;
-                    vm.RegistrationFailed += Vm_RegistrationFailed;
+                    vmOrdenServicioForm.ClearAllErrors();
+                    vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
+                    vmOrdenServicioForm.RegistrationFailed += Vm_RegistrationFailed;
 
                     // Restricciones por Rol
                     if (Application.Current.MainWindow is MainWindow mWin && mWin.UsuarioSesionActual != null)
@@ -145,6 +146,20 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                             cmbTalleres.IsEnabled = false;
                             cmbEstado.IsEnabled = false;
                             txtKm.IsEnabled = false;
+
+                            var view = System.Windows.Data.CollectionViewSource.GetDefaultView(vmOrdenServicioForm.DetallesOrdenActual);
+                            if (view != null)
+                            {
+                                int currentUserId = mWin.UsuarioSesionActual.IdUsuario;
+                                view.Filter = item => 
+                                {
+                                    if (item is TP_ControlVehicular.Negocio.DTOs.DetalleServicioDto det)
+                                    {
+                                        return det.UsuarioId == currentUserId;
+                                    }
+                                    return true;
+                                };
+                            }
                         }
                     }
                 }
@@ -157,11 +172,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 
         private void BtnAgregarItem_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is OrdenServicioViewModel vm)
+            if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
             {
-                if (vm.ServicioBusquedaSeleccionado != null)
+                if (vmOrdenServicioForm.ServicioBusquedaSeleccionado != null)
                 {
-                    if (vm.DetallesOrdenActual.Any(d => d.ServicioId == vm.ServicioBusquedaSeleccionado.IdServicio))
+                    if (vmOrdenServicioForm.DetallesOrdenActual.Any(d => d.ServicioId == vmOrdenServicioForm.ServicioBusquedaSeleccionado.IdServicio))
                     {
                         Compartido.FrmConfirmacion.MostrarAviso("El servicio ya se encuentra en el checklist.", "Aviso", Window.GetWindow(this));
                         return;
@@ -175,19 +190,19 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                             idMecanicoAuto = mWin.UsuarioSesionActual.IdUsuario;
                     }
 
-                    vm.DetallesOrdenActual.Add(new DetalleServicioDto
+                    vmOrdenServicioForm.DetallesOrdenActual.Add(new DetalleServicioDto
                     {
-                        ServicioId = vm.ServicioBusquedaSeleccionado.IdServicio,
-                        ServicioNombre = vm.ServicioBusquedaSeleccionado.Nombre,
+                        ServicioId = vmOrdenServicioForm.ServicioBusquedaSeleccionado.IdServicio,
+                        ServicioNombre = vmOrdenServicioForm.ServicioBusquedaSeleccionado.Nombre,
                         UsuarioId = idMecanicoAuto,
                         Realizado = true,
                         Observaciones = string.Empty,
                         Cantidad = 1,
-                        Precio = vm.ServicioBusquedaSeleccionado.Precio,
+                        Precio = vmOrdenServicioForm.ServicioBusquedaSeleccionado.Precio,
                         Estado = "Realizado",
                         Origen = "Manual"
                     });
-                    vm.ServicioBusquedaSeleccionado = null;
+                    vmOrdenServicioForm.ServicioBusquedaSeleccionado = null;
                 }
                 else
                 {
@@ -202,9 +217,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             frm.Owner = Window.GetWindow(this);
             if (frm.ShowDialog() == true)
             {
-                if (DataContext is OrdenServicioViewModel vm)
+                if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
-                    await vm.LoadCombosAsync();
+                    await vmOrdenServicioForm.LoadCombosAsync();
                 }
             }
         }
@@ -215,9 +230,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             frm.Owner = Window.GetWindow(this);
             if (frm.ShowDialog() == true)
             {
-                if (DataContext is OrdenServicioViewModel vm)
+                if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
-                    await vm.LoadCombosAsync();
+                    await vmOrdenServicioForm.LoadCombosAsync();
                 }
             }
         }
@@ -228,9 +243,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             frm.Owner = Window.GetWindow(this);
             if (frm.ShowDialog() == true)
             {
-                if (DataContext is OrdenServicioViewModel vm)
+                if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
-                    await vm.LoadCombosAsync();
+                    await vmOrdenServicioForm.LoadCombosAsync();
                 }
             }
         }
@@ -239,9 +254,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         {
             if (sender is Button btn && btn.CommandParameter is DetalleServicioDto detalle)
             {
-                if (DataContext is OrdenServicioViewModel vm)
+                if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
-                    vm.DetallesOrdenActual.Remove(detalle);
+                    vmOrdenServicioForm.DetallesOrdenActual.Remove(detalle);
                 }
             }
         }
@@ -253,20 +268,20 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is OrdenServicioViewModel vm)
+            if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
             {
-                if (!vm.ValidateAll())
+                if (!vmOrdenServicioForm.ValidateAll())
                 {
                     Compartido.FrmConfirmacion.MostrarAviso("Por favor, revise los campos marcados en rojo.", "Validación", Window.GetWindow(this));
                     return;
                 }
-                if (vm.DetallesOrdenActual.Count == 0)
+                if (vmOrdenServicioForm.DetallesOrdenActual.Count == 0)
                 {
                     Compartido.FrmConfirmacion.MostrarAviso("Debe agregar al menos un servicio a la orden antes de guardar.", "Validación", Window.GetWindow(this));
                     return;
                 }
 
-                var ok = await vm.GuardarOrdenAsync();
+                var ok = await vmOrdenServicioForm.GuardarOrdenAsync();
                 if (ok)
                 {
                     VolverAlListado();

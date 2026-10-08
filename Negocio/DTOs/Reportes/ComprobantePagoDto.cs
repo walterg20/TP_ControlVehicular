@@ -52,6 +52,7 @@ namespace TP_ControlVehicular.Negocio.DTOs.Reportes
         public decimal Subtotal { get; set; }
         public decimal Iva { get; set; }
         public decimal TotalGeneral { get; set; }
+        public string EstadoOrden { get; set; } = string.Empty;
 
         public List<DetalleComprobanteDto> Detalles { get; set; } = new List<DetalleComprobanteDto>();
     }

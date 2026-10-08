@@ -1,8 +1,8 @@
 using QuestPDF.Fluent;
 using TP_ControlVehicular.Negocio.DTOs.Reportes;
-using TP_ControlVehicular.Negocio.Servicios.Reportes.Documentos;
+using TP_ControlVehicular.Negocio.Reportes.Documentos;
 
-namespace TP_ControlVehicular.Negocio.Servicios.Reportes
+namespace TP_ControlVehicular.Negocio.Reportes
 {
     public class QuestPdfReporteService : IReporteService
     {

@@ -64,7 +64,7 @@ namespace TP_ControlVehicular.Negocio.Mappers
             // DetalleServicio -> DetalleServicioDto
             CreateMap<DetalleServicio, DetalleServicioDto>()
                 .ForMember(dest => dest.ServicioNombre, opt => opt.MapFrom(src => src.Servicio != null ? src.Servicio.Nombre : string.Empty))
-                .ForMember(dest => dest.Realizado, opt => opt.MapFrom(src => src.Estado == "Realizado"));
+                .ForMember(dest => dest.Realizado, opt => opt.MapFrom(src => src.Estado == "Finalizada" || src.Estado == "Realizado"));
 
             CreateMap<Factura, FacturaDto>();
         }

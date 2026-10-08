@@ -61,7 +61,7 @@ namespace TP_ControlVehicular.Negocio.Services
             if (registro == null)
                 throw new Exception("Orden de servicio no encontrada.");
             
-            if (registro.Estado != "Completado")
+            if (registro.Estado != "Completada")
                 throw new Exception("La orden de servicio debe estar completada para procesar el pago.");
 
             var pagosRealizados = await _pagoRepo.GetPagosByFactura(facturaId);
@@ -108,7 +108,7 @@ namespace TP_ControlVehicular.Negocio.Services
             {
                 if (registro != null)
                 {
-                    registro.Estado = "Pagado";
+                    registro.Estado = "Pagada";
                     await _context.SaveChangesAsync();
                 }
             }

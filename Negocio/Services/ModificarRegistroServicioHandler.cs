@@ -18,6 +18,33 @@ namespace TP_ControlVehicular.Negocio.Services
 
         public async Task<RegistroServicioDto> HandleAsync(RegistroServicio registro)
         {
+            if (registro.Detalles != null && registro.Detalles.Any())
+            {
+                var todasLasTareas = registro.Detalles.OrderBy(d => d.OrdenEjecucion).ToList();
+                var tareasPendientes = todasLasTareas.Where(t => t.Estado != DetalleServicio.EstadoFinalizada).ToList();
+
+                if (registro.Estado != RegistroServicio.EstadoPagada && registro.Estado != "Cancelada")
+                {
+                    if (!tareasPendientes.Any())
+                    {
+                        registro.Estado = RegistroServicio.EstadoCompletada;
+                    }
+                    else
+                    {
+                        var siguienteTarea = tareasPendientes.First();
+                        if (siguienteTarea.Estado == DetalleServicio.EstadoPendiente)
+                        {
+                            siguienteTarea.Estado = DetalleServicio.EstadoEnCurso;
+                        }
+
+                        if (registro.Estado == RegistroServicio.EstadoAbierta || registro.Estado == RegistroServicio.EstadoCompletada)
+                        {
+                            registro.Estado = RegistroServicio.EstadoEnProceso;
+                        }
+                    }
+                }
+            }
+
             await _repository.UpdateAsync(registro);
             
             // Recargar con relaciones

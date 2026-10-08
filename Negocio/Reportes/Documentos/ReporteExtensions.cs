@@ -2,7 +2,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
-namespace TP_ControlVehicular.Negocio.Servicios.Reportes.Documentos
+namespace TP_ControlVehicular.Negocio.Reportes.Documentos
 {
     /// <summary>
     /// Componentes visuales reutilizables para cualquier reporte de la aplicacion

@@ -9,9 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migracion\**" />
     <Compile Remove="spec\**" />
+    <EmbeddedResource Remove="Migracion\**" />
     <EmbeddedResource Remove="spec\**" />
+    <None Remove="Migracion\**" />
     <None Remove="spec\**" />
+    <Page Remove="Migracion\**" />
     <Page Remove="spec\**" />
   </ItemGroup>
 
@@ -26,7 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Migracion\" />
     <Folder Include="Presentacion\ViewModels\" />
     <Folder Include="Presentacion\Pantalla\" />
   </ItemGroup>

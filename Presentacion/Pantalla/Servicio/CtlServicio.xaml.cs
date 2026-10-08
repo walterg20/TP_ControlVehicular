@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
@@ -20,10 +20,10 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
             {
                 if (App.ServiceProvider != null)
                 {
-                    var vm = App.ServiceProvider.GetService(typeof(ServicioViewModel)) as ServicioViewModel;
-                    if (vm != null)
+                    var vmServicio = App.ServiceProvider.GetService(typeof(ServicioViewModel)) as ServicioViewModel;
+                    if (vmServicio != null)
                     {
-                        DataContext = vm;
+                        DataContext = vmServicio;
                     }
                 }
             }

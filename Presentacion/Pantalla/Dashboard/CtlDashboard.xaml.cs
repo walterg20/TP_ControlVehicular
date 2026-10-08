@@ -1,4 +1,4 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.Dashboard
@@ -17,10 +17,10 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Dashboard
             {
                 if (App.ServiceProvider != null)
                 {
-                    var vm = App.ServiceProvider.GetService(typeof(DashboardViewModel)) as DashboardViewModel;
-                    if (vm != null)
+                    var vmDashboard = App.ServiceProvider.GetService(typeof(DashboardViewModel)) as DashboardViewModel;
+                    if (vmDashboard != null)
                     {
-                        DataContext = vm;
+                        DataContext = vmDashboard;
                     }
                 }
             }

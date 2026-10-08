@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -44,7 +44,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
         {
             AddHandler(UIElement.LostFocusEvent, new RoutedEventHandler((s, e) =>
             {
-                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vm)
+                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vmUsuario)
                 {
                     DependencyProperty? dp = null;
                     if (element is TextBox)
@@ -61,7 +61,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                         if (binding != null && binding.Path != null && !string.IsNullOrEmpty(binding.Path.Path))
                         {
                             be?.UpdateSource();
-                            vm.ValidateProperty(binding.Path.Path);
+                            vmUsuario.ValidateProperty(binding.Path.Path);
                         }
                     }
                 }
@@ -233,9 +233,9 @@ namespace TP_ControlVehicular.Presentacion.Usuario
 
         protected override void OnClosed(EventArgs e)
         {
-            if (DataContext is UsuarioViewModel vm)
+            if (DataContext is UsuarioViewModel vmUsuario)
             {
-                vm.RegistrationFailed -= VmUsuario_RegistrationFailed;
+                vmUsuario.RegistrationFailed -= VmUsuario_RegistrationFailed;
             }
             base.OnClosed(e);
         }

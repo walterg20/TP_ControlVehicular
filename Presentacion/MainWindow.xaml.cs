@@ -55,10 +55,10 @@ namespace TP_ControlVehicular
 
             if (_ctlLogin == null)
             {
-                var vm = App.ServiceProvider?.GetService(typeof(LoginViewModel)) as LoginViewModel;
-                if (vm != null)
+                var vmMainWindow = App.ServiceProvider?.GetService(typeof(LoginViewModel)) as LoginViewModel;
+                if (vmMainWindow != null)
                 {
-                    _ctlLogin = new CtlLogin(vm);
+                    _ctlLogin = new CtlLogin(vmMainWindow);
                 }
                 else
                 {
@@ -142,6 +142,7 @@ namespace TP_ControlVehicular
                 btnUsuario.Visibility = Visibility.Collapsed;
                 btnRol.Visibility = Visibility.Collapsed;
                 btnTaller.Visibility = Visibility.Collapsed;
+                btnReporteGerencial.Visibility = Visibility.Collapsed;
             }
             else if (rolId == (int)RolesSistema.Mecanico)
             {
@@ -155,6 +156,7 @@ namespace TP_ControlVehicular
                 btnModelo.Visibility = Visibility.Collapsed;
                 btnMarca.Visibility = Visibility.Collapsed;
                 btnServicio.Visibility = Visibility.Collapsed;
+                btnReporteGerencial.Visibility = Visibility.Collapsed;
             }
         }
 

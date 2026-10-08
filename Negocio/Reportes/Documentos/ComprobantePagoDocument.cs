@@ -3,7 +3,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using TP_ControlVehicular.Negocio.DTOs.Reportes;
 
-namespace TP_ControlVehicular.Negocio.Servicios.Reportes.Documentos
+namespace TP_ControlVehicular.Negocio.Reportes.Documentos
 {
     public class ComprobantePagoDocument : IDocument
     {
@@ -39,8 +39,8 @@ namespace TP_ControlVehicular.Negocio.Servicios.Reportes.Documentos
                 {
                     row.RelativeItem().Column(c =>
                     {
-                        c.Item().Text("ORDEN DE TRABAJO").FontSize(20).Bold();
-                        c.Item().Text($"#{_dto.OrdenId} • {_dto.FechaPago:dd MMM yyyy}").FontSize(14).SemiBold();
+                        c.Item().Text("COMPROBANTE DE PAGO").FontSize(20).Bold();
+                        c.Item().Text($"#{_dto.OrdenId:D5}  -  {_dto.FechaPago:dd MMM yyyy}").FontSize(14).SemiBold();
                     });
 
                     row.ConstantItem(250).AlignRight().Column(c =>
@@ -135,8 +135,10 @@ namespace TP_ControlVehicular.Negocio.Servicios.Reportes.Documentos
                         
                         c.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Black);
                         
-                        c.Item().Row(r => { r.RelativeItem().Text("Pagado:"); r.ConstantItem(80).Text($"$0"); });
-                        c.Item().Row(r => { r.RelativeItem().Text("Saldo pendiente:"); r.ConstantItem(80).Text($"${_dto.TotalGeneral:N0}"); });
+                        var pagadoAmount = _dto.EstadoOrden == "Pagada" ? _dto.TotalGeneral : 0;
+                        var saldoAmount = _dto.TotalGeneral - pagadoAmount;
+                        c.Item().Row(r => { r.RelativeItem().Text("Pagado:"); r.ConstantItem(80).Text($"${pagadoAmount:N0}"); });
+                        c.Item().Row(r => { r.RelativeItem().Text("Saldo pendiente:"); r.ConstantItem(80).Text($"${saldoAmount:N0}"); });
                     });
                 });
 
@@ -168,3 +170,5 @@ namespace TP_ControlVehicular.Negocio.Servicios.Reportes.Documentos
         }
     }
 }
+
+

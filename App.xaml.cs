@@ -7,6 +7,7 @@ using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Datos.Repositories;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Mappers;
+using TP_ControlVehicular.Negocio.Reportes;
 using TP_ControlVehicular.Negocio.Services;
 using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.Marca;
@@ -107,11 +108,13 @@ namespace TP_ControlVehicular
             services.AddScoped<ListarRegistroServiciosHandler>();
             services.AddScoped<RegistrarRegistroServicioHandler>();
             services.AddScoped<ModificarRegistroServicioHandler>();
+            services.AddScoped<AvanzarEstadoTareaHandler>();
+            services.AddScoped<ListarTareasPorEspecialistaHandler>();
             services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler>();
             services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler>();
 
             // Servicios Especiales
-            services.AddTransient<TP_ControlVehicular.Negocio.Servicios.Reportes.IReporteService, TP_ControlVehicular.Negocio.Servicios.Reportes.QuestPdfReporteService>();
+            services.AddTransient<IReporteService, QuestPdfReporteService>();
 
             // ViewModels
             services.AddScoped<ClienteViewModel>();
@@ -127,6 +130,7 @@ namespace TP_ControlVehicular
             services.AddScoped<ReporteGerencialViewModel>();
             services.AddScoped<ServicioViewModel>();
             services.AddScoped<OrdenServicioViewModel>();
+            services.AddScoped<MisTareasViewModel>();
 
             // UserControls & Windows
             services.AddScoped<CtlCliente>();

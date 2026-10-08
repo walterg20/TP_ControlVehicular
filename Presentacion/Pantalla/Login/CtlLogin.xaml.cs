@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
@@ -19,10 +19,10 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Login
             {
                 if (App.ServiceProvider != null)
                 {
-                    var vm = App.ServiceProvider.GetService(typeof(LoginViewModel)) as LoginViewModel;
-                    if (vm != null)
+                    var vmLogin = App.ServiceProvider.GetService(typeof(LoginViewModel)) as LoginViewModel;
+                    if (vmLogin != null)
                     {
-                        DataContext = vm;
+                        DataContext = vmLogin;
                     }
                 }
             }
