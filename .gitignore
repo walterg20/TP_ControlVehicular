@@ -375,3 +375,5 @@ TP_ControlVehicular.Tests/
 /MEMORY.md
 
 .codegraph/
+
+appsettings.json
