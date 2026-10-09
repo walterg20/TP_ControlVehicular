@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -357,6 +357,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public async Task<bool> GuardarOrdenAsync()
         {
             if (!ValidateAll()) return false;
+            
+            if (IsLoading) return false;
+            IsLoading = true;
 
             var orden = new Entidad.RegistroServicio
             {
@@ -416,6 +419,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 }
                 RegistrationFailed?.Invoke(this, "Error al guardar la orden de servicio:\n" + current.Message);
                 return false;
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
         

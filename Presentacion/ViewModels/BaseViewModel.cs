@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using TP_ControlVehicular.Negocio.Context;
@@ -25,6 +25,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             return true;
         }
 
+
+        private bool _isLoading;
+        public bool IsNotLoading => !IsLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set { SetProperty(ref _isLoading, value); OnPropertyChanged(nameof(IsNotLoading)); }
+        }
         public bool HasErrors => _errors.Values.Any(list => list.Count > 0);
 
         public IEnumerable GetErrors(string? propertyName)
@@ -78,3 +86,5 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
     }
 }
+
+

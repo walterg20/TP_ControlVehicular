@@ -16,9 +16,20 @@
         </Grid.RowDefinitions>
 
         <!-- Cabecera / Título -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,15">
-            <TextBlock x:Name="lblTitulo" Text="Datos de la Inspección / Servicio" FontSize="20" FontWeight="Bold" Foreground="#2C3E50"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button x:Name="btnVolver" Content="← Volver" Grid.Column="0" Margin="0,0,15,0" Padding="10,5" Background="Transparent" Foreground="#2980B9" BorderBrush="Transparent" FontWeight="SemiBold" Click="BtnCancelar_Click" Cursor="Hand">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="4"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
+            <TextBlock x:Name="lblTitulo" Grid.Column="1" Text="Datos de la Inspección / Servicio" FontSize="20" FontWeight="Bold" Foreground="#2C3E50" VerticalAlignment="Center"/>
+        </Grid>
 
         <!-- Formulario (Cabecera) -->
         <Border Grid.Row="1" Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
