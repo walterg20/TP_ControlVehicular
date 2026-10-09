@@ -285,6 +285,10 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 if (ok)
                 {
                     VolverAlListado();
+                    if (Application.Current.MainWindow is MainWindow win)
+                    {
+                        win.MostrarToast("Orden de servicio guardada con éxito.");
+                    }
                 }
             }
         }

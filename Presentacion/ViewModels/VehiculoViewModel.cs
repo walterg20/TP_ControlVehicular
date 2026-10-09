@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using System.Collections.ObjectModel;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -41,7 +41,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
             MarcasDisponibles = new ObservableCollection<MarcaDto>();
             ModelosDisponibles = new ObservableCollection<ModeloDto>();
-            ((ObservableCollection<VehiculoDto>)Vehiculos).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoVehiculosFiltered));
+            ((ObservableCollection<VehiculoDto>)Vehiculos).CollectionChanged += (s, e) => {
+                OnPropertyChanged(nameof(ListadoVehiculosFiltered));
+                OnPropertyChanged(nameof(IsListEmpty));
+            };
         }
 
         public ObservableCollection<VehiculoDto> Vehiculos { get; set; }
@@ -69,6 +72,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                                     || (vehiculo.ClienteNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
                                     || (vehiculo.MarcaNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
                                     || (vehiculo.ModeloNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
+
+        public bool IsListEmpty => !ListadoVehiculosFiltered.Any();
 
         private int _idCliente;
         public int IdCliente

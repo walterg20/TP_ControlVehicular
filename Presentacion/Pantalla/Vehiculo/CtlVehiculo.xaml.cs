@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
@@ -31,6 +31,7 @@ namespace TP_ControlVehicular.Presentacion.Vehiculo
             var ok = frm.ShowDialog();
             if (ok == true && this.DataContext is VehiculoViewModel vmVehiculo)
             {
+                if (Application.Current.MainWindow is MainWindow win) win.MostrarToast("Vehículo guardado con éxito.");
                 await vmVehiculo.LoadAsync();
             }
         }
@@ -50,6 +51,7 @@ namespace TP_ControlVehicular.Presentacion.Vehiculo
                 var ok = frm.ShowDialog();
                 if (ok == true)
                 {
+                    if (Application.Current.MainWindow is MainWindow win) win.MostrarToast("Vehículo actualizado con éxito.");
                     await vmVehiculo.LoadAsync();
                 }
             }

@@ -287,6 +287,14 @@ namespace TP_ControlVehicular
             Application.Current.Shutdown();
         }
 
+        public async void MostrarToast(string mensaje)
+        {
+            lblToastMessage.Text = mensaje;
+            bdrToast.Visibility = Visibility.Visible;
+            await System.Threading.Tasks.Task.Delay(3000);
+            bdrToast.Visibility = Visibility.Collapsed;
+        }
+
         public void AgregarPagina(UserControl userControl)
         {
             this.grdContenido.Children.Clear();

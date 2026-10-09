@@ -61,7 +61,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ServiciosDisponibles = new ObservableCollection<ServicioDto>();
             MecanicosDisponibles = new ObservableCollection<UsuarioDto>();
 
-            ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoOrdenesFiltered));
+            ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) => {
+                OnPropertyChanged(nameof(ListadoOrdenesFiltered));
+                OnPropertyChanged(nameof(IsListEmpty));
+            };
             
             Fecha = DateTime.Now;
             Estado = "Pendiente";
@@ -125,7 +128,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public string TextoBusqueda
         {
             get => _textoBusqueda;
-            set { _textoBusqueda = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); }
+            set { _textoBusqueda = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
         }
 
         public IEnumerable<RegistroServicioDto> ListadoOrdenesFiltered =>
@@ -136,6 +139,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                                   || (o.RecepcionistaNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
                                   || (o.TallerNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
                                   || (o.Estado ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
+                                  
+        public bool IsListEmpty => !ListadoOrdenesFiltered.Any();
 
         private int _vehiculoId;
         public int VehiculoId
