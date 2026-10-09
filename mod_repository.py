@@ -1,20 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
-using TP_ControlVehicular.Datos.Data;
-using TP_ControlVehicular.Entidad;
-using TP_ControlVehicular.Negocio.Interfaces;
+﻿import os
+import re
 
-namespace TP_ControlVehicular.Datos.Repositories
-{
-    public class RegistroServicioRepository : Repository<RegistroServicio>, IRegistroServicioRepository
-    {
-        private readonly CVDbContext _cvDbContext;
+path = r'e:\UNNE\Taller de Programación II\Proyecto\TP_ControlVehicular\Datos\Repositories\RegistroServicioRepository.cs'
+with open(path, 'r', encoding='utf-8-sig') as f:
+    content = f.read()
 
-        public RegistroServicioRepository(CVDbContext cvDbContext) : base(cvDbContext)
+target = '''        public new async Task UpdateAsync(RegistroServicio entity)
         {
-            _cvDbContext = cvDbContext;
-        }
+            _cvDbContext.ChangeTracker.Clear();
+            _cvDbContext.RegistroServicios.Update(entity);
+            await _cvDbContext.SaveChangesAsync();
+        }'''
 
-        public new async Task UpdateAsync(RegistroServicio entity)
+repl = '''        public new async Task UpdateAsync(RegistroServicio entity)
         {
             _cvDbContext.ChangeTracker.Clear();
             
@@ -58,29 +56,8 @@ namespace TP_ControlVehicular.Datos.Repositories
                 _cvDbContext.RegistroServicios.Update(entity);
                 await _cvDbContext.SaveChangesAsync();
             }
-        }
+        }'''
 
-        public async Task<List<RegistroServicio>> GetReporteCompletoAsync(int? mecanicoId = null)
-        {
-            var query = _cvDbContext.RegistroServicios
-                .Include(r => r.Vehiculo)
-                    .ThenInclude(v => v.Propietarios).ThenInclude(p => p.Cliente)
-                .Include(r => r.Vehiculo)
-                    .ThenInclude(v => v.Modelo)
-                        .ThenInclude(m => m.Marca)
-                .Include(r => r.Usuario) // Recepcionista
-                .Include(r => r.Detalles)
-                    .ThenInclude(d => d.Servicio)
-                .Include(r => r.Detalles)
-                    .ThenInclude(d => d.Usuario) // Mecánico
-                .AsNoTracking().AsQueryable();
-
-            if (mecanicoId.HasValue)
-            {
-                query = query.Where(r => r.Detalles.Any(d => d.UsuarioId == mecanicoId.Value));
-            }
-
-            return await query.OrderByDescending(r => r.Fecha).ToListAsync();
-        }
-    }
-}
+content = content.replace(target, repl)
+with open(path, 'w', encoding='utf-8-sig') as f:
+    f.write(content)
