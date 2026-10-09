@@ -132,7 +132,7 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Ítem / Servicio" Binding="{Binding ServicioNombre}" Width="200" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Precio" Binding="{Binding Precio, StringFormat=C}" Width="100" IsReadOnly="True"/>
-                    <DataGridTemplateColumn Header="Mecánico" Width="150">
+                    <DataGridTemplateColumn Header="Mecánico" Width="250">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <ComboBox ItemsSource="{Binding DataContext.MecanicosDisponibles, RelativeSource={RelativeSource AncestorType=UserControl}}"
@@ -144,7 +144,7 @@
                     <DataGridTemplateColumn Header="Revisado / OK" Width="100">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Realizado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Checked="CheckBoxRevisado_Changed" Unchecked="CheckBoxRevisado_Changed"/>
+                                    <CheckBox IsChecked="{Binding Realizado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Center" Checked="CheckBoxRevisado_Changed" Unchecked="CheckBoxRevisado_Changed" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
