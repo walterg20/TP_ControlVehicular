@@ -1,4 +1,4 @@
-<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm"
+﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -137,14 +137,14 @@
                             <DataTemplate>
                                 <ComboBox ItemsSource="{Binding DataContext.MecanicosDisponibles, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                           SelectedValue="{Binding UsuarioId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          SelectedValuePath="IdUsuario" DisplayMemberPath="Nombre" />
+                                          SelectedValuePath="IdUsuario" DisplayMemberPath="NombreCompletoYDni" IsEnabled="{Binding DataContext.EsRecepcionista, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTemplateColumn Header="Revisado / OK" Width="100">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox IsChecked="{Binding Realizado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding Realizado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Checked="CheckBoxRevisado_Changed" Unchecked="CheckBoxRevisado_Changed"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

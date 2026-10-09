@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -178,7 +178,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 {
                     if (vmOrdenServicioForm.DetallesOrdenActual.Any(d => d.ServicioId == vmOrdenServicioForm.ServicioBusquedaSeleccionado.IdServicio))
                     {
-                        Compartido.FrmConfirmacion.MostrarAviso("El servicio ya se encuentra en el checklist.", "Aviso", Window.GetWindow(this));
+                        Compartido.FrmConfirmacion.MostrarAviso("El servicio ya se encuentra asignado a un mecánico en esta orden.", "Aviso", Window.GetWindow(this));
                         return;
                     }
 
@@ -303,6 +303,14 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             }
         }
     
+        private void CheckBoxRevisado_Changed(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
+            {
+                vmOrdenServicioForm.EvaluarEstadoGeneral();
+            }
+        }
+
         private void dgChecklist_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
         {
             if (e.Column.Header?.ToString() == "Mec�nico")

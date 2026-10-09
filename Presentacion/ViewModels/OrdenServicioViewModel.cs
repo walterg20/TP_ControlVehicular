@@ -64,7 +64,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoOrdenesFiltered));
             
             Fecha = DateTime.Now;
-            Estado = "En Proceso";
+            Estado = "Pendiente";
         }
 
         public ObservableCollection<RegistroServicioDto> Ordenes { get; set; }
@@ -179,8 +179,24 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _estado = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
-        private bool EsMecanico => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == 3;
-        private bool EsRecepcionista => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == 2;
+        private bool EsMecanico
+        {
+            get
+            {
+                var usuario = (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual;
+                if (usuario == null) return false;
+                return usuario.IdRol == 3 || (usuario.RolNombre != null && usuario.RolNombre.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+        }
+        public bool EsRecepcionista
+        {
+            get
+            {
+                var usuario = (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual;
+                if (usuario == null) return true;
+                return !EsMecanico;
+            }
+        }
         public bool PuedeCrear => !EsMecanico;
         public bool PuedeEliminar => !EsMecanico && OrdenSeleccionada != null;
         public bool PuedeImprimirRecepcion => !EsMecanico && OrdenSeleccionada != null;
@@ -496,6 +512,31 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 {
                     System.Windows.MessageBox.Show("No se encontró ningún vehículo con esa patente.");
                 }
+            }
+        }
+
+        public void EvaluarEstadoGeneral()
+        {
+            if (DetallesOrdenActual == null || !DetallesOrdenActual.Any())
+            {
+                Estado = "Pendiente";
+                return;
+            }
+
+            bool todosRealizados = DetallesOrdenActual.All(d => d.Realizado);
+            bool algunRealizado = DetallesOrdenActual.Any(d => d.Realizado);
+
+            if (todosRealizados)
+            {
+                Estado = "Finalizada";
+            }
+            else if (algunRealizado)
+            {
+                Estado = "En Proceso";
+            }
+            else
+            {
+                Estado = "Pendiente";
             }
         }
     }
