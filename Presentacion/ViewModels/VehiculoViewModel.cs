@@ -161,8 +161,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         SetError(nameof(Patente), "Patente requerida (mínimo 5 caracteres).");
                     break;
                 case nameof(IdCliente):
-                    if (IdCliente <= 0)
-                        SetError(nameof(IdCliente), "Debe seleccionar un Cliente.");
                     break;
                 case nameof(IdMarca):
                     if (IdMarca <= 0)
@@ -322,12 +320,21 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             var vehiculo = new Entidad.Vehiculo
             {
                 Id = seleccion?.Id ?? 0,
-                ClienteId = IdCliente,
                 ModeloId = IdModelo,
                 Patente = Patente.Trim().ToUpper(),
                 Anio = Anio,
                 KmActual = KmActual
             };
+
+            if (IdCliente > 0)
+            {
+                vehiculo.Propietarios.Add(new PropietarioVehiculo
+                {
+                    ClienteId = IdCliente,
+                    EsActual = true,
+                    FechaAdquisicion = DateTime.Now
+                });
+            }
 
             try
             {

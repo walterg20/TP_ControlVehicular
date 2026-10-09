@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -195,11 +195,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                         ServicioId = vmOrdenServicioForm.ServicioBusquedaSeleccionado.IdServicio,
                         ServicioNombre = vmOrdenServicioForm.ServicioBusquedaSeleccionado.Nombre,
                         UsuarioId = idMecanicoAuto,
-                        Realizado = true,
+                        Realizado = false,
                         Observaciones = string.Empty,
                         Cantidad = 1,
                         Precio = vmOrdenServicioForm.ServicioBusquedaSeleccionado.Precio,
-                        Estado = "Realizado",
+                        Estado = "Pendiente",
                         Origen = "Manual"
                     });
                     vmOrdenServicioForm.ServicioBusquedaSeleccionado = null;

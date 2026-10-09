@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -116,6 +116,8 @@ namespace TP_ControlVehicular
             services.AddScoped<ListarTareasPorEspecialistaHandler>();
             services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler>();
             services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler>();
+            services.AddScoped<AsignarVehiculoPorPatenteHandler>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // Servicios Especiales
             services.AddTransient<IReporteService, QuestPdfReporteService>();

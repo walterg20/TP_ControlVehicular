@@ -20,7 +20,7 @@ namespace TP_ControlVehicular.Datos.Data
         public DbSet<Factura> Facturas { get; set; } = null!;
         public DbSet<MetodoPago> MetodosPago { get; set; } = null!;
         public DbSet<Pago> Pagos { get; set; } = null!;
-
+        public DbSet<PropietarioVehiculo> PropietariosVehiculos { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(CVDbContext).Assembly);

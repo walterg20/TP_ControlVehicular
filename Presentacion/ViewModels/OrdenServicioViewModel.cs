@@ -21,6 +21,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly IClienteRepository _clienteRepository;
         private readonly TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler _generarComprobanteOrdenHandler;
         private readonly TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler _generarComprobantePagoHandler;
+        private readonly AsignarVehiculoPorPatenteHandler _asignarVehiculoPorPatenteHandler;
         private readonly IMapper _mapper;
 
         public OrdenServicioViewModel(
@@ -34,6 +35,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IClienteRepository clienteRepository,
             TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler generarComprobanteOrdenHandler,
             TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler generarComprobantePagoHandler,
+            AsignarVehiculoPorPatenteHandler asignarVehiculoPorPatenteHandler,
             IMapper mapper)
         {
             _listarHandler = listarHandler;
@@ -46,6 +48,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _clienteRepository = clienteRepository;
             _generarComprobanteOrdenHandler = generarComprobanteOrdenHandler;
             _generarComprobantePagoHandler = generarComprobantePagoHandler;
+            _asignarVehiculoPorPatenteHandler = asignarVehiculoPorPatenteHandler;
             _mapper = mapper;
 
             Ordenes = new ObservableCollection<RegistroServicioDto>();
@@ -343,7 +346,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 Id = OrdenSeleccionada?.Id ?? 0,
                 VehiculoId = VehiculoId,
-                TallerId = TallerId,
+                TallerId = TallerId > 0 ? TallerId : 1, // Por defecto al taller 1 si no está seteado
                 UsuarioId = UsuarioId > 0 ? UsuarioId : 1, // Por seguridad si no se setea desde UI
                 Fecha = Fecha,
                 KmIngreso = KmIngreso,
@@ -390,7 +393,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
             catch (Exception ex)
             {
-                RegistrationFailed?.Invoke(this, "Error al guardar la orden de servicio: " + ex.Message);
+                Exception current = ex;
+                while (current.InnerException != null)
+                {
+                    current = current.InnerException;
+                }
+                RegistrationFailed?.Invoke(this, "Error al guardar la orden de servicio:\n" + current.Message);
                 return false;
             }
         }
@@ -409,8 +417,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         SetError(nameof(VehiculoId), "Debe seleccionar un Vehículo.");
                     break;
                 case nameof(TallerId):
-                    if (TallerId <= 0)
-                        SetError(nameof(TallerId), "Debe seleccionar un Taller.");
+                    // Se quita validación de TallerId porque la UI lo tiene oculto y se asigna por defecto
                     break;
                 case nameof(KmIngreso):
                     if (KmIngreso <= 0)
@@ -461,6 +468,34 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             if (comprobante != null)
             {
                 MostrarComprobantePagoRequested?.Invoke(this, comprobante);
+            }
+        }
+
+        private ICommand? _agregarVehiculoRapidoCommand;
+        public ICommand AgregarVehiculoRapidoCommand => _agregarVehiculoRapidoCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(async () => await AgregarVehiculoRapidoAsync());
+
+        private async Task AgregarVehiculoRapidoAsync()
+        {
+            if (ClienteId <= 0)
+            {
+                System.Windows.MessageBox.Show("Primero debe seleccionar un Cliente.");
+                return;
+            }
+
+            var patente = Microsoft.VisualBasic.Interaction.InputBox("Ingrese la Patente del vehículo a asignar al cliente:", "Agregar Vehículo Rápido", "");
+            if (!string.IsNullOrWhiteSpace(patente))
+            {
+                var dto = await _asignarVehiculoPorPatenteHandler.HandleAsync(patente, ClienteId);
+                if (dto != null)
+                {
+                    // Reload combos to update vehicles list
+                    await LoadCombosAsync();
+                    VehiculoId = dto.Id;
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("No se encontró ningún vehículo con esa patente.");
+                }
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace TP_ControlVehicular.Entidad
+namespace TP_ControlVehicular.Entidad
 {
     public class Cliente
     {
@@ -12,6 +12,6 @@
         public string Telefono { get; set; } = string.Empty;    
         public bool Activo { get; set; }
 
-        public ICollection<Vehiculo> Vehiculos { get; set; } = new List<Vehiculo>();
+        public ICollection<PropietarioVehiculo> Propietarios { get; set; } = new List<PropietarioVehiculo>();
     }
 }

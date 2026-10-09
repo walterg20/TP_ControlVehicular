@@ -24,7 +24,8 @@ BEGIN
         ds.Observaciones AS ObservacionDetalle
     FROM RegistroServicio r
     INNER JOIN Vehiculo v ON r.VehiculoId = v.Id
-    INNER JOIN Cliente c ON v.ClienteId = c.Id
+    INNER JOIN PropietarioVehiculo pv ON v.Id = pv.VehiculoId AND pv.EsActual = 1
+    INNER JOIN Cliente c ON pv.ClienteId = c.Id
     INNER JOIN Modelo mod ON v.ModeloId = mod.Id
     INNER JOIN Marca m ON mod.MarcaId = m.Id
     LEFT JOIN Taller t ON r.TallerId = t.Id

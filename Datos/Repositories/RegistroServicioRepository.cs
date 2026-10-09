@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.Interfaces;
@@ -25,7 +25,7 @@ namespace TP_ControlVehicular.Datos.Repositories
         {
             var query = _cvDbContext.RegistroServicios
                 .Include(r => r.Vehiculo)
-                    .ThenInclude(v => v.Cliente)
+                    .ThenInclude(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(r => r.Vehiculo)
                     .ThenInclude(v => v.Modelo)
                         .ThenInclude(m => m.Marca)

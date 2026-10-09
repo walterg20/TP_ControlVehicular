@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm"
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -58,12 +58,14 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <ComboBox Grid.Column="0" x:Name="cmbVehiculos" Height="30"
                               ItemsSource="{Binding VehiculosDisponibles}"
                               SelectedValue="{Binding VehiculoId, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
                               SelectedValuePath="Id" DisplayMemberPath="DescripcionCompleta" />
                     <Button Grid.Column="1" x:Name="btnNuevoVehiculo" Content="➕" Width="30" Height="30" Margin="5,0,0,0" ToolTip="Nuevo Vehículo" Click="BtnNuevoVehiculo_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
+                    <Button Grid.Column="2" x:Name="btnNuevoVehiculoRapido" Content="+ Rápido" Height="30" Padding="10,0" Margin="5,0,0,0" ToolTip="Asignar Vehículo Rápido" Command="{Binding AgregarVehiculoRapidoCommand}" Background="#3498DB" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
                 </Grid>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Taller:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center" Visibility="Collapsed"/>

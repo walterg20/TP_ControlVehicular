@@ -89,7 +89,8 @@ GO
                         mo.NombreModelo AS Modelo,
                         COUNT(rs.Id) AS CantidadServicio
                     FROM Cliente c
-                    INNER JOIN Vehiculo v ON c.Id = v.ClienteId
+                    INNER JOIN PropietarioVehiculo pv ON c.Id = pv.ClienteId AND pv.EsActual = 1
+                    INNER JOIN Vehiculo v ON pv.VehiculoId = v.Id
                     INNER JOIN Modelo mo ON v.ModeloId = mo.Id
                     INNER JOIN Marca ma ON mo.MarcaId = ma.Id
                     LEFT JOIN RegistroServicio rs ON v.Id = rs.VehiculoId
@@ -168,14 +169,19 @@ GO
                     INNER JOIN inserted i ON v.Id = i.VehiculoId
                     WHERE i.KmIngreso >= v.KmActual;
 
-                    IF EXISTS (
-                        SELECT 1 
-                        FROM inserted i
-                        INNER JOIN Vehiculo v ON v.Id = i.VehiculoId
-                        WHERE i.KmIngreso < v.KmActual
-                    )
+                    DECLARE @ErrorMsg NVARCHAR(200);
+                    DECLARE @KmIngreso INT;
+                    DECLARE @KmActual INT;
+
+                    SELECT TOP 1 @KmIngreso = i.KmIngreso, @KmActual = v.KmActual
+                    FROM inserted i
+                    INNER JOIN Vehiculo v ON v.Id = i.VehiculoId
+                    WHERE i.KmIngreso < v.KmActual;
+
+                    IF @KmActual IS NOT NULL
                     BEGIN
-                        RAISERROR('El kilometraje de ingreso no puede ser menor al kilometraje actual del vehículo.', 16, 1);
+                        SET @ErrorMsg = CONCAT('El kilometraje de ingreso (', @KmIngreso, ') no puede ser menor al actual del vehículo (', @KmActual, ').');
+                        RAISERROR(@ErrorMsg, 16, 1);
                         ROLLBACK TRANSACTION;
                     END
                 END;

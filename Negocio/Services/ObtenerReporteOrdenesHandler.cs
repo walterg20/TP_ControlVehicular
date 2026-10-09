@@ -36,10 +36,10 @@ namespace TP_ControlVehicular.Negocio.Services
                         MarcaModelo = r.Vehiculo?.Modelo != null && r.Vehiculo.Modelo.Marca != null
                             ? $"{r.Vehiculo.Modelo.Marca.NombreMarca} - {r.Vehiculo.Modelo.NombreModelo}"
                             : "Marca/Modelo N/A",
-                        ClienteNombre = r.Vehiculo?.Cliente != null
-                            ? $"{r.Vehiculo.Cliente.Nombre} {r.Vehiculo.Cliente.Apellido}".Trim()
+                        ClienteNombre = r.Vehiculo?.Propietarios.FirstOrDefault(p => p.EsActual)?.Cliente != null
+                            ? $"{r.Vehiculo.Propietarios.FirstOrDefault(p => p.EsActual)!.Cliente.Nombre} {r.Vehiculo.Propietarios.FirstOrDefault(p => p.EsActual)!.Cliente.Apellido}".Trim()
                             : "Cliente N/A",
-                        ClienteDni = r.Vehiculo?.Cliente?.Dni ?? "N/A",
+                        ClienteDni = r.Vehiculo?.Propietarios.FirstOrDefault(p => p.EsActual)?.Cliente?.Dni ?? "N/A",
                         KmIngresado = r.KmIngreso,
                         RecepcionistaNombre = r.Usuario != null ? r.Usuario.Nombre : "Sin Recepcionista",
                         MecanicoNombre = r.Detalles.FirstOrDefault(d => d.Usuario != null)?.Usuario?.Nombre ?? "Sin Mecánico",

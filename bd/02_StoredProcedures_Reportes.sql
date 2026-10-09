@@ -87,7 +87,8 @@ BEGIN
         m.NombreModelo AS Modelo,
         (SELECT COUNT(*) FROM RegistroServicio rs WHERE rs.VehiculoId = v.Id) AS CantidadServicios
     FROM Vehiculo v
-    INNER JOIN Cliente c ON v.ClienteId = c.Id
+    INNER JOIN PropietarioVehiculo pv ON v.Id = pv.VehiculoId AND pv.EsActual = 1
+    INNER JOIN Cliente c ON pv.ClienteId = c.Id
     INNER JOIN Modelo m ON v.ModeloId = m.Id
     INNER JOIN Marca ma ON m.MarcaId = ma.Id
     WHERE (@ClienteId IS NULL OR c.Id = @ClienteId)
