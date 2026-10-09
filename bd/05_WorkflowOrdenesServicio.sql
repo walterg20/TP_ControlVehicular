@@ -12,7 +12,7 @@ GO
 
 UPDATE [RegistroServicio]
 SET [Estado] = 'Completada'
-WHERE [Estado] NOT IN ('Abierta', 'En Proceso', 'Completada', 'Pagada');
+WHERE [Estado] NOT IN ('Abierta', 'En Proceso', 'Completada', 'Pagada', 'Cancelada');
 GO
 
 -- 3. Añadir CHECK Constraints para los estados válidos
@@ -23,5 +23,6 @@ GO
 
 ALTER TABLE [RegistroServicio]
 ADD CONSTRAINT [CHK_RegistroServicio_Estado] 
-CHECK ([Estado] IN ('Abierta', 'En Proceso', 'Completada', 'Pagada'));
+CHECK ([Estado] IN ('Abierta', 'En Proceso', 'Completada', 'Pagada', 'Cancelada'));
 GO
+
