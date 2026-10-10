@@ -2,7 +2,7 @@
 -- 09_PermisosAvanzados.sql
 -- Creación de tablas para el sistema RBAC
 -- =============================================
-USE [ControlVehicular_DB];
+USE [ControlVehicular];
 GO
 
 -- 1. Crear tabla Permisos
