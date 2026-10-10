@@ -1,0 +1,7 @@
+- [ ] Modificar `CtlLogin.xaml` cambiando "Usuario" por "DNI".
+- [ ] Renombrar `NombreUsuario` a `Dni` en `LoginViewModel.cs` y actualizar el `Binding` en la vista.
+- [ ] Ajustar el mensaje de error de campos vacíos en el ViewModel a "Por favor, ingrese DNI y contraseña.".
+- [ ] Modificar `AutenticarUsuarioHandler` para que reciba el DNI como argumento de búsqueda.
+- [ ] Cambiar la cláusula LINQ de búsqueda en base de datos para comparar por `u.Dni` en lugar de `u.Nombre`.
+- [ ] Ajustar los mensajes de error en el `AutenticarUsuarioHandler` referentes a que no se encuentra el DNI.
+- [ ] Compilar y probar que el sistema permita iniciar sesión exitosamente ingresando un DNI válido.

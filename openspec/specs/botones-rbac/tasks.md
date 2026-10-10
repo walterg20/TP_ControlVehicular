@@ -1,0 +1,6 @@
+- [ ] Definir en qué pantallas se deben aplicar restricciones de Nuevo/Editar/Eliminar.
+- [ ] En el `ViewModel` de la pantalla afectada (ej. `ClienteViewModel.cs`), agregar propiedades booleanas computadas como `PuedeCrear`, `PuedeEditar`, `PuedeEliminar` consultando `UserSession.CurrentUser.IdRol`.
+- [ ] Modificar los archivos `.xaml` (ej. `CtlCliente.xaml`) aplicando `Visibility="{Binding PuedeCrear, Converter={StaticResource BooleanToVisibilityConverter}}"` al botón de Nuevo.
+- [ ] Aplicar la misma validación de Visibilidad a los botones de Editar y Eliminar de las tarjetas/grids.
+- [ ] Opcionalmente, agregar estas propiedades booleanas al método `CanExecute` de los `RelayCommand` para asegurar doble protección a nivel lógico.
+- [ ] Iniciar sesión con los diferentes roles para verificar que los botones desaparecen o se deshabilitan correctamente en cada pantalla según el permiso definido.

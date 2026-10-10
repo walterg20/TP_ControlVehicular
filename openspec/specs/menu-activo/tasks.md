@@ -1,0 +1,5 @@
+- [ ] Modificar `MainWindow.xaml` para quitar `Background="#2980B9"` de `btnDashboard` y dejarlo como `Transparent`.
+- [ ] En `MainWindow.xaml.cs`, implementar el método `ResaltarBotonActivo(Button botonActivo)`.
+- [ ] Agregar la llamada a `ResaltarBotonActivo` dentro de cada uno de los métodos `MenuItem_Click_*` pasando `(Button)sender`.
+- [ ] Asegurarse de que el método que carga el Dashboard al loguearse (`OnLoginExitoso` o similar) llame a `ResaltarBotonActivo(btnDashboard)`.
+- [ ] Probar la navegación clickeando varios ítems de menú para verificar que solo uno está resaltado a la vez.

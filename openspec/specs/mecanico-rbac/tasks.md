@@ -1,0 +1,7 @@
+- [ ] Crear la clase estática `UserSession` en la capa de Negocio (o Presentación) para mantener el usuario activo.
+- [ ] En `MainWindow.xaml.cs`, actualizar `UserSession.CurrentUser` al loguear y limpiarlo al salir.
+- [ ] En `MainWindow.xaml.cs`, colapsar el TextBlock `secAdministracion` dentro del método `AplicarRestriccionesPorRol` para los mecánicos.
+- [ ] Actualizar el repositorio o Handler del Dashboard para que, si el rol es mecánico, filtre las sumatorias de dinero y conteo de servicios usando `DetalleServicio.UsuarioId`.
+- [ ] Actualizar el repositorio o Handler de Reportes de Órdenes para que los mecánicos solo vean las órdenes (`RegistroServicio`) donde poseen al menos un detalle a su nombre.
+- [ ] Iniciar sesión con un usuario Administrador para validar que sigan viendo todo correctamente.
+- [ ] Iniciar sesión con un usuario Mecánico para validar que la interfaz se oculte y los datos se filtren correctamente.
