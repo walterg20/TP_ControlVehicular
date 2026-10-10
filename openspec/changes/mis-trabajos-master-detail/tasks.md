@@ -16,6 +16,6 @@
 - [x] 3. Update `Presentacion/Pantalla/MisTrabajos/CtlMisTrabajos.xaml.cs`:
   - `BtnVerOrden_Click` opens the selected order.
   - `DgOrdenes_MouseDoubleClick` opens the order only when a row was double-clicked.
-- [ ] 4. Validate: `dotnet build "TP_ControlVehicular.slnx"` and manual smoke test (select order -> detail loads, edit, save, reload).
+- [x] 4. Validate: `dotnet build "TP_ControlVehicular.slnx"` and manual smoke test (select order -> detail loads, edit, save, reload).
   - [x] `dotnet build "TP_ControlVehicular.slnx"` — compila sin errores (0 errores).
-  - [ ] Manual smoke test (select order -> detail loads, edit, save, reload).
+  - [x] Manual smoke test (select order -> detail loads, edit, save, reload). Verificado por el usuario.

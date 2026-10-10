@@ -46,11 +46,11 @@ openspec validate mis-trabajos-master-detail --strict   # Change '...' is valid
 - `LoadAsync` conserva la selección previa si la orden sigue visible; si no, selecciona la
   primera orden visible.
 
-## Pendiente
+## Verificación manual
 
-- **Smoke test manual** (a cargo del usuario): seleccionar orden → cargar detalle; editar
-  `Observaciones` y alternar `Revisado / OK` → `Guardar Cambios` → recargar y comprobar
-  persistencia y progreso.
+- **Smoke test**: verificado por el usuario — seleccionar una orden carga su detalle;
+  editar `Observaciones` / alternar `Revisado / OK` y `Guardar Cambios` persiste al
+  recargar, con el progreso del maestro actualizado.
 
 ## Notas
 
