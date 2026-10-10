@@ -11,5 +11,6 @@ namespace TP_ControlVehicular.Negocio.Reportes
         Task<IEnumerable<ReporteTopClienteDto>> ObtenerTopClientesAsync(DateTime? fechaDesde, DateTime? fechaHasta, int topN = 10);
         Task<IEnumerable<ReporteModeloReparadoDto>> ObtenerModelosMasReparadosAsync(DateTime? fechaDesde, DateTime? fechaHasta, int topN = 10);
         Task<IEnumerable<ProductividadMecanicoDto>> ObtenerProductividadMecanicosAsync(DateTime? fechaDesde, DateTime? fechaHasta);
+        Task<IEnumerable<ReporteServicioCantidadDto>> ObtenerServiciosPorRangoAsync(DateTime? fechaDesde, DateTime? fechaHasta);
     }
 }

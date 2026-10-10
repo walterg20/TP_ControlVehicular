@@ -6,6 +6,6 @@
         public string Modelo { get; set; } = string.Empty;
         public int CantidadReparaciones { get; set; }
         
-        public string MarcaModelo => "{Marca} {Modelo}";
+        public string MarcaModelo => $"{Marca} {Modelo}";
     }
 }

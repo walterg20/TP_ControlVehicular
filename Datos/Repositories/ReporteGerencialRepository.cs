@@ -73,5 +73,18 @@ namespace TP_ControlVehicular.Datos.Repositories
                 parameters,
                 commandType: CommandType.StoredProcedure);
         }
+
+        public async Task<IEnumerable<ReporteServicioCantidadDto>> ObtenerServiciosPorRangoAsync(DateTime? fechaDesde, DateTime? fechaHasta)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@FechaDesde", fechaDesde, DbType.Date);
+            parameters.Add("@FechaHasta", fechaHasta, DbType.Date);
+
+            return await connection.QueryAsync<ReporteServicioCantidadDto>(
+                "sp_ReporteServiciosPorRango",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }

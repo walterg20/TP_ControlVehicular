@@ -158,7 +158,6 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlLogin>();
             services.AddScoped<CtlDashboard>();
             services.AddScoped<CtlReporteOrdenes>();
-            services.AddScoped<ReporteGerencialView>();
             services.AddScoped<CtlServicio>();
             services.AddTransient<FrmServicio>();
             services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();
