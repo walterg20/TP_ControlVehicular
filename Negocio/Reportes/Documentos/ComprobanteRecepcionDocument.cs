@@ -80,6 +80,9 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
         {
             container.Row(row =>
             {
+                // Logo de la empresa a la izquierda (regla: todo PDF lleva logo)
+                row.ConstantItem(120).PaddingRight(10).AlignLeft().Element(c => c.ComposeLogo());
+
                 row.RelativeItem().Column(col =>
                 {
                     col.Item().Text(_dto.TallerNombre).FontSize(24).SemiBold().FontColor(Colors.Blue.Darken2);

@@ -37,6 +37,9 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
             {
                 col.Item().Row(row =>
                 {
+                    // Logo de la empresa a la izquierda (regla: todo PDF lleva logo)
+                    row.ConstantItem(100).PaddingRight(10).AlignLeft().Element(c => c.ComposeLogo());
+
                     row.RelativeItem().Column(c =>
                     {
                         c.Item().Text("COMPROBANTE DE PAGO").FontSize(20).Bold();

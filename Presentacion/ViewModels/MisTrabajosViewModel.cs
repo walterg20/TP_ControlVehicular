@@ -8,6 +8,10 @@ using System.Windows.Input;
 using TP_ControlVehicular.Negocio.Context;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Negocio.Reportes.Documentos;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
@@ -58,6 +62,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
     {
         private readonly ListarRegistroServiciosHandler _listarHandler;
         private readonly ModificarRegistroServicioHandler _modificarHandler;
+        private readonly ObtenerHistorialClinicoVehiculoHandler _historialHandler;
+        private readonly ObtenerHojaTrabajoDiariaHandler _hojaTrabajoHandler;
 
         public ObservableCollection<MiTrabajoItemViewModel> TodasMisTareas { get; set; }
         public ObservableCollection<string> FiltroVehiculos { get; set; }
@@ -77,10 +83,16 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public ICollectionView TareasView { get; private set; }
 
-        public MisTrabajosViewModel(ListarRegistroServiciosHandler listarHandler, ModificarRegistroServicioHandler modificarHandler)
+        public MisTrabajosViewModel(
+            ListarRegistroServiciosHandler listarHandler, 
+            ModificarRegistroServicioHandler modificarHandler,
+            ObtenerHistorialClinicoVehiculoHandler historialHandler,
+            ObtenerHojaTrabajoDiariaHandler hojaTrabajoHandler)
         {
             _listarHandler = listarHandler;
             _modificarHandler = modificarHandler;
+            _historialHandler = historialHandler;
+            _hojaTrabajoHandler = hojaTrabajoHandler;
 
             TodasMisTareas = new ObservableCollection<MiTrabajoItemViewModel>();
             FiltroVehiculos = new ObservableCollection<string> { "Todos los Autos" };
@@ -237,10 +249,149 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 item.IsModified = false;
             }
-            
+
             await LoadAsync();
 
             return true;
+        }
+
+        private MiTrabajoItemViewModel? _tareaSeleccionada;
+        public MiTrabajoItemViewModel? TareaSeleccionada
+        {
+            get => _tareaSeleccionada;
+            set
+            {
+                _tareaSeleccionada = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PuedeImprimirHistorial));
+            }
+        }
+
+        /// <summary>Habilita los reportes del mecanico segun el permiso Reporte.Mecanico.Ver.</summary>
+        public bool PuedeVerReportesMecanico => TienePermiso("Reporte.Mecanico.Ver");
+
+        /// <summary>Historial clinico: requiere el permiso y una tarea seleccionada.</summary>
+        public bool PuedeImprimirHistorial => PuedeVerReportesMecanico && TareaSeleccionada != null;
+
+        private ICommand? _imprimirHistorialCommand;
+        public ICommand ImprimirHistorialCommand => _imprimirHistorialCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(async () => await GenerarHistorialPdfAsync());
+
+        private ICommand? _imprimirHojaTrabajoCommand;
+        public ICommand ImprimirHojaTrabajoCommand => _imprimirHojaTrabajoCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(async () => await GenerarHojaTrabajoPdfAsync());
+
+        private async Task GenerarHistorialPdfAsync()
+        {
+            if (TareaSeleccionada == null) return;
+            try
+            {
+                var historial = await _historialHandler.HandleAsync(TareaSeleccionada.Orden.VehiculoId);
+                var vehiculoDesc = TareaSeleccionada.VehiculoCompleto;
+                var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"Historial_{TareaSeleccionada.VehiculoPatente}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+                var document = QuestPDF.Fluent.Document.Create(container =>
+                {
+                    container.Page(page =>
+                    {
+                        page.Size(QuestPDF.Helpers.PageSizes.A4);
+                        page.Margin(1, QuestPDF.Infrastructure.Unit.Centimetre);
+                        page.PageColor(QuestPDF.Helpers.Colors.White);
+                        page.Header().Element(c => c.ComposeEncabezadoTaller("Historial Clínico"));
+                        page.Footer().Element(c => c.ComposePieDePagina());
+                        page.Content().PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(col =>
+                        {
+                            col.Item().Text($"Vehículo: {vehiculoDesc}").FontSize(12).SemiBold().FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
+                            col.Item().PaddingTop(8).Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.ConstantColumn(80);
+                                    columns.ConstantColumn(80);
+                                    columns.RelativeColumn();
+                                    columns.RelativeColumn();
+                                });
+                                table.Header(header =>
+                                {
+                                    header.Cell().Text("Fecha").SemiBold();
+                                    header.Cell().Text("Km");
+                                    header.Cell().Text("Servicio");
+                                    header.Cell().Text("Observaciones");
+                                });
+                                foreach (var h in historial)
+                                {
+                                    table.Cell().Text(h.Fecha.ToString("dd/MM/yyyy"));
+                                    table.Cell().Text(h.KmIngreso.ToString());
+                                    table.Cell().Text(h.Servicio);
+                                    table.Cell().Text(h.Observaciones);
+                                }
+                            });
+                        });
+                    });
+                });
+                await Task.Run(() => document.GeneratePdf(filePath));
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(filePath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Error al generar PDF: " + ex.Message);
+            }
+        }
+
+        private async Task GenerarHojaTrabajoPdfAsync()
+        {
+            try
+            {
+                var usuario = (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual;
+                if (usuario == null) return;
+                var tareas = await _hojaTrabajoHandler.HandleAsync(usuario.IdUsuario, DateTime.Today);
+                var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"TareasDia_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+                var document = QuestPDF.Fluent.Document.Create(container =>
+                {
+                    container.Page(page =>
+                    {
+                        page.Size(QuestPDF.Helpers.PageSizes.A4.Landscape());
+                        page.Margin(1, QuestPDF.Infrastructure.Unit.Centimetre);
+                        page.PageColor(QuestPDF.Helpers.Colors.White);
+                        page.Header().Element(c => c.ComposeEncabezadoTaller("Tareas del Día"));
+                        page.Footer().Element(c => c.ComposePieDePagina());
+                        page.Content().PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(col =>
+                        {
+                            col.Item().Text($"Mecánico: {usuario.Nombre} - {DateTime.Today:dd/MM/yyyy}").FontSize(12).SemiBold().FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
+                            col.Item().PaddingTop(8).Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.ConstantColumn(80);
+                                    columns.RelativeColumn();
+                                    columns.RelativeColumn();
+                                    columns.ConstantColumn(80);
+                                    columns.RelativeColumn();
+                                });
+                                table.Header(header =>
+                                {
+                                    header.Cell().Text("Patente").SemiBold();
+                                    header.Cell().Text("Vehículo");
+                                    header.Cell().Text("Servicio a Realizar");
+                                    header.Cell().Text("Estado");
+                                    header.Cell().Text("Obs");
+                                });
+                                foreach (var t in tareas)
+                                {
+                                    table.Cell().Text(t.Patente);
+                                    table.Cell().Text(t.Vehiculo);
+                                    table.Cell().Text(t.Servicio);
+                                    table.Cell().Text(t.Estado);
+                                    table.Cell().Text(t.Observaciones);
+                                }
+                            });
+                        });
+                    });
+                });
+                await Task.Run(() => document.GeneratePdf(filePath));
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(filePath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Error al generar PDF: " + ex.Message);
+            }
         }
     }
 }

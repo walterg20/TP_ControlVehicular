@@ -1,31 +1,24 @@
 # TP_ControlVehicular
 Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Capas: Datos, Entidad, Migracion, Negocio, Presentacion.
 
-> `MEMORY.md` es una pista, no la evidencia. El estado real se verifica contra `git log` / `git status` (ver *No hagas*).
-
 ## Stack
 - Lenguaje: C# 13 (.NET 10.0, WinExe, Nullable + ImplicitUsings)
 - Framework / runtime: WPF (UseWPF), Microsoft.Extensions.DependencyInjection/Hosting
 - Base de datos: SQL Server (Server=WALTERG20\SQLEXPRESS2019) vía EF Core 10.0.11 (Microsoft.EntityFrameworkCore.SqlServer)
 - Mapeo: AutoMapper 13.x (perfil Entity→DTO unidireccional)
 - Tests: `TP_ControlVehicular.Tests` (xUnit + Moq)
-- Reportes: QuestPDF (encabezado con logo obligatorio, ver *Convenciones*)
 
 ## Comandos
 - `dotnet build "TP_ControlVehicular.slnx"` — compila la solución (PowerShell: usa `;` no `&&`)
 - `dotnet run --project "TP_ControlVehicular.csproj"` — ejecuta la app en local
-- `dotnet test "TP_ControlVehicular.Tests"` — corre las pruebas
-- `dotnet ef database update` — aplica migraciones (desde carpeta `Migracion`)
 
 ## Estructura del proyecto
 - `App.xaml.cs` — composición DI, config desde `appsettings.json` con `SetBasePath(AppContext.BaseDirectory)`
 - `Datos/` — `CVDbContext`, repositorios base (`Repository<T>`) e implementaciones (`IClienteRepository`, `IVehiculoRepository`, `IModeloRepository`, `IMarcaRepository`)
 - `Entidad/` — entidades `Marca`, `Cliente`, `Modelo`, `Vehiculo` (convenciones: `string.Empty`, `new List<T>()`, `null!` en navs)
 - `Migracion/` — migraciones EF Core y `CVDbContextModelSnapshot.cs`
-- `Negocio/` — handlers (`RegistrarClienteHandler`, `RegistrarVehiculoHandler`, `ListarVehiculosPorClienteHandler`), `MappingProfile.cs` (Entity→DTO), DTOs, `Reportes/` (QuestPDF)
+- `Negocio/` — handlers (`RegistrarClienteHandler`, `RegistrarVehiculoHandler`, `ListarVehiculosPorClienteHandler`), `MappingProfile.cs` (Entity→DTO), DTOs
 - `Presentacion/` — `ViewModels/` (`BaseViewModel`, `ClienteViewModel`, `ModeloViewModel`, `MarcaViewModel`, `VehiculoViewModel`), `Pantalla/*/Ctl*.xaml.cs` (UserControls), `MainWindow`
-- `openspec/` — especificaciones OpenSpec (spec formal en inglés).
-- `docs/` — `DER.md` (entidad-relación), `plan/` (planes y walkthroughs de ejecución).
 
 ## Convenciones
 - **DI en `App.xaml.cs`**: repositorios `AddScoped`, handlers `AddScoped`, VMs `AddScoped`/`AddTransient`, `MainWindow` singleton.
@@ -100,12 +93,6 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - Haz solo lo que se pide: no añadas funcionalidades por tu cuenta.
 - Cambios pequeños y enfocados; no reescribas lo que ya funciona.
 - Al terminar, resume qué has cambiado y cualquier decisión que deba revisar.
-
-## Especificaciones: OpenSpec (SDD) + TDD
-- **Specification-Driven Development (SDD)**: TODA característica nueva o modificación significativa se define primero en `openspec/`: `proposal.md` -> `spec.md` -> `design.md` -> `tasks.md`. No se escribe código de implementación sin las especificaciones y diseños aprobados.
-- Las `spec.md` se redactan en **inglés** e incluyen Criterios de Aceptación claros (estilo BDD: Given/When/Then).
-- **Test-Driven Development (TDD)**: el desarrollo se guía por las especificaciones (y tests). Se valida funcionalmente cada escenario antes de refactorizar o avanzar.
-- La verificación de construcción (`dotnet build`) y la validación del comportamiento son **obligatorias** antes de marcar una tarea como completada.
 
 ## Documentación
 - `docs/DER.md` — diagrama de entidad relación a tener en cuenta en todo feature o spec en adelante.
