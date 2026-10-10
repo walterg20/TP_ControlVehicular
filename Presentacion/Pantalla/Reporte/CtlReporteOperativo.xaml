@@ -69,19 +69,33 @@
 
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="3*"/>
                     <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Productividad -->
                 <Grid Grid.Column="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="Productividad por Mecanico" FontSize="16" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,0,10"/>
-                    <DataGrid Grid.Row="1" ItemsSource="{Binding Productividad}" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" GridLinesVisibility="Horizontal">
+
+                    <!-- Tarjeta de resumen -->
+                    <Border Grid.Row="1" Background="#F4F6F7" CornerRadius="8" Padding="10,8" Margin="0,0,0,10">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Total:" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,8,0"/>
+                            <TextBlock Text="{Binding TotalTareas, StringFormat='{}{0} tareas'}" Foreground="#34495E" Margin="0,0,12,0"/>
+                            <TextBlock Text="{Binding TotalPendientes, StringFormat='Pendientes: {0}'}" Foreground="#E67E22" Margin="0,0,12,0"/>
+                            <TextBlock Text="{Binding TotalEnCurso, StringFormat='En curso: {0}'}" Foreground="#2980B9" Margin="0,0,12,0"/>
+                            <TextBlock Text="{Binding TotalTareasCompletadas, StringFormat='Completadas: {0}'}" Foreground="#27AE60" Margin="0,0,12,0"/>
+                            <TextBlock Text="{Binding PorcentajeAvanceGeneralTexto, StringFormat='Avance: {0}'}" FontWeight="Bold" Foreground="#2C3E50"/>
+                        </StackPanel>
+                    </Border>
+
+                    <DataGrid Grid.Row="2" ItemsSource="{Binding Productividad}" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" GridLinesVisibility="Horizontal">
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background" Value="#2C3E50"/>
@@ -92,9 +106,12 @@
                             <Style TargetType="DataGridCell"><Setter Property="Padding" Value="8,6"/></Style>
                         </DataGrid.Resources>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Mecanico" Binding="{Binding MecanicoNombre}" Width="*"/>
-                            <DataGridTextColumn Header="T. Asignadas" Binding="{Binding TareasAsignadas}" Width="100"/>
-                            <DataGridTextColumn Header="T. Completadas" Binding="{Binding TareasCompletadas}" Width="120"/>
+                            <DataGridTextColumn Header="Mecanico" Binding="{Binding MecanicoNombre}" Width="*" MinWidth="120"/>
+                            <DataGridTextColumn Header="T. Asignadas" Binding="{Binding TareasAsignadas}" Width="90"/>
+                            <DataGridTextColumn Header="Pendientes" Binding="{Binding Pendientes}" Width="80"/>
+                            <DataGridTextColumn Header="En Curso" Binding="{Binding EnCurso}" Width="70"/>
+                            <DataGridTextColumn Header="T. Completadas" Binding="{Binding TareasCompletadas}" Width="100"/>
+                            <DataGridTextColumn Header="% Avance" Binding="{Binding PorcentajeAvanceTexto}" Width="70"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

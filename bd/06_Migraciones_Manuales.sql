@@ -9,9 +9,9 @@ GO
                 AS
                 BEGIN
                     SELECT 
-                        CAST(f.Fecha AS DATE) AS Date,
-                        t.Nombre AS WorkshopName,
-                        SUM(f.Total) AS TotalRevenue
+                        CAST(f.Fecha AS DATE) AS Fecha,
+                        t.Nombre AS TallerNombre,
+                        SUM(f.Total) AS TotalIngresos
                     FROM Factura f
                     INNER JOIN RegistroServicio rs ON f.RegistroServicioId = rs.Id
                     INNER JOIN Taller t ON rs.TallerId = t.Id

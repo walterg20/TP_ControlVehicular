@@ -2,8 +2,10 @@
 -- REPORTES GERENCIALES (Administrador)
 -- =======================================================================
 
--- 1. Ingresos Totales por Fecha
-CREATE OR ALTER PROCEDURE sp_ReporteIngresos
+-- 1. Ingresos Totales por Fecha (versión administrativa; renombrada desde
+--    sp_ReporteIngresos a sp_ReporteIngresosAdmin para evitar la colisión con la
+--    versión de 3 parámetros consumida por ReporteRepository — ver bd/16)
+CREATE OR ALTER PROCEDURE sp_ReporteIngresosAdmin
     @FechaDesde DATE = NULL,
     @FechaHasta DATE = NULL
 AS
