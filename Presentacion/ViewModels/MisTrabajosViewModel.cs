@@ -8,6 +8,7 @@ using System.Windows.Input;
 using TP_ControlVehicular.Negocio.Context;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Negocio.Reportes.Documentos;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -266,7 +267,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        public bool PuedeImprimirHistorial => TareaSeleccionada != null;
+        /// <summary>Habilita los reportes del mecanico segun el permiso Reporte.Mecanico.Ver.</summary>
+        public bool PuedeVerReportesMecanico => TienePermiso("Reporte.Mecanico.Ver");
+
+        /// <summary>Historial clinico: requiere el permiso y una tarea seleccionada.</summary>
+        public bool PuedeImprimirHistorial => PuedeVerReportesMecanico && TareaSeleccionada != null;
 
         private ICommand? _imprimirHistorialCommand;
         public ICommand ImprimirHistorialCommand => _imprimirHistorialCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(async () => await GenerarHistorialPdfAsync());
@@ -289,11 +294,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         page.Size(QuestPDF.Helpers.PageSizes.A4);
                         page.Margin(1, QuestPDF.Infrastructure.Unit.Centimetre);
                         page.PageColor(QuestPDF.Helpers.Colors.White);
-                        page.Header().Text($"Historial Clínico - {vehiculoDesc}")
-                            .FontSize(20).SemiBold().FontColor(QuestPDF.Helpers.Colors.Blue.Darken2);
+                        page.Header().Element(c => c.ComposeEncabezadoTaller("Historial Clínico"));
+                        page.Footer().Element(c => c.ComposePieDePagina());
                         page.Content().PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(col =>
                         {
-                            col.Item().Table(table =>
+                            col.Item().Text($"Vehículo: {vehiculoDesc}").FontSize(12).SemiBold().FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
+                            col.Item().PaddingTop(8).Table(table =>
                             {
                                 table.ColumnsDefinition(columns =>
                                 {
@@ -344,11 +350,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         page.Size(QuestPDF.Helpers.PageSizes.A4.Landscape());
                         page.Margin(1, QuestPDF.Infrastructure.Unit.Centimetre);
                         page.PageColor(QuestPDF.Helpers.Colors.White);
-                        page.Header().Text($"Tareas del Día - Mecánico: {usuario.Nombre} - {DateTime.Today:dd/MM/yyyy}")
-                            .FontSize(20).SemiBold().FontColor(QuestPDF.Helpers.Colors.Blue.Darken2);
+                        page.Header().Element(c => c.ComposeEncabezadoTaller("Tareas del Día"));
+                        page.Footer().Element(c => c.ComposePieDePagina());
                         page.Content().PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(col =>
                         {
-                            col.Item().Table(table =>
+                            col.Item().Text($"Mecánico: {usuario.Nombre} - {DateTime.Today:dd/MM/yyyy}").FontSize(12).SemiBold().FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
+                            col.Item().PaddingTop(8).Table(table =>
                             {
                                 table.ColumnsDefinition(columns =>
                                 {

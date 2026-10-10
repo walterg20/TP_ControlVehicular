@@ -10,10 +10,10 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
     public static class ReporteExtensions
     {
         /// <summary>
-        /// Ruta del logo de la empresa (Presentacion/Assets/logo.png, copiado al output como Content).
+        /// Ruta del logo efectivo de la empresa. Punto unico de resolucion: delega en
+        /// <see cref="EmpresaBranding.RutaLogo"/> (override del taller o logo empaquetado).
         /// </summary>
-        public static string RutaLogo =>
-            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Presentacion", "Assets", "logo.png");
+        public static string RutaLogo => EmpresaBranding.RutaLogo;
 
         /// <summary>
         /// Dibuja el logo de la empresa. Regla del proyecto: todo PDF debe mostrarlo en el encabezado.
