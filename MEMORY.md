@@ -64,7 +64,8 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
   - Reportes: usar siempre `page.Header().Element(c => c.ComposeEncabezadoTaller("Título"))` y `page.Footer().Element(c => c.ComposePieDePagina())` de `Negocio/Reportes/Documentos/ReporteExtensions.cs`.
   - Documentos con encabezado propio (comprobantes): incluir el logo con `.Element(c => c.ComposeLogo())`.
   - Prohibido crear `ComposeHeader`/`ComposeFooter` privados que no muestren el logo, o usar `page.Header().Text(...)`. Los subtítulos y filtros van al inicio de `page.Content()`.
-  - El logo es `Presentacion/Assets/logo.png` (Content, copiado al output); su ruta se obtiene con `ReporteExtensions.RutaLogo`. No duplicar la imagen ni la ruta.
+  - El logo se resuelve en un único punto: `EmpresaBranding` (`Negocio/Reportes/Documentos/EmpresaBranding.cs`). Busca primero el override por usuario `%LocalAppData%\TP_ControlVehicular\Empresa\logo.png`; si no existe, usa el asset embebido `Presentacion/Assets/logo.png` (Content, copiado al output). `ReporteExtensions.RutaLogo` delega en él; no leer rutas de logo por fuera ni duplicar la imagen.
+  - `EmpresaBranding.AsegurarCarpeta()` crea la carpeta override de forma perezosa en el primer uso (por usuario; no la crea el instalador). Un futuro feature "carga de logo/dirección/teléfono del taller" poblará esa carpeta (`empresa.json`).
 - **Visibilidad de reportes por rol (RBAC)**: cada reporte tiene su propio permiso `Reporte.<Nombre>.Ver`. El permiso genérico `Reporte.Ver` está obsoleto y no debe usarse.
   | Reporte | Permiso | Admin | Recepcionista | Mecánico |
   |---|---|:-:|:-:|:-:|
