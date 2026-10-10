@@ -30,6 +30,12 @@
                 
                 <TextBlock Text="Hasta:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
                 <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,15,0"/>
+
+                <Button Content="Consultar" Command="{Binding CargarReporteCommand}"
+                        Padding="16,6" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                </Button>
+                <TextBlock Text="{Binding MensajeValidacion}" Foreground="#E74C3C" FontWeight="SemiBold" VerticalAlignment="Center" Margin="15,0,0,0"/>
             </StackPanel>
         </Border>
 
@@ -108,9 +114,32 @@
                                 <Style TargetType="DataGridCell"><Setter Property="Padding" Value="8,6"/></Style>
                             </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Marca" Binding="{Binding Marca}" Width="200"/>
-                                <DataGridTextColumn Header="Modelo" Binding="{Binding Modelo}" Width="200"/>
+                                <DataGridTextColumn Header="Veh&#237;culo (Marca - Modelo)" Binding="{Binding MarcaModelo}" Width="300"/>
                                 <DataGridTextColumn Header="Cant. Reparaciones" Binding="{Binding CantidadReparaciones}" Width="150"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+
+                <!-- Tab 4: Servicios por rango de fechas -->
+                <TabItem Header="Servicios por Rango" FontSize="14" FontWeight="SemiBold">
+                    <Grid Margin="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Content="Imprimir PDF (Servicios por Rango)" Command="{Binding ImprimirPdfServiciosCommand}" 
+                                HorizontalAlignment="Left" Margin="0,0,0,15" Padding="14,8" Background="#E74C3C" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                            <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="8"/></Style></Button.Resources>
+                        </Button>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding ServiciosPorRango}" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" GridLinesVisibility="Horizontal">
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#2C3E50"/><Setter Property="Foreground" Value="White"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Padding" Value="10,8"/></Style>
+                                <Style TargetType="DataGridCell"><Setter Property="Padding" Value="8,6"/></Style>
+                            </DataGrid.Resources>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Servicio" Binding="{Binding Servicio}" Width="300"/>
+                                <DataGridTextColumn Header="Cantidad" Binding="{Binding Cantidad}" Width="150"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
