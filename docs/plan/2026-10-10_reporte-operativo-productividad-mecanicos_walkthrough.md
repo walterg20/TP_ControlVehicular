@@ -61,7 +61,8 @@ Spec: `openspec/changes/reporte-operativo-productividad-mecanicos/`.
 - `dotnet test "TP_ControlVehicular.Tests"` → **6/6**.
 - Aplicado el SP:
   `sqlcmd -S "WALTERG20\SQLEXPRESS2019" -d ControlVehicular -E -C -i "bd\13_SP_ReporteProductividadMecanicos.sql"`.
-- Smoke test del SP vs agregación cruda (coinciden):
+- Smoke test del SP vs agregación cruda (corrida **inicial**, antes de los fixes A/B y de la
+  limpieza `bd/15`; ver §6 para las cifras definitivas):
   ```
   MecanicoId | MecanicoNombre   | TareasAsignadas | Pendientes | EnCurso | TareasCompletadas
   2          | Pedro Canoero    | 13              | 0          | 1       | 12
@@ -75,4 +76,56 @@ Spec: `openspec/changes/reporte-operativo-productividad-mecanicos/`.
 - Todos los mecánicos con tareas aparecen (antes solo uno).
 - "Tareas Completadas" refleja `DetalleServicio.Estado = 'Finalizada'` (antes siempre 0).
 - Total = 20 tareas, Completadas = 19, En curso = 1 → `% Avance` = 95 % (consistente fila a fila).
+  > Cifras **iniciales**; tras los fixes A/B y la limpieza `bd/15` el resultado definitivo es
+  > Total = 4 / Completadas = 4 / En curso = 0 (100 %). Ver §6.
 - El Reporte de Órdenes ya no inventa filas cuando no hay datos.
+
+## 6. Fixes posteriores (reporte operativo + higiene de datos)
+
+Durante la validación con datos reales se detectaron y corrigieron cuatro problemas.
+
+### A. Filas espurias en el reporte (usuarios no mecánicos y órdenes canceladas)
+- `bd/13_SP_ReporteProductividadMecanicos.sql` ahora filtra:
+  ```sql
+  WHERE u.RolId = 3                 -- solo Mecánicos
+    AND rs.Estado <> 'Cancelada'    -- excluye órdenes canceladas
+  ```
+  (`Juan Cruz`, recepcionista, aparecía indebidamente; el detalle de la orden 15, cancelada,
+  se contaba igual). Reaplicado con `sqlcmd`.
+
+### B. Datos mal cargados (`DetalleServicio.UsuarioId`)
+- `bd/14_Fix_ReporteOperativo.sql`: `UPDATE` de los detalles 7, 9 y 11 → Pedro (Id 2) y
+  detalle 19 → `Finalizada`. **No** se tocó `RegistroServicio`. Aplicado y verificado.
+
+### 1. Bug de cancelación de órdenes
+- `Entidad/RegistroServicio.cs`: nueva constante `EstadoCancelada = "Cancelada"`.
+- `Presentacion/ViewModels/OrdenServicioViewModel.cs`: usa la constante (antes el literal
+  `"Cancelado"`, que no coincidía con el estado persistido y dejaba la orden sin cancelar).
+
+### 2. Colisión del SP `sp_ReporteIngresos`
+- `bd/16_Fix_Colision_sp_ReporteIngresos.sql`: renombra la variante admin a
+  `sp_ReporteIngresosAdmin` (2 params `@FechaDesde, @FechaHasta`; columnas
+  `Fecha`/`CantidadFacturas`/`IngresosTotales`) y restaura la variante de 3 params
+  `sp_ReporteIngresos`, con alias alineados a cada DTO.
+- `bd/06`, `bd/07` y `Datos/Repositories/ReporteGerencialRepository.cs`
+  (`ObtenerIngresosPorFechaAsync` → `sp_ReporteIngresosAdmin`) actualizados.
+
+### 3. Artefactos del test E2E en la BD
+- `bd/15_Limpieza_Artefactos_TestE2E.sql`: purga idempotente y FK-safe de patentes `TDD%`
+  y clientes `EndToEnd` (orden `Pago -> Factura -> DetalleServicio -> RegistroServicio ->
+  PropietarioVehiculo -> Vehiculo -> Cliente`); deshabilita y rehabilita el trigger
+  `TR_DetalleServicio_BloquearModificacionFinalizada`. Aplicado.
+- `EndToEndTallerTests` reescrito (proyecto **hermano**, fuera del repo) para limpiar sus
+  artefactos en `Dispose` y usar `IBillingService`; compila y pasa.
+
+### Verificación final (post-limpieza)
+```
+EXEC sp_ReporteProductividadMecanicos
+
+MecanicoId | MecanicoNombre   | TareasAsignadas | Pendientes | EnCurso | TareasCompletadas
+2          | Pedro Canoero    | 3               | 0          | 0       | 3
+6          | Sergio Mecanico  | 1               | 0          | 0       | 1
+```
+- Total = 4 tareas, Completadas = 4, En curso = 0 → `% Avance` = 100 %.
+- El detalle de la orden 15 (`Cancelada`) queda excluido correctamente.
+- `dotnet build "TP_ControlVehicular.slnx"` → compilación correcta (0 errores).

@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Mechanic Productivity by Task
-The system SHALL compute mechanic productivity for a date range at the **task** level, grouping each `DetalleServicio` by its assigned mechanic, and SHALL classify each task by the task's own state.
+The system SHALL compute mechanic productivity for a date range at the **task** level, grouping each `DetalleServicio` by its assigned mechanic, and SHALL classify each task by the task's own state. Only users with the Mechanic role (`RolId = 3`) SHALL be listed, and tasks belonging to cancelled orders (`RegistroServicio.Estado = 'Cancelada'`) SHALL be excluded.
 
 #### Scenario: Every mechanic with tasks appears once
 - **WHEN** the Reporte Operativo is generated for a range in which two mechanics each have at least one task
@@ -25,6 +25,14 @@ The system SHALL compute mechanic productivity for a date range at the **task** 
 #### Scenario: Only mechanics with tasks in range
 - **WHEN** a mechanic has no tasks in the selected date range
 - **THEN** that mechanic is not listed
+
+#### Scenario: Only users with the Mechanic role
+- **WHEN** a user without the Mechanic role has tasks in the range
+- **THEN** that user is not listed in the productivity table
+
+#### Scenario: Cancelled orders are excluded
+- **WHEN** a task belongs to an order whose state is `Cancelada`
+- **THEN** that task is not counted for any mechanic
 
 #### Scenario: Date range on the order date
 - **WHEN** a date range is selected

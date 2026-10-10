@@ -11,6 +11,8 @@ The "Reporte Operativo" productivity table groups by **order**, and each order c
 - **Dedicated productivity source**: a new stored procedure + repository method returns the per-mechanic breakdown directly from the database (Dapper), independent from the order report.
 - **Remove silent demo data**: `ObtenerReporteOrdenesHandler` no longer falls back to `GetReportesDemostrativos()` when there are no rows or an error occurs; it returns only real data (empty when there is none).
 - **PDF**: the Reporte Operativo PDF shows the new breakdown columns and the totals row.
+- **Only Mechanics listed**: the productivity procedure filters by role (`u.RolId = 3`) and excludes tasks of cancelled orders (`rs.Estado <> 'Cancelada'`).
+- **Collateral fixes found during validation**: a state constant `EstadoCancelada` (order cancellation previously wrote an unmatching literal), a stored-procedure name collision between the general and admin income reports, and cleanup of leftover E2E test artifacts in the database.
 
 ## Capabilities
 - **Modified Capabilities**: `reportes` — Reporte Operativo productivity is task-level with a breakdown and totals; the order report no longer fabricates demonstration rows.
@@ -22,4 +24,7 @@ The "Reporte Operativo" productivity table groups by **order**, and each order c
 - `Negocio/Services/ObtenerReporteOrdenesHandler.cs` (remove demo fallback).
 - `Presentacion/ViewModels/ReporteOperativoViewModel.cs` (rewire source, move DTO, totals).
 - `Presentacion/Pantalla/Reporte/CtlReporteOperativo.xaml` (new columns + summary card).
+- `bd/14_Fix_ReporteOperativo.sql`, `bd/15_Limpieza_Artefactos_TestE2E.sql`, `bd/16_Fix_Colision_sp_ReporteIngresos.sql` (new idempotent scripts).
+- `Entidad/RegistroServicio.cs`, `Presentacion/ViewModels/OrdenServicioViewModel.cs` (cancellation state constant).
+- `Datos/Repositories/ReporteGerencialRepository.cs`, `bd/06`, `bd/07` (`sp_ReporteIngresosAdmin` rename).
 - `docs/plan/2026-10-10_reporte-operativo-productividad-mecanicos.md` (execution plan).

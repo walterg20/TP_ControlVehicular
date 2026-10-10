@@ -26,3 +26,10 @@
 ## 6. Documentation
 - [x] 6.1 Write `docs/plan/2026-10-10_reporte-operativo-productividad-mecanicos.md` (+ walkthrough) and update `MEMORY.md`.
 - [x] 6.2 `openspec validate --change reporte-operativo-productividad-mecanicos`.
+
+## 7. Fixes applied during validation
+- [x] 7.1 Refine `sp_ReporteProductividadMecanicos`: list only Mechanics (`u.RolId = 3`) and exclude tasks of cancelled orders (`rs.Estado <> 'Cancelada'`).
+- [x] 7.2 Add `bd/14_Fix_ReporteOperativo.sql`: correct `DetalleServicio.UsuarioId` (details 7, 9, 11 → mechanic 2) and set detail 19 → `Finalizada`.
+- [x] 7.3 Add constant `EstadoCancelada` in `Entidad/RegistroServicio.cs` and use it in `Presentacion/ViewModels/OrdenServicioViewModel.cs` (the old literal `"Cancelado"` never matched the persisted state).
+- [x] 7.4 Add `bd/16_Fix_Colision_sp_ReporteIngresos.sql`: rename the admin variant to `sp_ReporteIngresosAdmin` and restore the 3-parameter `sp_ReporteIngresos`; update `bd/06`, `bd/07` and `Datos/Repositories/ReporteGerencialRepository.cs`.
+- [x] 7.5 Add `bd/15_Limpieza_Artefactos_TestE2E.sql`: idempotent, FK-safe purge of E2E artifacts (`TDD%` plates / `EndToEnd` clients); fix the `EndToEndTallerTests` E2E test (sibling project, not tracked) to clean up after itself.
