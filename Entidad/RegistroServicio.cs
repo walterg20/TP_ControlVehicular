@@ -6,6 +6,7 @@ namespace TP_ControlVehicular.Entidad
         public const string EstadoEnProceso = "En Proceso";
         public const string EstadoCompletada = "Completada";
         public const string EstadoPagada = "Pagada";
+        public const string EstadoCancelada = "Cancelada";
 
         public int Id { get; set; }
         public int VehiculoId { get; set; }

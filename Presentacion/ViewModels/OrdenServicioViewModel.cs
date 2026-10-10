@@ -309,7 +309,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 UsuarioId = OrdenSeleccionada.UsuarioId,
                 Fecha = OrdenSeleccionada.Fecha,
                 KmIngreso = OrdenSeleccionada.KmIngreso,
-                Estado = "Cancelado",
+                Estado = Entidad.RegistroServicio.EstadoCancelada,
                 Detalles = OrdenSeleccionada.Detalles?.Select(d => new Entidad.DetalleServicio
                 {
                     Id = d.Id,
