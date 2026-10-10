@@ -1,14 +1,35 @@
-# Especificación: Módulo de Reportes
+# Reportes Specification
 
-## 1. Objetivo
-Generar información estadística y reportes imprimibles/exportables para el taller, separando la visión operativa de la visión gerencial.
+## Purpose
 
-## 2. Requerimientos
-* **Reporte de Órdenes:** Un PDF imprimible para entregar al cliente cuando deja el vehículo o cuando se le entrega la factura (Comprobante de Recepción / Comprobante de Pago).
-* **Reporte Operativo:** Cantidad de órdenes atendidas por cada mecánico en un rango de fechas. Vehículos más frecuentes.
-* **Reporte Gerencial:** Ingresos generados ($) en un rango de fechas, separados por tipo de servicio.
-* (Opcional) Uso de librerías como iText7 o QuestPDF para la generación de PDFs.
+Generate statistical information and printable/exportable reports for the workshop, separating the operational view from the managerial view.
 
-## 3. Criterios de Aceptación
-- [x] Se puede exportar el reporte operativo a un formato visible (PDF o Excel).
-- [x] Se puede imprimir el comprobante de recepción de una Orden de Servicio.
+## Requirements
+
+### Requirement: Order Report PDF
+The system SHALL generate a printable PDF report for a work order, to be delivered to the client when the vehicle is received or when the invoice is handed over (Reception Voucher / Payment Voucher).
+
+#### Scenario: Print the reception voucher
+- **WHEN** the reception voucher of a work order is printed
+- **THEN** a PDF is produced with the order data
+
+### Requirement: Operational Report
+The system SHALL produce an operational report with the number of orders attended by each mechanic within a date range, and the most frequent vehicles.
+
+#### Scenario: Export the operational report
+- **WHEN** the operational report is exported
+- **THEN** it is available in a visible/printable format (PDF or Excel)
+
+### Requirement: Managerial Report
+The system SHALL produce a managerial report with the income generated ($) within a date range, split by service type.
+
+#### Scenario: Income by date range
+- **WHEN** a date range is selected
+- **THEN** the report shows the income generated in that range split by service type
+
+### Requirement: PDF Generation Library
+The system SHALL generate the report PDFs using a PDF generation library such as iText7 or QuestPDF.
+
+#### Scenario: PDFs produced by the library
+- **WHEN** a report is exported to PDF
+- **THEN** it is produced using the configured PDF generation library
