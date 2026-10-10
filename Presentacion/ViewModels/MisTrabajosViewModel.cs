@@ -341,7 +341,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         page.Size(QuestPDF.Helpers.PageSizes.A4);
                         page.Margin(1, QuestPDF.Infrastructure.Unit.Centimetre);
                         page.PageColor(QuestPDF.Helpers.Colors.White);
-                        page.Header().Element(c => c.ComposeEncabezadoTaller("Historial Clínico"));
+                        page.Header().Element(c => c.ComposeEncabezadoTaller("Historial"));
                         page.Footer().Element(c => c.ComposePieDePagina());
                         page.Content().PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(col =>
                         {
