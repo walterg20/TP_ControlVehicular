@@ -28,7 +28,7 @@ namespace TP_ControlVehicular.Datos.Repositories
             parameters.Add("@FechaHasta", fechaHasta, DbType.Date);
 
             return await connection.QueryAsync<ReporteIngresoDto>(
-                "sp_ReporteIngresos",
+                "sp_ReporteIngresosAdmin",
                 parameters,
                 commandType: CommandType.StoredProcedure);
         }
