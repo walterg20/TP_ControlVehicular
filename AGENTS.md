@@ -68,6 +68,9 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
   | Reporte Gerencial | `Reporte.Gerencial.Ver` | ✅ | ❌ | ❌ |
   | Historial clínico / Tareas del día (en Mis Trabajos) | `Reporte.Mecanico.Ver` | ✅ | ❌ | ✅ |
   - Un reporte nuevo requiere: permiso nuevo en un script SQL idempotente en `bd/`, chequeo en `MainWindow.AplicarRestriccionesPorRol` (o en el VM si el botón vive dentro de una pantalla) y actualizar esta tabla.
+- **Fuente de datos de reportes — no mezclar granularidades**: cada reporte define su unidad de agregación y usa una fuente dedicada. El **Reporte de Órdenes** es por **orden** (`RegistroServicio`, vía `ObtenerReporteOrdenesHandler` / `GetReporteCompletoAsync`); el **Reporte Operativo** es por **tarea** (`DetalleServicio` agrupada por `UsuarioId`, vía `sp_ReporteProductividadMecanicos` / `IReporteGerencialRepository.ObtenerProductividadMecanicosAsync`). Estados: `RegistroServicio.Estado` ∈ {`Abierta`, `En Proceso`, `Completada`, `Pagada`}; `DetalleServicio.Estado` ∈ {`Pendiente`, `En Curso`, `Finalizada`}. **Una orden nunca vale `Finalizada`** — la completitud de tareas se mide en `DetalleServicio`. No contar órdenes donde corresponden tareas.
+- **Prohibido el fallback a datos demostrativos**: los handlers/repositorios de reportes NO deben inventar filas de demostración cuando no hay datos o hay error. `ObtenerReporteOrdenesHandler` fue limpiado (devuelve vacío). Si un reporte no tiene datos, se muestra vacío.
+  - Los SP de reportes aliasan cada columna al **nombre exacto de la propiedad del DTO** (ej. `MecanicoNombre`, `TareasCompletadas`, `EnCurso`) para el mapeo automático por nombre de Dapper.
 
 ## No hagas
 - Todos los scripts temporales (.py, .ps1, etc.) utilizados durante el desarrollo DEBEN colocarse o moverse a la carpeta docs/script para mantener la raíz del proyecto limpia.
