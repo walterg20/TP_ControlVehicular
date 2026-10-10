@@ -14,6 +14,7 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public DateTime FechaNacimiento { get; set; }
         public string Contrasena { get; set; } = string.Empty;
         public bool Estado { get; set; }
+        public System.Collections.Generic.List<string> Permisos { get; set; } = new();
         public string NombreCompletoYDni => $"{Nombre} {Apellido} [{Dni}]";
     }
 }

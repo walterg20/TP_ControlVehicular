@@ -50,7 +50,8 @@ namespace TP_ControlVehicular.Negocio.Mappers
             CreateMap<Usuario, UsuarioDto>()
                 .ForMember(dest => dest.IdUsuario, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.IdRol, opt => opt.MapFrom(src => src.RolId))
-                .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.Rol != null ? src.Rol.Nombre : string.Empty));
+                .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.Rol != null ? src.Rol.Nombre : string.Empty))
+                .ForMember(dest => dest.Permisos, opt => opt.MapFrom(src => src.Rol != null && src.Rol.Permisos != null ? src.Rol.Permisos.Select(p => p.Nombre).ToList() : new System.Collections.Generic.List<string>()));
 
             // Servicio -> ServicioDto
             CreateMap<Servicio, ServicioDto>()
