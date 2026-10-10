@@ -1,6 +1,8 @@
 -- =======================================================================
 -- REPORTE OPERATIVO (Recepcionista) - Productividad por Mecanico
 -- Agrega a nivel de TAREA (DetalleServicio), no de orden.
+-- Solo cuenta tareas cuyo UsuarioId es un Mecanico (RolId = 3).
+-- Excluye ordenes canceladas (no debe contarse trabajo de una orden cancelada).
 -- Script idempotente: puede ejecutarse varias veces.
 -- =======================================================================
 USE [ControlVehicular];
@@ -23,7 +25,9 @@ BEGIN
     FROM DetalleServicio ds
     INNER JOIN RegistroServicio rs ON ds.RegistroServicioId = rs.Id
     INNER JOIN Usuarios u ON ds.UsuarioId = u.Id
-    WHERE (@FechaDesde IS NULL OR CAST(rs.Fecha AS DATE) >= @FechaDesde)
+    WHERE u.RolId = 3
+      AND rs.Estado <> 'Cancelada'
+      AND (@FechaDesde IS NULL OR CAST(rs.Fecha AS DATE) >= @FechaDesde)
       AND (@FechaHasta IS NULL OR CAST(rs.Fecha AS DATE) <= @FechaHasta)
     GROUP BY u.Id, u.Nombre, u.Apellido
     ORDER BY TareasCompletadas DESC, TareasAsignadas DESC, u.Apellido ASC;
