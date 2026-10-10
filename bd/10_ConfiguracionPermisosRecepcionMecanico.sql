@@ -7,11 +7,9 @@ BEGIN
     VALUES ('MisTrabajos.Ver');
 END
 
--- Asignar al Admin (Rol 1) para completitud
-INSERT INTO RolPermisos (IdRol, IdPermiso)
-SELECT 1, IdPermiso FROM Permisos 
-WHERE Nombre = 'MisTrabajos.Ver' 
-AND NOT EXISTS (SELECT 1 FROM RolPermisos WHERE IdRol = 1 AND IdPermiso = Permisos.IdPermiso);
+-- NOTA: MisTrabajos.Ver se asigna SOLO al Mecanico (IdRol = 3), abajo.
+-- El Admin ya NO recibe este permiso (pantalla exclusiva del mecanico).
+-- Ver bd/17_QuitarMisTrabajosAdmin.sql (limpieza idempotente de bases ya aplicadas).
 
 -- 2. Asignar Permisos a Recepcionista (IdRol = 2)
 -- Borrar anteriores por si acaso
