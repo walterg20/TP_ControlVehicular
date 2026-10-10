@@ -132,7 +132,7 @@ namespace TP_ControlVehicular
             
             btnServicio.Visibility = permisos.Contains("Servicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnOrdenesTrabajo.Visibility = permisos.Contains("OrdenServicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
-            btnMisTrabajos.Visibility = (permisos.Contains("OrdenServicio.Ver") || UsuarioSesionActual.IdRol == 3) ? Visibility.Visible : Visibility.Collapsed; // Especial para mecánicos u otros que ven órdenes
+            btnMisTrabajos.Visibility = permisos.Contains("MisTrabajos.Ver") ? Visibility.Visible : Visibility.Collapsed; 
             
             bool puedeVerReportes = permisos.Contains("Reporte.Ver");
             secReportes.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;

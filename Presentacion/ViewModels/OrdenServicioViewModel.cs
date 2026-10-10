@@ -184,26 +184,18 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _estado = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
+        
         private bool EsMecanico
         {
-            get
-            {
-                var usuario = (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual;
-                if (usuario == null) return false;
-                return usuario.IdRol == 3 || (usuario.RolNombre != null && usuario.RolNombre.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0);
-            }
+            get { return !TienePermiso("OrdenServicio.Crear"); }
         }
         public bool EsRecepcionista
         {
-            get
-            {
-                var usuario = (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual;
-                if (usuario == null) return true;
-                return !EsMecanico;
-            }
+            get { return TienePermiso("OrdenServicio.Crear"); }
         }
+
         protected override string Modulo => "OrdenServicio";
-        public bool PuedeEliminar => !EsMecanico && OrdenSeleccionada != null;
+        public new bool PuedeEliminar => TienePermiso("OrdenServicio.Eliminar") && OrdenSeleccionada != null;
         public bool PuedeImprimirRecepcion => !EsMecanico && OrdenSeleccionada != null;
 
         private RegistroServicioDto? _ordenSeleccionada;
