@@ -1,0 +1,21 @@
+# Tasks: Mis Trabajos — Desktop Master–Detail
+
+- [x] 1. Refactor `Presentacion/ViewModels/MisTrabajosViewModel.cs`:
+  - Add `MiOrdenItemViewModel` (master row) with progress members and `RefrescarProgreso()`.
+  - Rename `MiTrabajoItemViewModel` -> `MiTareaItemViewModel` (detail row) with `OrdenPadre` back-reference.
+  - Replace `TodasMisTareas`/`TareasView`/`FiltroVehiculos` with `Ordenes`/`OrdenesView` + `TareasDeOrden`.
+  - Implement `OrdenesFilter` (Mostrar = Pendientes/Finalizados/Todos + text search).
+  - Rewrite `LoadAsync` to group own tasks by order, sort by order id descending, select first visible order.
+  - Rewrite `GuardarCambiosAsync` to persist every modified task across orders and reload preserving selection.
+  - Base `PuedeImprimirHistorial` on `OrdenSeleccionada`.
+- [x] 2. Rewrite `Presentacion/Pantalla/MisTrabajos/CtlMisTrabajos.xaml`:
+  - Master card with `dgOrdenes` (Nº Orden, Fecha, Vehículo, Cliente, Km, Progreso).
+  - `GridSplitter` between master and detail.
+  - Detail card with header + `Ver Orden Completa` and `dgTareasDeOrden` (Tarea, Observaciones, Revisado/OK).
+  - Empty-state placeholders for master and detail.
+- [x] 3. Update `Presentacion/Pantalla/MisTrabajos/CtlMisTrabajos.xaml.cs`:
+  - `BtnVerOrden_Click` opens the selected order.
+  - `DgOrdenes_MouseDoubleClick` opens the order only when a row was double-clicked.
+- [x] 4. Validate: `dotnet build "TP_ControlVehicular.slnx"` and manual smoke test (select order -> detail loads, edit, save, reload).
+  - [x] `dotnet build "TP_ControlVehicular.slnx"` — compila sin errores (0 errores).
+  - [x] Manual smoke test (select order -> detail loads, edit, save, reload). Verificado por el usuario.
