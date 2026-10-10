@@ -35,6 +35,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - **ViewModels**: heredan `BaseViewModel` (`INotifyPropertyChanged`, `SetProperty<T>`), `RelayCommand` con `async () =>`, `ObservableCollection<Dto>` en ctor, campos `private readonly` inyectados (repo + opcional `IMapper`).
   - **Excepción `VehiculoViewModel`**: clase plana, no hereda `BaseViewModel`, construye `Entidad.Vehiculo` directo.
   - `ClienteViewModel` usa `OnPropertyChanged()` en setters de propiedades.
+  - **Pantalla *Mis Trabajos* (mecánico) — maestro-detalle**: `MisTrabajosViewModel` expone `Ordenes`/`OrdenesView` (filas `MiOrdenItemViewModel`, una por orden con tareas propias; progreso `hechas/total`) y `TareasDeOrden` (filas `MiTareaItemViewModel`, las tareas del mecánico de la orden seleccionada; `Observaciones` y `Realizado` editables inline). Orden por nº de orden descendente; filtro `Mostrar` = Pendientes/Finalizados/Todos. Doble clic en una orden abre `CtlOrdenServicioForm` (origen `"MisTrabajos"`).
 - **Diseño UI en UserControls (`Ctl*.xaml`)**:
   - `Grid` principal con `Margin="10"`.
   - Estructura de 4 filas (`Row 0`: Encabezado/Título, `Row 1`: Barra de búsqueda + Botón `➕ Nuevo [Entidad]`, `Row 2`: Tarjeta con DataGrid, `Row 3`: Tarjeta inferior/Pie del listado con botones `✏️ Editar` y `🗑️ Eliminar` / `Cambiar Estado`).
