@@ -3,8 +3,8 @@
 -- 1. Insertar nuevo permiso para Mis Trabajos
 IF NOT EXISTS (SELECT 1 FROM Permisos WHERE Nombre = 'MisTrabajos.Ver')
 BEGIN
-    INSERT INTO Permisos (Nombre, Descripcion) 
-    VALUES ('MisTrabajos.Ver', 'Ver panel exclusivo de Mis Trabajos (Mecanicos)');
+    INSERT INTO Permisos (Nombre) 
+    VALUES ('MisTrabajos.Ver');
 END
 
 -- Asignar al Admin (Rol 1) para completitud
