@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Context;
@@ -134,11 +134,17 @@ namespace TP_ControlVehicular
             btnOrdenesTrabajo.Visibility = permisos.Contains("OrdenServicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnMisTrabajos.Visibility = permisos.Contains("MisTrabajos.Ver") ? Visibility.Visible : Visibility.Collapsed; 
             
-            bool puedeVerReportes = permisos.Contains("Reporte.Ver");
-            secReportes.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;
-            btnReporteOrdenes.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;
-            btnReporteGerencial.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;
-            btnReporteOperativo.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;
+            // Reportes: un permiso por reporte (ver openspec/specs/reportes-rbac)
+            bool verReporteOrdenes = permisos.Contains("Reporte.Ordenes.Ver");
+            bool verReporteOperativo = permisos.Contains("Reporte.Operativo.Ver");
+            bool verReporteGerencial = permisos.Contains("Reporte.Gerencial.Ver");
+            btnReporteOrdenes.Visibility = verReporteOrdenes ? Visibility.Visible : Visibility.Collapsed;
+            btnReporteOperativo.Visibility = verReporteOperativo ? Visibility.Visible : Visibility.Collapsed;
+            btnReporteGerencial.Visibility = verReporteGerencial ? Visibility.Visible : Visibility.Collapsed;
+
+            bool verAlgunReporte = verReporteOrdenes || verReporteOperativo || verReporteGerencial;
+            secReportes.Visibility = verAlgunReporte ? Visibility.Visible : Visibility.Collapsed;
+            sepReportes.Visibility = verAlgunReporte ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void MenuItem_Click_Dashboard(object sender, RoutedEventArgs e)
