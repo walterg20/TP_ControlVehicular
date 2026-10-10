@@ -7,6 +7,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="768" d:DesignWidth="1024" Background="#F4F6F7">
     
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

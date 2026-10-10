@@ -112,56 +112,33 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlDashboard());
         }
 
+        
         private void AplicarRestriccionesPorRol()
         {
-            var currentUser = UserSession.CurrentUser;
-            if (currentUser == null) return;
+            if (UsuarioSesionActual == null || UsuarioSesionActual.Permisos == null) return;
+            var permisos = UsuarioSesionActual.Permisos;
 
-            // Resetear visibilidad (modo Administrador)
-            btnDashboard.Visibility = Visibility.Visible;
-            secOperaciones.Visibility = Visibility.Visible;
-            btnOrdenesTrabajo.Visibility = Visibility.Visible;
-            secAdministracion.Visibility = Visibility.Visible;
-            btnServicio.Visibility = Visibility.Visible;
-            btnCliente.Visibility = Visibility.Visible;
-            btnVehiculo.Visibility = Visibility.Visible;
-            btnModelo.Visibility = Visibility.Collapsed;
-            btnMarca.Visibility = Visibility.Collapsed;
-            btnTaller.Visibility = Visibility.Visible;
-            btnUsuario.Visibility = Visibility.Visible;
-            btnRol.Visibility = Visibility.Visible;
-            secReportes.Visibility = Visibility.Visible;
-            btnReporteOrdenes.Visibility = Visibility.Visible;
-            btnReporteGerencial.Visibility = Visibility.Visible;
-            btnReporteOperativo.Visibility = Visibility.Visible;
-            btnMisTrabajos.Visibility = Visibility.Visible;
-
-            int rolId = currentUser.IdRol;
-
-            if (rolId == (int)RolesSistema.Recepcionista)
-            {
-                // Recepcionista: No administra usuarios, roles ni talleres
-                btnUsuario.Visibility = Visibility.Collapsed;
-                btnRol.Visibility = Visibility.Collapsed;
-                btnTaller.Visibility = Visibility.Collapsed;
-                btnReporteGerencial.Visibility = Visibility.Collapsed;
-                btnReporteOperativo.Visibility = Visibility.Visible;
-            }
-            else if (rolId == (int)RolesSistema.Mecanico)
-            {
-                // Mecánico: Oculta sección administración completa
-                secAdministracion.Visibility = Visibility.Collapsed;
-                btnUsuario.Visibility = Visibility.Collapsed;
-                btnRol.Visibility = Visibility.Collapsed;
-                btnTaller.Visibility = Visibility.Collapsed;
-                btnCliente.Visibility = Visibility.Collapsed;
-                btnVehiculo.Visibility = Visibility.Collapsed;
-                btnModelo.Visibility = Visibility.Collapsed;
-                btnMarca.Visibility = Visibility.Collapsed;
-                btnServicio.Visibility = Visibility.Collapsed;
-                btnReporteGerencial.Visibility = Visibility.Collapsed;
-                btnMisTrabajos.Visibility = Visibility.Visible;
-            }
+            // Mostrar u ocultar menús según permisos de "Ver"
+            secAdministracion.Visibility = (permisos.Contains("Usuario.Ver") || permisos.Contains("Taller.Ver") || permisos.Contains("Vehiculo.Ver")) ? Visibility.Visible : Visibility.Collapsed;
+            
+            btnUsuario.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnRol.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed; 
+            btnTaller.Visibility = permisos.Contains("Taller.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            
+            btnCliente.Visibility = permisos.Contains("Cliente.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnVehiculo.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnModelo.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnMarca.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            
+            btnServicio.Visibility = permisos.Contains("Servicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnOrdenesTrabajo.Visibility = permisos.Contains("OrdenServicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnMisTrabajos.Visibility = (permisos.Contains("OrdenServicio.Ver") || UsuarioSesionActual.IdRol == 3) ? Visibility.Visible : Visibility.Collapsed; // Especial para mecánicos u otros que ven órdenes
+            
+            bool puedeVerReportes = permisos.Contains("Reporte.Ver");
+            secReportes.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;
+            btnReporteOrdenes.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;
+            btnReporteGerencial.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;
+            btnReporteOperativo.Visibility = puedeVerReportes ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void MenuItem_Click_Dashboard(object sender, RoutedEventArgs e)
