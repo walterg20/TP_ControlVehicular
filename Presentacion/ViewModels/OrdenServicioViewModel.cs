@@ -202,7 +202,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 return !EsMecanico;
             }
         }
-        public bool PuedeCrear => !EsMecanico;
+        protected override string Modulo => "OrdenServicio";
         public bool PuedeEliminar => !EsMecanico && OrdenSeleccionada != null;
         public bool PuedeImprimirRecepcion => !EsMecanico && OrdenSeleccionada != null;
 

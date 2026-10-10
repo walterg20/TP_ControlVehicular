@@ -8,6 +8,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 {
     public class ModeloViewModel : BaseViewModel
     {
+        protected override string Modulo => "Vehiculo";
+
         private readonly ListarModelosHandler _listarModelosHandler;
         private readonly RegistrarModeloHandler _registrarModeloHandler;
         private readonly ModificarModeloHandler _modificarModeloHandler;
