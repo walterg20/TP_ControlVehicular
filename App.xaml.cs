@@ -8,6 +8,7 @@ using TP_ControlVehicular.Datos.Repositories;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Mappers;
 using TP_ControlVehicular.Negocio.Reportes;
+using TP_ControlVehicular.Negocio.Handlers;
 using TP_ControlVehicular.Negocio.Services;
 using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.Marca;
@@ -22,6 +23,7 @@ using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
 using TP_ControlVehicular.Negocio.Reportes;
+using TP_ControlVehicular.Negocio.Handlers;
 using TP_ControlVehicular.Datos.Repositories;
 
 namespace TP_ControlVehicular
@@ -101,6 +103,8 @@ namespace TP_ControlVehicular
             services.AddScoped<ModificarUsuarioHandler>();
             services.AddScoped<ListarUsuariosHandler>();
             services.AddScoped<AutenticarUsuarioHandler>();
+            services.AddScoped<ObtenerPermisosHandler>();
+            services.AddScoped<ActualizarPermisosRolHandler>();
             services.AddScoped<ObtenerDashboardHandler>();
             services.AddScoped<ObtenerReporteOrdenesHandler>();
             services.AddScoped<ObtenerReporteIngresosHandler>();

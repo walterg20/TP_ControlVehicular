@@ -6,5 +6,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string Nombre { get; set; } = string.Empty;
         public string Descripcion { get; set; } = string.Empty;
         public bool Estado { get; set; }
+        public System.Collections.Generic.List<string> Permisos { get; set; } = new();
     }
 }
