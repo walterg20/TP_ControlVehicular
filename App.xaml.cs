@@ -109,6 +109,9 @@ namespace TP_ControlVehicular
             services.AddScoped<ObtenerReporteOrdenesHandler>();
             services.AddScoped<ObtenerReporteIngresosHandler>();
             services.AddScoped<ObtenerReporteTiemposResolucionHandler>();
+            services.AddScoped<ObtenerHistorialClinicoVehiculoHandler>();
+            services.AddScoped<ObtenerHojaTrabajoDiariaHandler>();
+
             services.AddScoped<ListarServiciosHandler>();
             services.AddScoped<RegistrarServicioHandler>();
             services.AddScoped<ModificarServicioHandler>();

@@ -12,5 +12,8 @@ namespace TP_ControlVehicular.Negocio.Interfaces
         Task<List<HistorialVehiculoDto>> ObtenerHistorialVehiculoAsync(int? vehiculoId, string? patente);
         Task<List<VehiculoClienteDto>> ObtenerVehiculosPorClienteAsync(int? clienteId, string? dni);
         Task<List<ReporteServicioDto>> ObtenerServiciosPorMecanicoAsync(DateTime desde, DateTime hasta, int mecanicoId);
+        Task<List<HistorialClinicoVehiculoDto>> ObtenerHistorialClinicoVehiculoAsync(int vehiculoId);
+        Task<List<HojaTrabajoDiariaDto>> ObtenerHojaTrabajoDiariaAsync(int mecanicoId, DateTime? fecha);
+
     }
 }

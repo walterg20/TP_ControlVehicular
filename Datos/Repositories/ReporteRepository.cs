@@ -79,5 +79,27 @@ namespace TP_ControlVehicular.Datos.Repositories
                     fechaDesdeParam, fechaHastaParam, mecanicoIdParam)
                 .ToListAsync();
         }
+
+        public async Task<List<HistorialClinicoVehiculoDto>> ObtenerHistorialClinicoVehiculoAsync(int vehiculoId)
+        {
+            var vehiculoIdParam = new SqlParameter("@VehiculoId", vehiculoId);
+            return await _dbContext.Database
+                .SqlQueryRaw<HistorialClinicoVehiculoDto>(
+                    "EXEC sp_HistorialClinicoVehiculo @VehiculoId",
+                    vehiculoIdParam)
+                .ToListAsync();
+        }
+
+        public async Task<List<HojaTrabajoDiariaDto>> ObtenerHojaTrabajoDiariaAsync(int mecanicoId, DateTime? fecha)
+        {
+            var mecanicoIdParam = new SqlParameter("@MecanicoId", mecanicoId);
+            var fechaParam = new SqlParameter("@Fecha", (object?)fecha ?? DBNull.Value);
+            return await _dbContext.Database
+                .SqlQueryRaw<HojaTrabajoDiariaDto>(
+                    "EXEC sp_ReporteHojaTrabajoDiaria @MecanicoId, @Fecha",
+                    mecanicoIdParam, fechaParam)
+                .ToListAsync();
+        }
+
     }
 }
