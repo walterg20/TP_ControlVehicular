@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +10,7 @@ using TP_ControlVehicular.Negocio.Reportes;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using TP_ControlVehicular.Negocio.Reportes.Documentos;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
@@ -106,9 +107,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(10));
 
-                    page.Header().Element(ComposeHeader);
+                    page.Header().Element(c => c.ComposeEncabezadoTaller("Reporte Operativo de Taller"));
                     page.Content().Element(ComposeContent);
-                    page.Footer().Element(ComposeFooter);
+                    page.Footer().Element(c => c.ComposePieDePagina());
                 });
             });
 
@@ -128,19 +129,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        private void ComposeHeader(IContainer container)
+        private string ObtenerTextoFiltros()
         {
-            container.Row(row =>
-            {
-                row.RelativeItem().Column(column =>
-                {
-                    column.Item().Text("Reporte Operativo de Taller").FontSize(20).SemiBold().FontColor(Colors.Blue.Darken2);
-                    var filtrosStr = "";
-                    if (FechaDesde.HasValue) filtrosStr += $"Desde: {FechaDesde.Value:dd/MM/yyyy} ";
-                    if (FechaHasta.HasValue) filtrosStr += $"Hasta: {FechaHasta.Value:dd/MM/yyyy}";
-                    column.Item().Text(filtrosStr).FontSize(11).FontColor(Colors.Grey.Darken2);
-                });
-            });
+            var filtrosStr = "";
+            if (FechaDesde.HasValue) filtrosStr += $"Desde: {FechaDesde.Value:dd/MM/yyyy} ";
+            if (FechaHasta.HasValue) filtrosStr += $"Hasta: {FechaHasta.Value:dd/MM/yyyy}";
+            return filtrosStr;
         }
 
         private void ComposeContent(IContainer container)
@@ -148,6 +142,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             container.PaddingVertical(1, Unit.Centimetre).Column(column => 
             {
                 column.Spacing(20);
+
+                column.Item().Text(ObtenerTextoFiltros()).FontSize(11).FontColor(Colors.Grey.Darken2);
                 
                 // Productividad
                 column.Item().Text("Productividad por Mecánico").FontSize(14).SemiBold();
@@ -204,17 +200,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         static IContainer Block(IContainer container) => container.PaddingVertical(2).PaddingHorizontal(2);
                     }
                 });
-            });
-        }
-
-        private void ComposeFooter(IContainer container)
-        {
-            container.AlignCenter().Text(x =>
-            {
-                x.Span("Página ");
-                x.CurrentPageNumber();
-                x.Span(" de ");
-                x.TotalPages();
             });
         }
     }

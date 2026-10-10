@@ -5,6 +5,7 @@ using TP_ControlVehicular.Negocio.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using TP_ControlVehicular.Negocio.Reportes.Documentos;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
@@ -152,9 +153,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     page.PageColor(QuestPDF.Helpers.Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(10));
 
-                    page.Header().Element(ComposeHeader);
+                    page.Header().Element(c => c.ComposeEncabezadoTaller("Reporte de Órdenes de Trabajo"));
                     page.Content().Element(ComposeContent);
-                    page.Footer().Element(ComposeFooter);
+                    page.Footer().Element(c => c.ComposePieDePagina());
                 });
             });
 
@@ -175,29 +176,21 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        private void ComposeHeader(QuestPDF.Infrastructure.IContainer container)
+        private string ObtenerTextoFiltros()
         {
-            container.Row(row =>
-            {
-                row.RelativeItem().Column(column =>
-                {
-                    column.Item().Text("Reporte de Órdenes de Trabajo")
-                        .FontSize(20).SemiBold().FontColor(QuestPDF.Helpers.Colors.Blue.Darken2);
-
-                    var filtrosStr = $"Estado: {EstadoFiltro}";
-                    if (FechaDesde.HasValue) filtrosStr += $" | Desde: {FechaDesde.Value:dd/MM/yyyy}";
-                    if (FechaHasta.HasValue) filtrosStr += $" | Hasta: {FechaHasta.Value:dd/MM/yyyy}";
-                    if (!string.IsNullOrWhiteSpace(TextoBusqueda)) filtrosStr += $" | Búsqueda: '{TextoBusqueda}'";
-
-                    column.Item().Text($"Filtros aplicados: {filtrosStr}").FontSize(11).FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
-                });
-            });
+            var filtrosStr = $"Estado: {EstadoFiltro}";
+            if (FechaDesde.HasValue) filtrosStr += $" | Desde: {FechaDesde.Value:dd/MM/yyyy}";
+            if (FechaHasta.HasValue) filtrosStr += $" | Hasta: {FechaHasta.Value:dd/MM/yyyy}";
+            if (!string.IsNullOrWhiteSpace(TextoBusqueda)) filtrosStr += $" | Búsqueda: '{TextoBusqueda}'";
+            return filtrosStr;
         }
 
         private void ComposeContent(QuestPDF.Infrastructure.IContainer container)
         {
             container.PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(column => 
             {
+                column.Item().PaddingBottom(10).Text($"Filtros aplicados: {ObtenerTextoFiltros()}").FontSize(11).FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
+
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
@@ -243,17 +236,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         }
                     }
                 });
-            });
-        }
-
-        private void ComposeFooter(QuestPDF.Infrastructure.IContainer container)
-        {
-            container.AlignCenter().Text(x =>
-            {
-                x.Span("Página ");
-                x.CurrentPageNumber();
-                x.Span(" de ");
-                x.TotalPages();
             });
         }
     }

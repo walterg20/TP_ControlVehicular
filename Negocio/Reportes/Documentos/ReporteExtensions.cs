@@ -9,12 +9,29 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
     /// </summary>
     public static class ReporteExtensions
     {
-                public static void ComposeEncabezadoTaller(this IContainer container, string tituloReporte)
+        /// <summary>
+        /// Ruta del logo de la empresa (Presentacion/Assets/logo.png, copiado al output como Content).
+        /// </summary>
+        public static string RutaLogo =>
+            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Presentacion", "Assets", "logo.png");
+
+        /// <summary>
+        /// Dibuja el logo de la empresa. Regla del proyecto: todo PDF debe mostrarlo en el encabezado.
+        /// </summary>
+        public static void ComposeLogo(this IContainer container)
+        {
+            if (System.IO.File.Exists(RutaLogo))
+            {
+                container.Image(RutaLogo);
+            }
+        }
+
+        public static void ComposeEncabezadoTaller(this IContainer container, string tituloReporte)
         {
             container.Row(row =>
             {
                 // Logo a la izquierda
-                row.ConstantItem(120).PaddingRight(10).AlignLeft().Image(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Presentacion", "Assets", "logo.png"));
+                row.ConstantItem(120).PaddingRight(10).AlignLeft().Element(c => c.ComposeLogo());
 
                 // Datos de la empresa al medio
                 row.RelativeItem().Column(col =>
