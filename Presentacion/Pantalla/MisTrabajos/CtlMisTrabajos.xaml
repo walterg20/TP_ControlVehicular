@@ -79,7 +79,7 @@
                           ItemsSource="{Binding TareasView}"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
-                          SelectionMode="Single" 
+                          SelectionMode="Single" SelectedItem="{Binding TareaSeleccionada, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                           GridLinesVisibility="Horizontal"
                           HeadersVisibility="Column"
                           Background="Transparent"
@@ -139,6 +139,15 @@
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+
+                <Button Content="🕒 Imprimir Historial Clínico" Command="{Binding ImprimirHistorialCommand}" Padding="12,8" Background="#8E44AD" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" Visibility="{Binding PuedeImprimirHistorial, Converter={StaticResource BoolToVis}}">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
                 <Button Content="💾 Guardar Cambios" Click="BtnGuardar_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
