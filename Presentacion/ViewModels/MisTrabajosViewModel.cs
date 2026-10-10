@@ -1,127 +1,246 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Windows.Data;
 using System.Windows.Input;
-using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.Context;
-using TP_ControlVehicular.Presentacion;
+using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class MisTrabajosViewModel : BaseViewModel
+    public class MiTrabajoItemViewModel : BaseViewModel
     {
-        private ObservableCollection<RegistroServicio> _trabajosAsignados = new();
-        private RegistroServicio? _trabajoSeleccionado;
-        private DetalleServicio _nuevoDetalle = new();
-        private string _mensajeError = string.Empty;
-        private string _mensajeExito = string.Empty;
+        public RegistroServicioDto Orden { get; set; } = new RegistroServicioDto();
+        public DetalleServicioDto Detalle { get; set; } = new DetalleServicioDto();
 
-        public MisTrabajosViewModel()
+        public int OrdenId => Orden.Id;
+        public DateTime Fecha => Orden.Fecha;
+        public string VehiculoPatente => Orden.VehiculoPatente;
+        public string VehiculoDetalle => Orden.VehiculoDetalle;
+        public string VehiculoCompleto => string.IsNullOrWhiteSpace(VehiculoDetalle) ? VehiculoPatente : $"{VehiculoDetalle} [{VehiculoPatente}]";
+        public string TareaNombre => Detalle.ServicioNombre;
+        
+        public bool Realizado
         {
-            CmdGuardarDetalle = new RelayCommand(GuardarDetalleAsync);
-            CmdCargarTrabajos = new RelayCommand(CargarTrabajosAsync);
-            
-            // Inicializar detalle
-            if (UserSession.CurrentUser != null)
-            {
-                NuevoDetalle.UsuarioId = UserSession.CurrentUser.IdUsuario;
-            }
-        }
-
-        public ObservableCollection<RegistroServicio> TrabajosAsignados
-        {
-            get => _trabajosAsignados;
-            set => SetProperty(ref _trabajosAsignados, value);
-        }
-
-        public RegistroServicio? TrabajoSeleccionado
-        {
-            get => _trabajoSeleccionado;
+            get => Detalle.Realizado;
             set
             {
-                if (SetProperty(ref _trabajoSeleccionado, value) && value != null)
+                if (Detalle.Realizado != value)
                 {
-                    NuevoDetalle.RegistroServicioId = value.Id;
+                    Detalle.Realizado = value;
+                    OnPropertyChanged();
+                    IsModified = true;
                 }
             }
         }
 
-        public DetalleServicio NuevoDetalle
+        public string Observaciones
         {
-            get => _nuevoDetalle;
-            set => SetProperty(ref _nuevoDetalle, value);
-        }
-
-        public string MensajeError
-        {
-            get => _mensajeError;
-            set => SetProperty(ref _mensajeError, value);
-        }
-
-        public string MensajeExito
-        {
-            get => _mensajeExito;
-            set => SetProperty(ref _mensajeExito, value);
-        }
-
-        public ICommand CmdGuardarDetalle { get; }
-        public ICommand CmdCargarTrabajos { get; }
-
-        private async Task CargarTrabajosAsync()
-        {
-            MensajeError = string.Empty;
-            MensajeExito = string.Empty;
-            try
+            get => Detalle.Observaciones;
+            set
             {
-                // TODO: Llamar al servicio real para obtener los trabajos asignados al mecánico actual.
-                // Por ahora se simula una carga o se deja vacío para que compile y cumpla con el criterio.
-                TrabajosAsignados.Clear();
-                await Task.CompletedTask;
-            }
-            catch (Exception ex)
-            {
-                MensajeError = "Error al cargar trabajos: " + ex.Message;
-            }
-        }
-
-        private async Task GuardarDetalleAsync()
-        {
-            MensajeError = string.Empty;
-            MensajeExito = string.Empty;
-            
-            if (TrabajoSeleccionado == null)
-            {
-                MensajeError = "Debe seleccionar un trabajo asignado.";
-                return;
-            }
-
-            if (NuevoDetalle.ServicioId <= 0)
-            {
-                MensajeError = "Debe ingresar un Servicio válido.";
-                return;
-            }
-
-            try
-            {
-                // TODO: Llamar al handler o servicio real para guardar el DetalleServicio en la BD.
-                // Simulamos el guardado para cumplir con el criterio "permite la interacción básica...".
-                await Task.CompletedTask;
-                MensajeExito = "Detalle guardado correctamente.";
-                
-                // Reiniciar el detalle
-                NuevoDetalle = new DetalleServicio
+                if (Detalle.Observaciones != value)
                 {
-                    RegistroServicioId = TrabajoSeleccionado.Id,
-                    UsuarioId = UserSession.CurrentUser?.IdUsuario ?? 0,
-                    Cantidad = 1,
-                    Origen = "Taller",
-                    Estado = "Realizado"
-                };
+                    Detalle.Observaciones = value;
+                    OnPropertyChanged();
+                    IsModified = true;
+                }
             }
-            catch (Exception ex)
+        }
+
+        public bool IsModified { get; set; } = false;
+    }
+
+    public class MisTrabajosViewModel : BaseViewModel
+    {
+        private readonly ListarRegistroServiciosHandler _listarHandler;
+        private readonly ModificarRegistroServicioHandler _modificarHandler;
+
+        public ObservableCollection<MiTrabajoItemViewModel> TodasMisTareas { get; set; }
+        public ObservableCollection<string> FiltroVehiculos { get; set; }
+
+        private string _vehiculoSeleccionado = "Todos los Autos";
+        public string VehiculoSeleccionado
+        {
+            get => _vehiculoSeleccionado;
+            set
             {
-                MensajeError = "Error al guardar el detalle: " + ex.Message;
+                _vehiculoSeleccionado = value;
+                OnPropertyChanged();
+                TareasView.Refresh();
+                OnPropertyChanged(nameof(IsListEmpty));
             }
+        }
+
+        public ICollectionView TareasView { get; private set; }
+
+        public MisTrabajosViewModel(ListarRegistroServiciosHandler listarHandler, ModificarRegistroServicioHandler modificarHandler)
+        {
+            _listarHandler = listarHandler;
+            _modificarHandler = modificarHandler;
+
+            TodasMisTareas = new ObservableCollection<MiTrabajoItemViewModel>();
+            FiltroVehiculos = new ObservableCollection<string> { "Todos los Autos" };
+            TareasView = CollectionViewSource.GetDefaultView(TodasMisTareas);
+            TareasView.Filter = TareasFilter;
+        }
+
+        private string _textoBusqueda = string.Empty;
+        public string TextoBusqueda
+        {
+            get => _textoBusqueda;
+            set
+            {
+                _textoBusqueda = value;
+                OnPropertyChanged();
+                TareasView.Refresh();
+                OnPropertyChanged(nameof(IsListEmpty));
+            }
+        }
+
+        private string _filtroEstado = "Pendientes";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                _filtroEstado = value;
+                OnPropertyChanged();
+                TareasView.Refresh();
+                OnPropertyChanged(nameof(IsListEmpty));
+            }
+        }
+
+        public bool IsListEmpty => TareasView.IsEmpty;
+
+        private bool TareasFilter(object item)
+        {
+            if (item is MiTrabajoItemViewModel tarea)
+            {
+                // Status Filter
+                if (FiltroEstado == "Pendientes" && tarea.Realizado) return false;
+                if (FiltroEstado == "Finalizados" && !tarea.Realizado) return false;
+
+                // Vehicle Filter
+                if (VehiculoSeleccionado != "Todos los Autos" && tarea.VehiculoCompleto != VehiculoSeleccionado) return false;
+
+                // Search Filter
+                if (!string.IsNullOrWhiteSpace(TextoBusqueda))
+                {
+                    bool match = (tarea.VehiculoPatente?.IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                                 (tarea.OrdenId.ToString().IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (!match) return false;
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        public async Task LoadAsync()
+        {
+            if (UserSession.CurrentUser == null) return;
+
+            TodasMisTareas.Clear();
+            var ordenes = await _listarHandler.HandleAsync();
+
+            int currentUserId = UserSession.CurrentUser.IdUsuario;
+
+            foreach (var orden in ordenes.Where(o => o.Estado != "Cancelada"))
+            {
+                if (orden.Detalles != null)
+                {
+                    foreach (var det in orden.Detalles.Where(d => d.UsuarioId == currentUserId))
+                    {
+                        TodasMisTareas.Add(new MiTrabajoItemViewModel
+                        {
+                            Orden = orden,
+                            Detalle = det,
+                            IsModified = false
+                        });
+                    }
+                }
+            }
+
+            
+            var patentes = TodasMisTareas.Select(t => t.VehiculoCompleto).Where(p => !string.IsNullOrEmpty(p)).Distinct().ToList();
+            FiltroVehiculos.Clear();
+            FiltroVehiculos.Add("Todos los Autos");
+            foreach (var patente in patentes)
+            {
+                FiltroVehiculos.Add(patente);
+            }
+            if (!FiltroVehiculos.Contains(VehiculoSeleccionado))
+            {
+                VehiculoSeleccionado = "Todos los Autos";
+            }
+
+            TareasView.Refresh();
+            OnPropertyChanged(nameof(IsListEmpty));
+        }
+
+        public async Task<bool> GuardarCambiosAsync()
+        {
+            var modifiedItems = TodasMisTareas.Where(t => t.IsModified).ToList();
+            if (!modifiedItems.Any()) return true;
+
+            var modifiedOrders = modifiedItems.Select(m => m.Orden).Distinct().ToList();
+
+            foreach (var ordenDto in modifiedOrders)
+            {
+                // Evaluate general status (informative, but ModificarRegistroServicioHandler will override it intelligently)
+                if (ordenDto.Detalles.All(d => d.Realizado))
+                {
+                    ordenDto.Estado = "Completada";
+                }
+                else if (ordenDto.Detalles.Any(d => d.Realizado))
+                {
+                    ordenDto.Estado = "En Proceso";
+                }
+                else
+                {
+                    ordenDto.Estado = "Abierta";
+                }
+
+                // Map back to Entity
+                var orden = new TP_ControlVehicular.Entidad.RegistroServicio
+                {
+                    Id = ordenDto.Id,
+                    VehiculoId = ordenDto.VehiculoId,
+                    TallerId = ordenDto.TallerId,
+                    UsuarioId = ordenDto.UsuarioId,
+                    Fecha = ordenDto.Fecha,
+                    KmIngreso = ordenDto.KmIngreso,
+                    Estado = ordenDto.Estado,
+                    Detalles = ordenDto.Detalles.Select(d => new TP_ControlVehicular.Entidad.DetalleServicio
+                    {
+                        Id = d.Id,
+                        ServicioId = d.ServicioId,
+                        RegistroServicioId = d.RegistroServicioId,
+                        UsuarioId = d.UsuarioId,
+                        Cantidad = d.Cantidad,
+                        Precio = d.Precio,
+                        Observaciones = d.Observaciones ?? string.Empty,
+                        Origen = d.Origen,
+                        Estado = d.Realizado ? "Finalizada" : (d.Estado == "Finalizada" ? "Pendiente" : d.Estado),
+                        OrdenEjecucion = d.OrdenEjecucion
+                    }).ToList()
+                };
+
+                await _modificarHandler.HandleAsync(orden);
+            }
+
+            foreach (var item in modifiedItems)
+            {
+                item.IsModified = false;
+            }
+            
+            await LoadAsync();
+
+            return true;
         }
     }
 }

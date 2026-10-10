@@ -186,13 +186,16 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_ReporteOperativo(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new UserControl { Content = new TextBlock { Text = "Reportes Operativos en construcción...", FontSize = 24, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
+            var vm = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<TP_ControlVehicular.Presentacion.ViewModels.ReporteOperativoViewModel>(App.ServiceProvider);
+            var view = new TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteOperativo { DataContext = vm };
+            AgregarPagina(view);
+            _ = vm.LoadAsync();
         }
 
         private void MenuItem_Click_MisTrabajos(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new UserControl { Content = new TextBlock { Text = "Mis Trabajos en construcción...", FontSize = 24, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
+            AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.MisTrabajos.CtlMisTrabajos());
         }
 
         private void MenuItem_Click_ReporteOrdenes(object sender, RoutedEventArgs e)

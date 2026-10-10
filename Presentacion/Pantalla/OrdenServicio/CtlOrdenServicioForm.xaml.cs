@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -13,6 +13,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         public CtlOrdenServicioForm()
         {
             InitializeComponent();
+            _origen = "General";
             _esModificacion = false;
             lblTitulo.Text = "Registrar Nueva Orden";
             ConfigurarViewModel(null);
@@ -25,9 +26,12 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             };
         }
 
-        public CtlOrdenServicioForm(RegistroServicioDto orden)
+        private readonly string _origen;
+
+        public CtlOrdenServicioForm(RegistroServicioDto orden, string origen = "General")
         {
             InitializeComponent();
+            _origen = origen;
             _esModificacion = true;
             lblTitulo.Text = $"Modificar Orden #{orden.Id}";
             ConfigurarViewModel(orden);
@@ -120,7 +124,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                         vmOrdenServicioForm.TallerId = 0;
                         vmOrdenServicioForm.KmIngreso = 0;
                         vmOrdenServicioForm.Fecha = DateTime.Now;
-                        vmOrdenServicioForm.Estado = "Pendiente";
+                        vmOrdenServicioForm.Estado = "Abierta";
                         
                         if (Application.Current.MainWindow is MainWindow mainWin && mainWin.UsuarioSesionActual != null)
                         {
@@ -257,6 +261,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     vmOrdenServicioForm.DetallesOrdenActual.Remove(detalle);
+                    vmOrdenServicioForm.EvaluarEstadoGeneral();
                 }
             }
         }
@@ -302,8 +307,14 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         {
             if (Application.Current.MainWindow is MainWindow mainWindow)
             {
-                // Instantiate the list control, which will load the updated data upon loaded
-                mainWindow.AgregarPagina(new CtlOrdenServicio());
+                if (_origen == "MisTrabajos")
+                {
+                    mainWindow.AgregarPagina(new Pantalla.MisTrabajos.CtlMisTrabajos());
+                }
+                else
+                {
+                    mainWindow.AgregarPagina(new CtlOrdenServicio());
+                }
             }
         }
     

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -133,10 +133,12 @@ namespace TP_ControlVehicular
             services.AddScoped<LoginViewModel>();
             services.AddScoped<DashboardViewModel>();
             services.AddScoped<ReporteOrdenesViewModel>();
+            services.AddScoped<ReporteOperativoViewModel>();
             services.AddScoped<ReporteGerencialViewModel>();
             services.AddScoped<ServicioViewModel>();
             services.AddScoped<OrdenServicioViewModel>();
             services.AddScoped<MisTareasViewModel>();
+            services.AddScoped<MisTrabajosViewModel>();
 
             // UserControls & Windows
             services.AddScoped<CtlCliente>();

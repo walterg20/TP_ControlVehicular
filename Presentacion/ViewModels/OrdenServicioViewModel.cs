@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -67,7 +67,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             };
             
             Fecha = DateTime.Now;
-            Estado = "Pendiente";
+            Estado = "Abierta";
         }
 
         public ObservableCollection<RegistroServicioDto> Ordenes { get; set; }
@@ -540,7 +540,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             if (todosRealizados)
             {
-                Estado = "Finalizada";
+                Estado = "Completada";
             }
             else if (algunRealizado)
             {
@@ -548,7 +548,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
             else
             {
-                Estado = "Pendiente";
+                Estado = "Abierta";
             }
         }
     }

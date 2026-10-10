@@ -1,6 +1,6 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 
-namespace TP_ControlVehicular.Presentacion.Pantalla.Reportes
+namespace TP_ControlVehicular.Presentacion.Pantalla.Reporte
 {
     public partial class CtlReportesRecepcion : UserControl
     {
