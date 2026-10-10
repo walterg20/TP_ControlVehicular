@@ -60,5 +60,18 @@ namespace TP_ControlVehicular.Datos.Repositories
                 parameters,
                 commandType: CommandType.StoredProcedure);
         }
+
+        public async Task<IEnumerable<ProductividadMecanicoDto>> ObtenerProductividadMecanicosAsync(DateTime? fechaDesde, DateTime? fechaHasta)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@FechaDesde", fechaDesde, DbType.Date);
+            parameters.Add("@FechaHasta", fechaHasta, DbType.Date);
+
+            return await connection.QueryAsync<ProductividadMecanicoDto>(
+                "sp_ReporteProductividadMecanicos",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }
