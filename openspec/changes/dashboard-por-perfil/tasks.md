@@ -1,0 +1,25 @@
+# Implementation Tasks: Role-Based Dashboard with Real Metrics and Admin Monthly Revenue
+
+- [ ] 1. **OpenSpec artifacts** — proposal, design, tasks and the `dashboard` delta spec exist and `openspec validate dashboard-por-perfil` passes.
+- [ ] 2. **DTO**
+  - [ ] 2.1 Extend `Negocio/DTOs/DashboardMetricsDto.cs` with `decimal IngresosMesTotal` and `bool MostrarIngresos`.
+- [ ] 3. **Handler rewrite**
+  - [ ] 3.1 Inject `IRegistroServicioRepository` and `IReporteGerencialRepository` into `ObtenerDashboardHandler` (keep `IMapper`).
+  - [ ] 3.2 Resolve the current user/role; scope orders with `GetReporteCompletoAsync(mecanicoId)` for the Mecánico, `null` otherwise.
+  - [ ] 3.3 Compute `VehiculosActivosCount` (distinct `VehiculoId` among active orders), `EnProcesoCount` (active orders), `EntregadasHoyCount` (completed/paid today).
+  - [ ] 3.4 For the Administrador, sum `ObtenerIngresosPorFechaAsync(firstDayOfMonth, today)` into `IngresosMesTotal` and set `MostrarIngresos`.
+  - [ ] 3.5 Build `VehiculosEnTaller` from the scoped orders' distinct vehicles (no fabricated values).
+- [ ] 4. **ViewModel**
+  - [ ] 4.1 Add `IngresosMesTotal` and `MostrarIngresos` to `DashboardViewModel` and assign them in `LoadAsync`.
+- [ ] 5. **View**
+  - [ ] 5.1 Add the "Ingresos del Mes" card (Admin only) to `CtlDashboard.xaml`.
+  - [ ] 5.2 Add the "🔄 Actualizar" button bound to `CargarDashboardCommand`.
+- [ ] 6. **DI**
+  - [ ] 6.1 Verify `ObtenerDashboardHandler` resolves with the new dependencies in `App.xaml.cs`.
+- [ ] 7. **Verification**
+  - [ ] 7.1 `dotnet build "TP_ControlVehicular.slnx"` succeeds.
+  - [ ] 7.2 `dotnet test` succeeds.
+  - [ ] 7.3 `openspec validate dashboard-por-perfil` passes.
+- [ ] 8. **Close-out**
+  - [ ] 8.1 Write `docs/plan/2026-10-10_dashboard-por-perfil.md` (execution log, Spanish).
+  - [ ] 8.2 Update `MEMORY.md` and `AGENTS.md` with the dashboard metrics/role rules and commit with the spec.
