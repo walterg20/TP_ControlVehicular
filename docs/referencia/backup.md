@@ -20,7 +20,7 @@ Mecanismo de respaldo, verificación y resguardo en la nube. Se enlaza desde `AG
 | `NombreBaseDatos` | Por defecto `ControlVehicular`. |
 | `RutaBackupServer` | Ruta **server-side** donde el servicio SQL escribe el `.bak` (absoluta, del servidor). |
 | `RutaBackupUNC` | Ruta **UNC** (`\\servidor\...`) que lee la app para listar y subir. |
-| `DriveFolderId` | Carpeta destino en Google Drive. |
+| `DriveFolderId` | Carpeta destino en Google Drive. Si está vacío, la app crea/busca `ControlVehicularBackups` y persiste su id. |
 | `UltimaSubidaArchivo` / `FechaUltimaSubida` | Control de "un archivo por día" (los actualiza el servicio de subida, **no** `GuardarAsync`). |
 | `FechaActualizacion` | Marca de última edición de la configuración. |
 
@@ -45,7 +45,8 @@ Mecanismo de respaldo, verificación y resguardo en la nube. Se enlaza desde `AG
 ### Subida a Google Drive
 - **API directa** (`Google.Apis.Drive.v3` + `Google.Apis.Auth`), **sin rclone**.
 - Scope `drive.file`; consent screen de Google Cloud **publicado**.
-- ClientId/Secret embebidos en `DriveBackupService` (hoy placeholders `PENDIENTE_CLIENT_ID` / `PENDIENTE_CLIENT_SECRET`).
+- Credenciales OAuth (Desktop app) leídas de **`credenciales.json`** junto al ejecutable (`GoogleClientSecrets.FromStream`); el `.csproj` lo copia a la salida si existe y `.gitignore` lo excluye. Si falta, error claro.
+- **Carpeta destino**: si `DriveFolderId` está vacío, `ObtenerOCrearCarpetaAsync` busca o **crea** `ControlVehicularBackups` (scope `drive.file`) y persiste su id.
 - Token de refresco guardado **por-PC con DPAPI** en `%LocalAppData%\TP_ControlVehicular\Drive` (`DpapiFileDataStore : IDataStore`), **no** en la tabla. Clave del token: `UsuarioCredencial = "usuario"`.
 - **Un archivo por día**: nombre Drive `ControlVehicular_YYYYMMDD_FULL.bak`; re-subir el mismo día **sobrescribe**.
 - Botón **Resguardar**: sube **siempre el último** `.bak` y **solo si no se subió todavía** (compara `UltimaSubidaArchivo` + `FechaUltimaSubida` del mismo día contra la config).
