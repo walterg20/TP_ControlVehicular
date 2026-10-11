@@ -5,49 +5,36 @@ Defines the functional and visual specifications for the executive Dashboard fea
 
 ## Requirements
 
-### Requirement 1: Sidebar Navigation Menu Placement
-- **SHALL** display a new navigation entry `"📊 Dashboard"` in `MainWindow`'s sidebar menu.
-- **SHALL** position the `"📊 Dashboard"` button at the top of the sidebar navigation menu, **above the OPERACIONES section**.
-- **SHALL** open `CtlDashboard` inside `grdContenido` when clicked.
+### Requirement: Sidebar Navigation Menu Placement
+The system SHALL display a `"📊 Dashboard"` navigation entry in `MainWindow`'s sidebar menu, positioned at the top of the navigation menu, above the OPERACIONES section. Selecting the entry SHALL open `CtlDashboard` inside `grdContenido`.
 
-### Requirement 2: Summary Metric Cards (Top Section)
-- **SHALL** display three distinct summary cards styled with rounded corners (`CornerRadius="12"` / `rounded-xl`) and drop shadows (`shadow-md`):
-  1. **Vehículos Activos**: Total count of active vehicles registered in the workshop.
-  2. **En Proceso**: Total count of active work orders currently in progress.
-  3. **Entregadas Hoy**: Total count of completed work orders delivered on the current date.
-- **SHALL** present clean typography, clear icons (e.g. 🚗, 📋, 🚚), and distinct accent colors (Green, Orange, Purple).
+#### Scenario: Navigating to Dashboard
+- **GIVEN** an authenticated user is on `MainWindow`
+- **WHEN** the user clicks on `"📊 Dashboard"` located above the OPERACIONES section
+- **THEN** the application SHALL clear `grdContenido`
+- **AND** inject `CtlDashboard` into `grdContenido`
+- **AND** automatically trigger `DashboardViewModel.CargarDashboardAsync()`.
 
-### Requirement 3: Workshop Vehicles Data Grid (Bottom Section)
-- **SHALL** display a data grid titled `"Vehículos en el Taller"`.
-- **SHALL** list all active workshop vehicles with columns:
-  - Patente (License Plate)
-  - Marca (Brand)
-  - Modelo (Model)
-  - Año (Year)
-  - Cliente (Client Name / DNI)
-  - Kilometraje (Current Odometer)
-- **SHALL** provide a refresh button (`"🔄 Actualizar"`) to reload metrics asynchronously.
+### Requirement: Summary Metric Cards (Top Section)
+The system SHALL display three summary cards styled with rounded corners (`CornerRadius="12"` / `rounded-xl`) and drop shadows (`shadow-md`):
+1. **Vehículos Activos**: total count of active vehicles registered in the workshop.
+2. **En Proceso**: total count of active work orders currently in progress.
+3. **Entregadas Hoy**: total count of completed work orders delivered on the current date.
 
----
+The cards SHALL present clean typography, clear icons (e.g. 🚗, 📋, 🚚), and distinct accent colors (green, orange, purple).
 
-## Scenarios (BDD Specifications)
+#### Scenario: Loading Metric Cards & Vehicle List
+- **GIVEN** `CtlDashboard` is loaded
+- **WHEN** `ObtenerDashboardHandler` queries the database
+- **THEN** it SHALL return the metric counts (`VehiculosActivos`, `EnProceso`, `EntregadasHoy`)
+- **AND** the list of workshop vehicles
+- **AND** the UI SHALL populate the three cards and the data grid smoothly.
 
-### Scenario 1: Navigating to Dashboard
-- **Given** an authenticated user is on `MainWindow`
-- **When** the user clicks on `"📊 Dashboard"` located above the OPERACIONES section
-- **Then** the application SHALL clear `grdContenido`
-- **And** inject `CtlDashboard` into `grdContenido`
-- **And** automatically trigger `DashboardViewModel.CargarDashboardAsync()`.
+#### Scenario: Empty Vehicle List Fallback
+- **GIVEN** no vehicles are currently registered in the database
+- **WHEN** `CtlDashboard` loads
+- **THEN** the summary cards SHALL display `0`
+- **AND** the data grid SHALL display an empty list without throwing null reference exceptions.
 
-### Scenario 2: Loading Metric Cards & Vehicle List
-- **Given** `CtlDashboard` is loaded
-- **When** `ObtenerDashboardHandler` queries the database
-- **Then** it SHALL return the metric counts (`VehiculosActivos`, `EnProceso`, `EntregadasHoy`)
-- **And** the list of workshop vehicles
-- **And** the UI SHALL populate the three cards and the data grid smoothly.
-
-### Scenario 3: Empty Vehicle List Fallback
-- **Given** no vehicles are currently registered in the database
-- **When** `CtlDashboard` loads
-- **Then** the summary cards SHALL display `0`
-- **And** the data grid SHALL display an empty list without throwing null reference exceptions.
+### Requirement: Workshop Vehicles Data Grid (Bottom Section)
+The system SHALL display a data grid titled `"Vehículos en el Taller"` listing all active workshop vehicles with the columns Patente (license plate), Marca (brand), Modelo (model), Año (year), Cliente (client name / DNI) and Kilometraje (current odometer). The grid SHALL provide a refresh button (`"🔄 Actualizar"`) that reloads the metrics asynchronously.
