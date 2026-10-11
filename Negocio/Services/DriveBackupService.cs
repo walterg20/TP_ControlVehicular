@@ -12,10 +12,13 @@ namespace TP_ControlVehicular.Negocio.Services
 {
     public class DriveBackupService : IDriveBackupService
     {
-        // En apps de escritorio el "secreto" del cliente es publico por definicion.
-        // Reemplazar por los valores reales del proyecto de Google Cloud.
-        private const string ClientId = "PENDIENTE_CLIENT_ID";
-        private const string ClientSecret = "PENDIENTE_CLIENT_SECRET";
+        // Las credenciales OAuth del proyecto de Google Cloud se leen de un archivo
+        // "credenciales.json" (tipo Desktop app) copiado junto al ejecutable. No van
+        // embebidas en el codigo ni viajan al repositorio (ver .gitignore).
+        private const string ArchivoCredenciales = "credenciales.json";
+
+        // Nombre de la carpeta en Drive que se crea automaticamente la primera vez.
+        private const string NombreCarpetaDrive = "ControlVehicularBackups";
 
         // Identificador con el que se guarda el token de refresco por-PC.
         private const string UsuarioCredencial = "usuario";
@@ -89,7 +92,7 @@ namespace TP_ControlVehicular.Negocio.Services
             });
 
             var nombreDrive = $"{ultimo.FechaModificacion:yyyyMMdd}_FULL.bak";
-            var carpetaId = string.IsNullOrWhiteSpace(config.DriveFolderId) ? null : config.DriveFolderId.Trim();
+            var carpetaId = await ObtenerOCrearCarpetaAsync(servicio, config);
 
             var idDrive = await BuscarArchivoAsync(servicio, carpetaId, nombreDrive);
 
@@ -137,11 +140,17 @@ namespace TP_ControlVehicular.Negocio.Services
 
         private async Task<UserCredential> ObtenerCredencialAsync(CancellationToken cancellationToken)
         {
-            var secretos = new ClientSecrets
+            var rutaCredenciales = Path.Combine(AppContext.BaseDirectory, ArchivoCredenciales);
+
+            if (!File.Exists(rutaCredenciales))
             {
-                ClientId = ClientId,
-                ClientSecret = ClientSecret
-            };
+                throw new InvalidOperationException(
+                    $"No se encontró el archivo de credenciales de Google Drive ({rutaCredenciales}). " +
+                    "Copie credenciales.json (descargado de Google Cloud) junto al ejecutable.");
+            }
+
+            using var stream = File.OpenRead(rutaCredenciales);
+            var secretos = GoogleClientSecrets.FromStream(stream).Secrets;
 
             return await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 secretos,
@@ -149,6 +158,48 @@ namespace TP_ControlVehicular.Negocio.Services
                 UsuarioCredencial,
                 cancellationToken,
                 _dataStore);
+        }
+
+        // Resuelve la carpeta destino en Drive: usa la configurada si existe; si no,
+        // busca o crea "ControlVehicularBackups" y persiste su id en la configuración.
+        private async Task<string?> ObtenerOCrearCarpetaAsync(DriveService servicio, BackupConfiguracionDto config)
+        {
+            var carpetaId = string.IsNullOrWhiteSpace(config.DriveFolderId) ? null : config.DriveFolderId.Trim();
+
+            if (!string.IsNullOrEmpty(carpetaId))
+                return carpetaId;
+
+            var consulta =
+                $"mimeType = 'application/vnd.google-apps.folder' and name = '{Escapar(NombreCarpetaDrive)}' and trashed = false";
+
+            var busqueda = servicio.Files.List();
+            busqueda.Q = consulta;
+            busqueda.Fields = "files(id, name)";
+            busqueda.Spaces = "drive";
+
+            var resultado = await busqueda.ExecuteAsync();
+            var existente = resultado.Files?.FirstOrDefault();
+
+            if (existente != null)
+            {
+                config.DriveFolderId = existente.Id;
+                await _configuracionService.GuardarAsync(config);
+                return existente.Id;
+            }
+
+            var metadatos = new Google.Apis.Drive.v3.Data.File
+            {
+                Name = NombreCarpetaDrive,
+                MimeType = "application/vnd.google-apps.folder"
+            };
+
+            var creacion = servicio.Files.Create(metadatos);
+            creacion.Fields = "id";
+            var creada = await creacion.ExecuteAsync();
+
+            config.DriveFolderId = creada.Id;
+            await _configuracionService.GuardarAsync(config);
+            return creada.Id;
         }
 
         private static async Task<string> BuscarArchivoAsync(DriveService servicio, string? carpetaId, string nombre)

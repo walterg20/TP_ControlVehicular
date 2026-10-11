@@ -379,3 +379,8 @@ TP_ControlVehicular.Tests/
 .codegraph/
 
 appsettings.json
+
+# Credenciales OAuth de Google Drive (por-PC, nunca versionar)
+credenciales.json
+credentials.json
+token.json
