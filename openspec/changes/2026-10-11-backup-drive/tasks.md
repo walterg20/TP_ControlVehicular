@@ -31,6 +31,8 @@
   - [x] 5.2 Implementar OAuth `drive.file` con token de refresco cifrado con DPAPI (por-PC).
   - [x] 5.3 Implementar `SubirUltimoAsync` (un archivo por día; sobrescribe si ya existe; solo si no se subió).
   - [x] 5.4 Actualizar `UltimaSubidaArchivo`/`FechaUltimaSubida` en la configuración al subir.
+  - [x] 5.5 Leer credenciales OAuth de `credenciales.json` (copiado a la salida por el `.csproj`, gitignored) y auto-crear/buscar la carpeta `ControlVehicularBackups` cuando no hay `DriveFolderId`.
+  - [x] 5.6 Actualizar el mini tutorial `docs/referencia/backup-configuracion.md` (archivo de credenciales y carpeta automática).
 
 - [x] 6. Presentación (pantallas, VMs, menú, DI)
   - [x] 6.1 Crear `Presentacion/Pantalla/Configuracion/CtlBackup.xaml` + `.xaml.cs`.

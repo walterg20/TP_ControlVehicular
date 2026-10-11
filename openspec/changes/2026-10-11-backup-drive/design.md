@@ -13,7 +13,7 @@ public class ConfiguracionBackup
     public string NombreBaseDatos { get; set; } = "ControlVehicular";
     public string RutaBackupServer { get; set; } = string.Empty;   // ruta local del servidor (el servicio SQL escribe el .bak)
     public string RutaBackupUNC { get; set; } = string.Empty;      // ruta compartida que lee la app (listar/subir)
-    public string? DriveFolderId { get; set; }                     // carpeta destino en Drive (null = raíz)
+    public string? DriveFolderId { get; set; }                     // carpeta destino en Drive (null = se crea/busca "ControlVehicularBackups")
     public string? UltimaSubidaArchivo { get; set; }               // nombre del último .bak subido
     public DateTime? FechaUltimaSubida { get; set; }
     public DateTime FechaActualizacion { get; set; }
@@ -74,15 +74,18 @@ Implementación `Negocio/Services/BackupConfiguracionService.cs`: usa el reposit
 `Negocio/Interfaces/IDriveBackupService.cs`; implementación `Negocio/Services/DriveBackupService.cs`.
 
 - **Autenticación OAuth** con `GoogleWebAuthorizationBroker.AuthorizeAsync` y scope **`DriveService.Scope.DriveFile`** (`drive.file`: la app solo ve/crea los archivos que ella misma subió → mínimo privilegio; no exige verificación de Google). El `Consent screen` del proyecto de Google Cloud debe estar **publicado**.
-- **Token de refresco por-PC** guardado con **DPAPI** (`System.Security.Cryptography.ProtectedData`) en `%LocalAppData%\TP_ControlVehicular\Drive\token.dat` (implementando un `IDataStore` propio sobre `FileDataStore`). **No** se persiste en la tabla ni en texto plano. `ClientId`/`ClientSecret` van embebidos en el código (no son secretos reales: en apps de escritorio el "secreto" es público por definición).
+- **Credenciales OAuth desde archivo** `credenciales.json` (tipo *Desktop app*, descargado de Google Cloud) leído desde `AppContext.BaseDirectory` con `GoogleClientSecrets.FromStream`; el `.csproj` lo copia a la salida y está **gitignored** (cada PC aporta el suyo). Si falta, el servicio lanza un `InvalidOperationException` explicando dónde colocarlo. El `token` de refresco **no** viaja al repositorio.
+- **Token de refresco por-PC** guardado con **DPAPI** (`System.Security.Cryptography.ProtectedData`) en `%LocalAppData%\TP_ControlVehicular\Drive\token.dat` (implementando un `IDataStore` propio sobre `FileDataStore`). **No** se persiste en la tabla ni en texto plano.
+- **Carpeta destino en Drive**: si `DriveFolderId` está vacío, `ObtenerOCrearCarpetaAsync` busca (`mimeType = folder and name = 'ControlVehicularBackups' and trashed = false`) y, si no existe, **crea** la carpeta y persiste su id con `GuardarAsync` (el scope `drive.file` no ve carpetas ajenas, por eso la app la crea ella misma). Si hay un id configurado, se usa tal cual.
 - `bool TieneCredencialesGuardadas()` — indica si ya hay token para habilitar "Resguardar".
 - `Task<bool> AutenticarAsync(Window owner)` — lanza el flujo interactivo (una sola vez por PC).
 - `Task<DriveUploadResultDto> SubirUltimoAsync()`:
   1. Toma el `.bak` más reciente de `RutaBackupUNC`.
   2. Si `UltimaSubidaArchivo == nombre` **y** `FechaUltimaSubida` es del mismo día → **no sube** (ya resguardado).
-  3. Nombre destino en Drive: `ControlVehicular_YYYYMMDD_FULL.bak` (un archivo por día). Si ya existe en la carpeta destino → lo **sobrescribe** (`Files.Update`); si no → `Files.Create`.
-  4. Al terminar, actualiza `UltimaSubidaArchivo` y `FechaUltimaSubida` vía `IBackupConfiguracionService.GuardarAsync`.
-  5. Devuelve `DriveUploadResultDto { Subido, Archivo, IdDrive, Mensaje }`.
+  3. Resuelve la carpeta destino con `ObtenerOCrearCarpetaAsync` (usa `DriveFolderId`; si está vacío, busca/crea `ControlVehicularBackups` y persiste su id).
+  4. Nombre destino en Drive: `ControlVehicular_YYYYMMDD_FULL.bak` (un archivo por día). Si ya existe en la carpeta destino → lo **sobrescribe** (`Files.Update`); si no → `Files.Create`.
+  5. Al terminar, actualiza `UltimaSubidaArchivo` y `FechaUltimaSubida` vía `IBackupConfiguracionService.RegistrarSubidaAsync`.
+  6. Devuelve `DriveUploadResultDto { Subido, Archivo, IdDrive, Mensaje }`.
 
 ### 5. UI — Dos pantallas
 
@@ -106,7 +109,8 @@ Ambas siguen el patrón de 4 filas/tarjetas de los `Ctl*` existentes (ver `CtlCo
 ### 7. DI y paquetes
 
 - `App.xaml.cs`: registrar `IConfiguracionBackupRepository`, `IBackupConfiguracionService`, `IDatabaseBackupService`, `IDriveBackupService`, `BackupViewModel`, `BackupConfiguracionViewModel`, `CtlBackup`, `CtlBackupConfiguracion` (`AddScoped`/`AddTransient`).
-- `TP_ControlVehicular.csproj`: agregar `Google.Apis.Drive.v3`, `Google.Apis.Auth` y `System.Security.Cryptography.ProtectedData`.
+- `TP_ControlVehicular.csproj`: agregar `Google.Apis.Drive.v3`, `Google.Apis.Auth` y `System.Security.Cryptography.ProtectedData`; e incluir `credenciales.json` (si existe) con `CopyToOutputDirectory = PreserveNewest`.
+- `.gitignore`: ignorar `credenciales.json`, `credentials.json` y `token.json`.
 
 ### 8. Orden de aplicación
 1. Scripts `bd/21` y `bd/22` sobre `ControlVehicular`.

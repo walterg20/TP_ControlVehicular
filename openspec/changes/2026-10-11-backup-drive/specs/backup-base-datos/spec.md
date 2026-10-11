@@ -59,15 +59,23 @@ The system SHALL verify a selected backup by restoring it into an isolated test 
 - **THEN** the failure is reported and no success is shown
 
 ### Requirement: Cloud Resguardo to Google Drive
-The system SHALL upload a backup to Google Drive using the Google Drive API with the `drive.file` (least-privilege) scope. It SHALL upload the most recent `.bak` as `ControlVehicular_YYYYMMDD_FULL.bak`, producing one file per day and overwriting the file when a backup for the same day already exists. The upload SHALL be skipped when the most recent file was already uploaded. The OAuth refresh token SHALL be stored per PC, encrypted with DPAPI, and SHALL NOT be persisted in the database or in plain text.
+The system SHALL upload a backup to Google Drive using the Google Drive API with the `drive.file` (least-privilege) scope. The OAuth client credentials SHALL be read from a `credenciales.json` (Desktop app) file located next to the executable and SHALL NOT be committed to the repository; when the file is missing the operation SHALL fail with a clear message indicating where to place it. The system SHALL resolve the destination folder from the configuration, and when no folder id is configured it SHALL find or create a `ControlVehicularBackups` folder and persist its id. It SHALL upload the most recent `.bak` as `ControlVehicular_YYYYMMDD_FULL.bak`, producing one file per day and overwriting the file when a backup for the same day already exists. The upload SHALL be skipped when the most recent file was already uploaded. The OAuth refresh token SHALL be stored per PC, encrypted with DPAPI, and SHALL NOT be persisted in the database or in plain text.
 
 #### Scenario: First-time authorization
 - **WHEN** an Administrator connects to Google Drive for the first time on a PC
 - **THEN** the interactive OAuth consent runs and an encrypted refresh token is stored locally for that PC
 
+#### Scenario: Missing client credentials file
+- **WHEN** an Administrator connects to Google Drive and `credenciales.json` is not next to the executable
+- **THEN** a clear error indicates that the credentials file was not found and must be placed next to the executable
+
+#### Scenario: Destination folder is created automatically
+- **WHEN** an Administrator triggers **Resguardar en Drive** and no destination folder id is configured
+- **THEN** the system finds or creates the `ControlVehicularBackups` folder in the user's Drive, stores its id, and uploads the backup into it
+
 #### Scenario: Upload the latest backup
 - **WHEN** an Administrator triggers **Resguardar en Drive** and the latest `.bak` has not been uploaded
-- **THEN** the file is uploaded to the configured Drive folder as `ControlVehicular_YYYYMMDD_FULL.bak`
+- **THEN** the file is uploaded to the resolved Drive folder as `ControlVehicular_YYYYMMDD_FULL.bak`
 
 #### Scenario: Same-day re-upload overwrites
 - **WHEN** a backup is uploaded on a day that already has a Drive file for that date
