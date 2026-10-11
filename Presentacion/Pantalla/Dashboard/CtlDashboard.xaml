@@ -6,31 +6,49 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <Style x:Key="BotonActualizarDashboard" TargetType="Button">
+            <Setter Property="Background" Value="#2980B9"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- ENCABEZADO -->
         <Grid Grid.Row="0" Margin="0,0,0,20">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock Text="📊 Dashboard General" FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
-            </StackPanel>
+            <TextBlock Text="📊 Dashboard General" FontSize="22" FontWeight="Bold" Foreground="#2C3E50" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <Button x:Name="btnActualizarDashboard"
+                    Content="🔄 Actualizar"
+                    Command="{Binding CargarDashboardCommand}"
+                    HorizontalAlignment="Right" VerticalAlignment="Center"
+                    Padding="14,8"
+                    Style="{StaticResource BotonActualizarDashboard}"/>
         </Grid>
 
-        <!-- TRES TARJETAS DE RESUMEN (rounded-xl & shadow-md) -->
-        <Grid Grid.Row="1" Margin="0,0,0,24">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- TARJETAS DE RESUMEN (rounded-xl & shadow-md) -->
+        <UniformGrid Grid.Row="1" Rows="1" Columns="{Binding TarjetasResumenVisible}" Margin="0,0,0,24">
 
             <!-- TARJETA 1: Vehículos Activos -->
-            <Border Grid.Column="0" Background="#E8F8F5" CornerRadius="12" Padding="20" Margin="0,0,12,0">
+            <Border Background="#E8F8F5" CornerRadius="12" Padding="20" Margin="6,0">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
                 </Border.Effect>
@@ -40,12 +58,12 @@
                         <TextBlock Text="Vehículos Activos" FontSize="14" FontWeight="Bold" Foreground="#1E8449" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="{Binding VehiculosActivosCount}" FontSize="32" FontWeight="Bold" Foreground="#27AE60"/>
-                    <TextBlock Text="Registrados en el taller" FontSize="11" Foreground="#7D6608" Margin="0,4,0,0"/>
+                    <TextBlock Text="Con orden activa en el taller" FontSize="11" Foreground="#7D6608" Margin="0,4,0,0"/>
                 </StackPanel>
             </Border>
 
             <!-- TARJETA 2: En Proceso -->
-            <Border Grid.Column="1" Background="#FEF9E7" CornerRadius="12" Padding="20" Margin="6,0,6,0">
+            <Border Background="#FEF9E7" CornerRadius="12" Padding="20" Margin="6,0">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
                 </Border.Effect>
@@ -60,7 +78,7 @@
             </Border>
 
             <!-- TARJETA 3: Entregadas Hoy -->
-            <Border Grid.Column="2" Background="#F4ECF7" CornerRadius="12" Padding="20" Margin="12,0,0,0">
+            <Border Background="#F4ECF7" CornerRadius="12" Padding="20" Margin="6,0">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
                 </Border.Effect>
@@ -73,7 +91,23 @@
                     <TextBlock Text="Órdenes finalizadas" FontSize="11" Foreground="#512E5F" Margin="0,4,0,0"/>
                 </StackPanel>
             </Border>
-        </Grid>
+
+            <!-- TARJETA 4: Ingresos del Mes (solo Administrador) -->
+            <Border Background="#EAF2F8" CornerRadius="12" Padding="20" Margin="6,0"
+                    Visibility="{Binding MostrarIngresos, Converter={StaticResource BoolToVis}}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
+                </Border.Effect>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="💰" FontSize="26" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Text="Ingresos del Mes" FontSize="14" FontWeight="Bold" Foreground="#1A5276" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding IngresosMesTotal, StringFormat={}{0:C0}}" FontSize="32" FontWeight="Bold" Foreground="#2874A6"/>
+                    <TextBlock Text="Facturado del mes a la fecha" FontSize="11" Foreground="#1A5276" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
 
         <!-- LISTADO DE VEHÍCULOS EN EL TALLER -->
         <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,20">
