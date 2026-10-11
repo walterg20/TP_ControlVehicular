@@ -104,6 +104,23 @@ namespace TP_ControlVehicular
             grdContenido.Children.Clear();
             _ctlLogin = null;
 
+            // Refrescar caché de branding de empresa
+            try
+            {
+                if (App.ServiceProvider != null)
+                {
+                    var svc = (TP_ControlVehicular.Negocio.Interfaces.IEmpresaConfiguracionService?)App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Negocio.Interfaces.IEmpresaConfiguracionService));
+                    if (svc != null)
+                    {
+                        _ = svc.RefrescarCacheAsync();
+                    }
+                }
+            }
+            catch
+            {
+                // No bloquear el flujo de login
+            }
+
             // Mostrar el menú lateral y restaurar su ancho
             colMenu.Width = new GridLength(240);
             pnlSidebar.Visibility = Visibility.Visible;
@@ -119,11 +136,12 @@ namespace TP_ControlVehicular
             var permisos = UsuarioSesionActual.Permisos;
 
             // Mostrar u ocultar menús según permisos de "Ver"
-            secAdministracion.Visibility = (permisos.Contains("Usuario.Ver") || permisos.Contains("Taller.Ver") || permisos.Contains("Vehiculo.Ver")) ? Visibility.Visible : Visibility.Collapsed;
+            secAdministracion.Visibility = (permisos.Contains("Usuario.Ver") || permisos.Contains("Taller.Ver") || permisos.Contains("Vehiculo.Ver") || permisos.Contains("Configuracion.Empresa.Gestionar")) ? Visibility.Visible : Visibility.Collapsed;
             
             btnUsuario.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnRol.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed; 
             btnTaller.Visibility = permisos.Contains("Taller.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnConfiguracionEmpresa.Visibility = permisos.Contains("Configuracion.Empresa.Gestionar") ? Visibility.Visible : Visibility.Collapsed;
             
             btnCliente.Visibility = permisos.Contains("Cliente.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnVehiculo.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
@@ -236,6 +254,24 @@ namespace TP_ControlVehicular
         {
             ResaltarBotonActivo(sender as Button);
             AgregarPagina(new CtlUsuario());
+        }
+
+        private void MenuItem_Click_ConfiguracionEmpresa(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            if (App.ServiceProvider != null)
+            {
+                var viewCfg = (TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion?)App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion));
+                if (viewCfg != null)
+                {
+                    var vmCfg = (TP_ControlVehicular.Presentacion.ViewModels.EmpresaConfiguracionViewModel?)App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Presentacion.ViewModels.EmpresaConfiguracionViewModel));
+                    if (vmCfg == null)
+                        vmCfg = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<TP_ControlVehicular.Presentacion.ViewModels.EmpresaConfiguracionViewModel>(App.ServiceProvider);
+                    viewCfg.DataContext = vmCfg;
+                    AgregarPagina(viewCfg);
+                    _ = vmCfg.LoadAsync();
+                }
+            }
         }
 
         private void MenuItem_Click_Rol(object sender, RoutedEventArgs e)

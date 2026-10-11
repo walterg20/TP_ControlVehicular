@@ -37,6 +37,10 @@ namespace TP_ControlVehicular.Negocio.Mappers
             CreateMap<Taller, TallerDto>()
                 .ForMember(dest => dest.IdTaller, opt => opt.MapFrom(src => src.Id));
 
+            // ConfiguracionEmpresa -> EmpresaConfiguracionDto
+            CreateMap<ConfiguracionEmpresa, EmpresaConfiguracionDto>()
+                .ForMember(dest => dest.TieneLogo, opt => opt.MapFrom(src => src.Logo != null && src.Logo.Length > 0));
+
                         // Permiso -> PermisoDto
             CreateMap<Permiso, PermisoDto>()
                 .ForMember(dest => dest.Asignado, opt => opt.Ignore());

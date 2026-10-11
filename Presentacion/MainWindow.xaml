@@ -141,6 +141,16 @@
                         </Button.Resources>
                     </Button>
 
+                    <!-- Botón Configuración de Empresa -->
+                    <Button x:Name="btnConfiguracionEmpresa" Content="🏢 Configuración de Empresa" Click="MenuItem_Click_ConfiguracionEmpresa" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" Visibility="Collapsed">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
                     <!-- ESPACIADOR -->
                     <Separator x:Name="sepReportes" Background="#34495E" Margin="0,15"/>
 

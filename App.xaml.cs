@@ -146,6 +146,13 @@ namespace TP_ControlVehicular
             services.AddScoped<OrdenServicioViewModel>();
             services.AddScoped<MisTareasViewModel>();
             services.AddScoped<MisTrabajosViewModel>();
+            services.AddScoped<EmpresaConfiguracionViewModel>();
+
+            // Repositorios de configuracion
+            services.AddScoped<IConfiguracionEmpresaRepository, ConfiguracionEmpresaRepository>();
+
+            // Servicios de negocio
+            services.AddScoped<IEmpresaConfiguracionService, EmpresaConfiguracionService>();
 
             // UserControls & Windows
             services.AddScoped<CtlCliente>();
@@ -159,6 +166,7 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlDashboard>();
             services.AddScoped<CtlReporteOrdenes>();
             services.AddScoped<CtlServicio>();
+            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion>();
             services.AddTransient<FrmServicio>();
             services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();
             services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm>();

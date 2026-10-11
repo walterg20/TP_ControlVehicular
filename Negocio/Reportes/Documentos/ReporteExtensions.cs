@@ -36,9 +36,9 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                 // Datos de la empresa al medio
                 row.RelativeItem().Column(col =>
                 {
-                    col.Item().Text("TALLER PRO").FontSize(24).SemiBold().FontColor(Colors.Blue.Darken2);
-                    col.Item().Text("Ruta Nacional 11 Km 1005 - Resistencia, Chaco").FontSize(10).FontColor(Colors.Grey.Darken1);
-                    col.Item().Text("Tel: +54 362 4123456 | Email: contacto@taller.com").FontSize(10).FontColor(Colors.Grey.Darken1);
+                    col.Item().Text(EmpresaBranding.Nombre).FontSize(24).SemiBold().FontColor(Colors.Blue.Darken2);
+                    col.Item().Text(EmpresaBranding.Direccion).FontSize(10).FontColor(Colors.Grey.Darken1);
+                    col.Item().Text($"Tel: {EmpresaBranding.Telefono} | Email: {EmpresaBranding.Email}").FontSize(10).FontColor(Colors.Grey.Darken1);
                 });
 
                 // Titulo del reporte a la derecha
