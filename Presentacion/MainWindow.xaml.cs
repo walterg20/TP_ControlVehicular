@@ -136,12 +136,16 @@ namespace TP_ControlVehicular
             var permisos = UsuarioSesionActual.Permisos;
 
             // Mostrar u ocultar menús según permisos de "Ver"
-            secAdministracion.Visibility = (permisos.Contains("Usuario.Ver") || permisos.Contains("Taller.Ver") || permisos.Contains("Vehiculo.Ver") || permisos.Contains("Configuracion.Empresa.Gestionar")) ? Visibility.Visible : Visibility.Collapsed;
+            secAdministracion.Visibility = (permisos.Contains("Usuario.Ver") || permisos.Contains("Taller.Ver") || permisos.Contains("Vehiculo.Ver") || permisos.Contains("Configuracion.Empresa.Gestionar") || permisos.Contains("Configuracion.Backup.Gestionar")) ? Visibility.Visible : Visibility.Collapsed;
             
             btnUsuario.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnRol.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed; 
             btnTaller.Visibility = permisos.Contains("Taller.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnConfiguracionEmpresa.Visibility = permisos.Contains("Configuracion.Empresa.Gestionar") ? Visibility.Visible : Visibility.Collapsed;
+
+            bool gestionaBackup = permisos.Contains("Configuracion.Backup.Gestionar");
+            btnBackup.Visibility = gestionaBackup ? Visibility.Visible : Visibility.Collapsed;
+            btnBackupConfiguracion.Visibility = gestionaBackup ? Visibility.Visible : Visibility.Collapsed;
             
             btnCliente.Visibility = permisos.Contains("Cliente.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnVehiculo.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
@@ -274,6 +278,32 @@ namespace TP_ControlVehicular
             }
         }
 
+        private void MenuItem_Click_Backup(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            if (App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup)) is TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup());
+            }
+        }
+
+        private void MenuItem_Click_BackupConfiguracion(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            if (App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion)) is TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion());
+            }
+        }
+
         private void MenuItem_Click_Rol(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
@@ -346,6 +376,8 @@ namespace TP_ControlVehicular
             btnReporteGerencial.Background = transparente; btnReporteGerencial.FontWeight = normalWeight;
             btnReporteOperativo.Background = transparente; btnReporteOperativo.FontWeight = normalWeight;
             btnMisTrabajos.Background = transparente; btnMisTrabajos.FontWeight = normalWeight;
+            btnBackup.Background = transparente; btnBackup.FontWeight = normalWeight;
+            btnBackupConfiguracion.Background = transparente; btnBackupConfiguracion.FontWeight = normalWeight;
 
             var colorAzul = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2980B9");
             botonActivo.Background = new System.Windows.Media.SolidColorBrush(colorAzul);

@@ -151,6 +151,26 @@
                         </Button.Resources>
                     </Button>
 
+                    <!-- Botón Respaldos de Base de Datos -->
+                    <Button x:Name="btnBackup" Content="💾 Respaldos" Click="MenuItem_Click_Backup" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" Visibility="Collapsed">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <!-- Botón Configuración de Respaldos -->
+                    <Button x:Name="btnBackupConfiguracion" Content="🗄️ Configuración de Respaldos" Click="MenuItem_Click_BackupConfiguracion" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" Visibility="Collapsed">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
                     <!-- ESPACIADOR -->
                     <Separator x:Name="sepReportes" Background="#34495E" Margin="0,15"/>
 
