@@ -102,6 +102,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 
 ## Flujo de trabajo
 - **Ramas por Spec**: para cada spec (feature) crear una rama (`git checkout -b feature/<nombre>`), trabajar ahí hasta terminar y luego fusionar.
+- **Commitear en la rama feature, nunca en `develop`**: la implementación se confirma en `feature/<nombre>`. Si el editor/IDE auto-commitea cambios directamente en `develop`, la rama feature queda "no mergeada" y `git branch -d` se niega a borrarla; hay que mergear igual para poder limpiarla.
 - **Uso de `MEMORY.md`**:
   - Al INICIAR una tarea: leer `MEMORY.md` como pista y contrastarlo con `git log -n 10` y `git status`. Si discrepan, el repositorio gana y se corrige `MEMORY.md`.
   - Al CERRAR una spec (antes del merge): actualizar `MEMORY.md` con las nuevas convenciones, reglas, scripts SQL, permisos y decisiones, y commitearlo junto con la spec (`docs(memory): ...`).

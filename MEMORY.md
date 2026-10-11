@@ -7,11 +7,12 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 
 ## Estado actual (verificar con `git`)
 - Rama de trabajo: `develop`.
-- Últimas specs archivadas y mergeadas: `reporte-gerencial-mejoras`, `dashboard-por-perfil`.
-- Changes OpenSpec sin archivar (cerradas, pendientes de archivar): `custom-alert-dialogs`, `custom-confirmation-dialog`, `fix-taller-abm`, `orden-servicio-ux-mejorada`, `show-all-users`.
+- Últimas specs archivadas y mergeadas: `reporte-gerencial-mejoras`, `dashboard-por-perfil`, `mis-trabajos-master-detail`, `reporte-operativo-productividad-mecanicos`, `custom-alert-dialogs`, `custom-confirmation-dialog`, `fix-taller-abm`, `orden-servicio-ux-mejorada`, `show-all-users`.
+- Change OpenSpec sin archivar: `logo-empresa` (artefactos y código ya en `develop`; pendiente archivar el change).
 
 ## Flujo (detalle en `AGENTS.md`)
 - Rama por spec (`feature/<nombre>`); OpenSpec en inglés antes de tocar código.
+- **Commitear SIEMPRE en la rama `feature/<nombre>`, nunca directamente en `develop`.** Si el editor/IDE auto-commitea la implementación en `develop` (en vez de la feature), la rama queda "no mergeada" y `git branch -d` se niega a borrarla; hay que mergear igual para poder limpiarla.
 - Bitácoras/planes en `docs/plan/AAAA-MM-DD_<spec>.md` (español).
 - Cerrar spec: merge → archivar change → actualizar `MEMORY.md` → commit `docs(memory): ...`.
 - Verificación obligatoria: `dotnet build "TP_ControlVehicular.slnx"` sin errores.
