@@ -2,6 +2,8 @@
 
 Mecanismo de respaldo, verificación y resguardo en la nube. Se enlaza desde `AGENTS.md` → *Referencia por dominio*.
 
+> **Puesta en marcha paso a paso**: ver `docs/referencia/backup-configuracion.md` (mini tutorial: requisitos, Google Cloud, rutas y prueba del flujo).
+
 ## Objetivo y alcance
 - Despliegue objetivo: **2 PCs de un taller contra una base SQL Server central** (sin LocalDB).
 - Esta fase cubre **solo la configuración de la app** para: hacer backup → probarlo (restore) → resguardarlo en Google Drive.
