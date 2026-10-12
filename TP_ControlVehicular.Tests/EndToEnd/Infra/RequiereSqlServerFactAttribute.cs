@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace TP_ControlVehicular.Tests.EndToEnd.Infra

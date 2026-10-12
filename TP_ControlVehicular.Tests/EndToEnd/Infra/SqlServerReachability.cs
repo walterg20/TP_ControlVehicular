@@ -7,6 +7,7 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
     {
         public static bool TryConnect(string connectionString, out Exception? exception)
         {
+            exception = null;
             try
             {
                 using var conn = new SqlConnection(connectionString);

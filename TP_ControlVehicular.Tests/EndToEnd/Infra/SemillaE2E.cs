@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
+using TP_ControlVehicular.Negocio.Context;
 
 namespace TP_ControlVehicular.Tests.EndToEnd.Infra
 {
@@ -26,13 +27,14 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
 
             var cliente = new Cliente
             {
-                Dni = $"TEST{marker.GetHashCode():X}",
-                Nombre = $"Cliente {marker}",
-                Apellido = "Test",
+                Dni = MarcadorE2E.DniCliente(marker),
+                Nombre = MarcadorE2E.NombreCliente(marker),
+                Apellido = "E2E",
+                Direccion = "Dir E2E",
                 Telefono = "123456789",
-                Email = $"test{marker}@local",
+                Email = $"cli{MarcadorE2E.Token(marker)}@e2e.local",
                 FechaNacimiento = new DateTime(1990, 1, 1),
-                Observaciones = marker
+                Activo = true
             };
             await ctx.Clientes.AddAsync(cliente);
             await ctx.SaveChangesAsync();
@@ -41,10 +43,10 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
             var modelo = await ctx.Modelos.FirstOrDefaultAsync(m => m.MarcaId == marca!.Id);
             var vehiculo = new Vehiculo
             {
-                Patente = $"AAA{marker.GetHashCode():X}".Substring(0, 6),
+                Patente = MarcadorE2E.PatenteVehiculo(marker),
                 Anio = 2020,
                 ModeloId = modelo!.Id,
-                Observaciones = marker
+                KmActual = 1000
             };
             await ctx.Vehiculos.AddAsync(vehiculo);
             await ctx.SaveChangesAsync();
@@ -54,8 +56,8 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
                 VehiculoId = vehiculo.Id,
                 ClienteId = cliente.Id,
                 EsActual = true,
-                FechaDesde = now,
-                Observaciones = marker
+                FechaAdquisicion = now,
+                FechaVenta = null
             };
             await ctx.PropietariosVehiculos.AddAsync(propietario);
             await ctx.SaveChangesAsync();
@@ -63,7 +65,13 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
             var taller = await ctx.Talleres.FirstOrDefaultAsync();
             if (taller == null)
             {
-                taller = new Taller { Nombre = $"Taller {marker}", Direccion = "Dir", Telefono = "123", Observaciones = marker, Activo = true };
+                taller = new Taller
+                {
+                    Nombre = MarcadorE2E.NombreTaller(marker),
+                    Direccion = "Dir E2E",
+                    Telefono = "123456",
+                    Activo = true
+                };
                 await ctx.Talleres.AddAsync(taller);
                 await ctx.SaveChangesAsync();
             }
@@ -72,7 +80,16 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
             var mecanico = await ctx.Usuarios.FirstOrDefaultAsync(u => u.RolId == (int)RolesSistema.Mecanico);
             if (mecanico == null)
             {
-                mecanico = new Usuario { Dni = $"MEC{marker.GetHashCode():X}", Nombre = "Mec", Apellido = "Test", Contrasena = "123", RolId = (int)RolesSistema.Mecanico, Activo = true, Observaciones = marker };
+                mecanico = new Usuario
+                {
+                    Dni = MarcadorE2E.DniUsuario(marker),
+                    Nombre = "Mec",
+                    Apellido = MarcadorE2E.ApellidoUsuario(marker),
+                    Email = MarcadorE2E.EmailUsuario(marker),
+                    Contrasena = "123",
+                    RolId = (int)RolesSistema.Mecanico,
+                    Estado = true
+                };
                 await ctx.Usuarios.AddAsync(mecanico);
                 await ctx.SaveChangesAsync();
             }
@@ -85,8 +102,7 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
                 UsuarioId = recepcionista!.Id,
                 Fecha = now,
                 KmIngreso = 1000,
-                Estado = RegistroServicio.EstadoEnProceso,
-                Observaciones = marker
+                Estado = RegistroServicio.EstadoEnProceso
             };
             await ctx.RegistroServicios.AddAsync(registro);
             await ctx.SaveChangesAsync();
@@ -101,7 +117,7 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
                 OrdenEjecucion = 1,
                 Origen = "Taller",
                 Estado = DetalleServicio.EstadoEnCurso,
-                Observaciones = marker
+                Observaciones = MarcadorE2E.ObservacionesDetalle(marker)
             };
             await ctx.DetalleServicios.AddAsync(detalle);
             await ctx.SaveChangesAsync();
