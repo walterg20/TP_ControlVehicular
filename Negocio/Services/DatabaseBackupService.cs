@@ -36,7 +36,7 @@ namespace TP_ControlVehicular.Negocio.Services
             await using var conexion = new SqlConnection(_connectionString);
             await conexion.OpenAsync();
 
-            var sqlBackup = $"BACKUP DATABASE [{nombreBase}] TO DISK = N'{Escapar(rutaCompleta)}' WITH INIT, COMPRESSION, CHECKSUM, STATS = 10;";
+            var sqlBackup = $"BACKUP DATABASE [{nombreBase}] TO DISK = N'{Escapar(rutaCompleta)}' WITH INIT, CHECKSUM, STATS = 10;";
             await using (var comando = new SqlCommand(sqlBackup, conexion) { CommandTimeout = 0 })
             {
                 await comando.ExecuteNonQueryAsync();

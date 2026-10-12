@@ -34,7 +34,8 @@ Mecanismo de respaldo, verificación y resguardo en la nube. Se enlaza desde `AG
 - La app lista/sube leyendo `RutaBackupUNC`. Si la app no puede leer el tamaño del `.bak` → `LeerTamanoSiAccesible` con try/catch.
 
 ### Hacer backup
-- `BACKUP DATABASE [..] TO DISK=@r WITH INIT, COMPRESSION, CHECKSUM, STATS=10;` + `RESTORE VERIFYONLY`.
+- `BACKUP DATABASE [..] TO DISK=@r WITH INIT, CHECKSUM, STATS=10;` + `RESTORE VERIFYONLY`.
+- **Sin `WITH COMPRESSION`**: SQL Server **Express no soporta** compresión de backup (feature Standard/Enterprise); la sentencia aborta con *"BACKUP DATABASE WITH COMPRESSION is not supported on Express Edition"*.
 - Naming: `ControlVehicular_YYYYMMDD_HHMMSS_FULL.bak`.
 
 ### Probar backup (restore a prueba)

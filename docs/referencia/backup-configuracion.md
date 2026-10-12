@@ -61,16 +61,77 @@ Resultado esperado: tabla `dbo.ConfiguracionBackup` con 1 fila y, en `Permisos`,
 El `BACKUP` lo escribe **el servicio SQL**, por lo que la ruta es **del servidor** (absoluta, local
 al servidor). La app necesita además una ruta **UNC** (`\\SERVIDOR\...`) para listar y subir los `.bak`.
 
-1. En el servidor, crear la carpeta de backups, por ejemplo:
-   `C:\Backups`
-2. Dar permiso de escritura al **servicio de SQL Server** (por lo general la cuenta
-   `NT SERVICE\MSSQL$SQLEXPRESS2019`) sobre esa carpeta.
-3. **Compartir** la carpeta en red y verificar que las PCs la alcanzan:
-   `\\NOMBRESERVIDOR\Backups`
+> ⚠️ **Primero crear la carpeta, después otorgar permisos.** Si se ejecuta `icacls` sobre una ruta que
+> no existe, falla con un mensaje engañoso — `C:\$Recycle.Bin\S-1-5-18\*: Acceso denegado` — que **no**
+> describe el problema real: la ruta es incorrecta o todavía no fue creada.
+
+### 4.1 Identificar la cuenta del servicio SQL
+
+La cuenta que escribe el `.bak` es la del **servicio** de la instancia (no la del usuario de la app).
+Consultarla con PowerShell **como Administrador**:
+
+```powershell
+Get-CimInstance Win32_Service -Filter "Name='MSSQL`$SQLEXPRESS2019'" |
+    Select-Object Name, State, StartName
+```
+
+Resultado típico (cuenta virtual por instancia):
+
+```
+Name                    State   StartName
+----                    -----   ---------
+MSSQL$SQLEXPRESS2019    Running NT Service\MSSQL$SQLEXPRESS2019
+```
+
+> Si el servicio corre con otra cuenta (p. ej. `NT AUTHORITY\NETWORK SERVICE`, `LocalSystem` o un
+> usuario de dominio), otorgar el permiso **a esa** cuenta. Alternativa equivalente: el grupo
+> `SQLServerMSSQLUser$<EQUIPO>$SQLEXPRESS2019` que crea el Setup.
+
+### 4.2 Crear la carpeta y darle permiso de escritura al servicio SQL
+
+1. En el servidor, crear la carpeta de backups (por ejemplo `D:\Backups`):
+
+   ```powershell
+   New-Item -ItemType Directory -Path "D:\Backups" -Force
+   ```
+
+2. Otorgar permiso **NTFS Modify** (lectura + escritura) a la cuenta del servicio SQL:
+
+   ```powershell
+   icacls "D:\Backups" /grant 'NT SERVICE\MSSQL$SQLEXPRESS2019:(OI)(CI)M'
+   ```
+
+   - `(OI)(CI)` = hereda a archivos y subcarpetas · `M` = **Modify**.
+   - Usar **comillas simples** para que PowerShell no interprete `$SQLEXPRESS2019` como variable.
+   - Agregar `/T` **solo** si la carpeta ya contiene `.bak` con permisos restrictivos (recursivo).
+
+3. Verificar:
+
+   ```powershell
+   icacls "D:\Backups"
+   ```
+
+   Debe figurar una línea con `NT SERVICE\MSSQL$SQLEXPRESS2019:(OI)(CI)(M)`.
+
+> **NTFS ≠ Share.** Son dos permisos distintos y pueden fallar por separado:
+> - **NTFS** → permite que el *servicio SQL* **escriba** el `.bak`.
+> - **Share (SMB)** → permite que las *PCs* **lean** por la ruta UNC.
+>
+> El error típico `Operating system error 5 (Access denied)` en el `BACKUP` es falta de permiso NTFS.
+
+### 4.3 Compartir la carpeta en red (ruta UNC)
+
+1. **Compartir** la carpeta en red con permiso de lectura:
+
+   ```powershell
+   New-SmbShare -Name "Backups" -Path "D:\Backups" -ReadAccess "WALTERG20\Usuarios"
+   ```
+
+2. Verificar que las PCs la alcanzan: `\\NOMBRESERVIDOR\Backups`
    - La cuenta de Windows que usa la app en cada PC debe poder **leer** esa compartición.
 
 > **Rutas de ejemplo**
-> - Ruta en el servidor (para el `BACKUP`): `C:\Backups`
+> - Ruta en el servidor (para el `BACKUP`): `D:\Backups`
 > - Ruta compartida UNC (que lee la app): `\\NOMBRESERVIDOR\Backups`
 
 ---
@@ -136,7 +197,7 @@ avisa que no encontró `credenciales.json`.
    | Campo | Qué poner | Ejemplo |
    |---|---|---|
    | **Base de datos** | Nombre de la base a respaldar. | `ControlVehicular` |
-   | **Ruta en el servidor** | Ruta **absoluta del servidor** donde el servicio SQL escribe el `.bak`. | `C:\Backups` |
+   | **Ruta en el servidor** | Ruta **absoluta del servidor** donde el servicio SQL escribe el `.bak`. | `D:\Backups` |
    | **Ruta compartida** | Ruta **UNC** que lee la app para listar/subir. | `\\NOMBRESERVIDOR\Backups` |
    | **Carpeta en Drive (opcional)** | **Dejar vacío**: la app crea/busca sola la carpeta `ControlVehicularBackups`. Solo poner un Id si se quiere forzar otra carpeta. | *(vacío)* |
    | **Google Drive** | Botón **🔗 Conectar con Google Drive**. | — |
@@ -209,6 +270,8 @@ carpeta de salida del ejecutable (`AppContext.BaseDirectory`).
 | "Debe configurar la Ruta de Backup del servidor..." | El campo **Ruta en el servidor** está vacío: guardar la configuración. |
 | El listado está vacío | La **Ruta compartida (UNC)** no existe o la PC no tiene permiso de lectura sobre la compartición. |
 | Error al hacer backup | La cuenta de conexión no tiene permiso `BACKUP DATABASE`, o el servicio SQL no puede escribir en la carpeta (permiso NTFS). |
+| *"BACKUP DATABASE WITH COMPRESSION is not supported on Express Edition (64-bit)"* | La opción `COMPRESSION` no existe en **SQL Server Express** (solo Standard/Enterprise). La app ya no la usa; si el error aparece, la base es otra versión de la app o se copió la sentencia a mano. Ver §4 en `docs/referencia/backup.md`. |
+| `icacls` responde `C:\$Recycle.Bin\S-1-5-18\*: Acceso denegado` | La ruta pasada a `icacls` **no existe** (o está mal escrita). Crear primero la carpeta y recién después otorgar el permiso (ver §4.2). |
 | La prueba (restore) falla | Falta permiso `dbcreator`/creación de base, o el `.bak` no es accesible desde el servidor. |
 | "Debe conectar con Google Drive antes de resguardar" | No se hizo **Conectar con Google Drive** (falta §6), o no existe `credenciales.json` junto al ejecutable (falta §5.3). |
 | "No se encontró el archivo de credenciales... credenciales.json" | El JSON de Google Cloud no está junto al ejecutable (o con el nombre correcto). Ver §5.3. |
