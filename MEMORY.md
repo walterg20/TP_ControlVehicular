@@ -7,11 +7,12 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 
 ## Estado actual (verificar con `git`)
 - Rama de trabajo: `develop`.
-- Últimas specs archivadas y mergeadas: `reporte-gerencial-mejoras`, `dashboard-por-perfil`, `mis-trabajos-master-detail`, `reporte-operativo-productividad-mecanicos`, `custom-alert-dialogs`, `custom-confirmation-dialog`, `fix-taller-abm`, `orden-servicio-ux-mejorada`, `show-all-users`.
-- Change OpenSpec sin archivar: `logo-empresa` (artefactos y código ya en `develop`; pendiente archivar el change).
-- Change OpenSpec en curso (rama `feature/backup-drive`, commits B1-B7, pendiente merge/archivar): `2026-10-11-backup-drive` (capability `backup-base-datos`). Dominio en `docs/referencia/backup.md`; plan en `docs/historico/plan/2026-10-11_backup-drive.md`.
-- Change OpenSpec en curso (rama `feature/manuales-usuario-tecnico`, **apilada sobre `feature/backup-drive` aún sin mergear**): `2026-10-11-manuales-usuario-tecnico` (capability `manuales-documentacion`). Entrega `docs/manuales/{README.md, manual_usuario_roles.md, manual_tecnico_administracion.md}` con marcadores de captura en `assets/roles/` y `assets/tecnico/` (las `.png` las agrega el usuario). Plan en `docs/historico/plan/2026-10-11_manuales-usuario-tecnico.md`.
-- Change OpenSpec en curso (rama `feature/reorganizacion-bd`): `2026-10-12-reorganizacion-bd` (capability `esquema-base-datos`). Consolida `bd/` en scripts **canónicos por tipo** (`01_estructura.sql`, `02_procedimientos.sql`, `03_triggers.sql`, `04_datos.sql`, `05_utilidades_test.sql`) y compacta `docs/` (DER/ERS finales; versiones 1 y material de trabajo en `docs/historico/`). Plan en `docs/plan/2026-10-12_reorganizacion-bd.md`.
+- Últimas specs archivadas y mergeadas: `reporte-gerencial-mejoras`, `dashboard-por-perfil`, `mis-trabajos-master-detail`, `reporte-operativo-productividad-mecanicos`, `custom-alert-dialogs`, `custom-confirmation-dialog`, `fix-taller-abm`, `orden-servicio-ux-mejorada`, `show-all-users`, `2026-10-12-reorganizacion-bd`.
+- Changes OpenSpec **ya mergeados en `develop` pero aún sin archivar** (artefactos y código presentes en la rama):
+  - `logo-empresa`.
+  - `2026-10-11-backup-drive` (capability `backup-base-datos`). Dominio en `docs/referencia/backup.md`; plan en `docs/historico/plan/2026-10-11_backup-drive.md`.
+  - `2026-10-11-manuales-usuario-tecnico` (capability `manuales-documentacion`). Entrega `docs/manuales/{README.md, manual_usuario_roles.md, manual_tecnico_administracion.md}` con marcadores de captura (las `.png` las agrega el usuario). Plan en `docs/historico/plan/2026-10-11_manuales-usuario-tecnico.md`.
+- Change cerrado (rama `feature/reorganizacion-bd`, mergeada con `--no-ff` y archivado): `2026-10-12-reorganizacion-bd` (capability `esquema-base-datos`). Consolida `bd/` en scripts **canónicos por tipo** (`01_estructura.sql`, `02_procedimientos.sql`, `03_triggers.sql`, `04_datos.sql`, `05_utilidades_test.sql` + `README.md`) y compacta `docs/` (DER/ERS finales; versiones 1 y material de trabajo en `docs/historico/`). Plan/bitácora en `docs/plan/2026-10-12_reorganizacion-bd.md`.
 
 ## Flujo (detalle en `AGENTS.md`)
 - Rama por spec (`feature/<nombre>`); OpenSpec en inglés antes de tocar código.
