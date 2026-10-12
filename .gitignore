@@ -372,8 +372,7 @@ FodyWeavers.xsd
 docs/referencia/flujo_arquitectura_login.drawio
 docs/referencia/README_FLUJO_ARQUITECTURA.md
 
-# Proyecto de pruebas ignorado
-TP_ControlVehicular.Tests/
+# Proyecto de pruebas versionado (ViewModels/EndToEnd/Unit incluidos; bin/obj se ignoran por las reglas globales)
 /appsettings.json
 
 .codegraph/
