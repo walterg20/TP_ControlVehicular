@@ -16,9 +16,9 @@
 - [x] `EndToEnd/Infra/LimpiezaE2E.cs` — FK-safe cleanup of rows tagged with run marker.
 
 ## Task 3: Unit tests (L1) — HandlersUnitTests
-- [ ] Create `Unit/HandlersUnitTests.cs` covering: `AutenticarUsuarioHandler` success and failures (`UsuarioNoEncontrado`, `UsuarioInactivo`, `ContrasenaIncorrecta`) with real AutoMapper and mocked repos.
-- [ ] `EmpresaConfiguracionService` — returns default when repo returns null (unit level).
-- [ ] Additional handler success/failure cases as needed (e.g. `ListarTareasPorEspecialistaHandler` filtering) using mocks.
+- [x] Create `Unit/HandlersUnitTests.cs` covering: `AutenticarUsuarioHandler` success and failures (`UsuarioNoEncontrado`, `UsuarioInactivo`, `ContrasenaIncorrecta`) with real AutoMapper and mocked repos.
+- [x] `EmpresaConfiguracionService` — returns default when repo returns null (unit level).
+- [x] Additional handler success/failure cases as needed: `RegistrarUsuarioHandler` / `ModificarUsuarioHandler` (recarga con Rol y fallback a la entidad original) using mocks.
 
 ## Task 4: End-to-end suites
 - [ ] `EndToEnd/Cobertura/RbacPorRolE2ETests.cs` — verify Admin/Recepcionista/Mecánico capabilities via `AplicarRestriccionesPorRol` + reflection (align with existing RbacTests). Unknown user case.
