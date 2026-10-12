@@ -160,15 +160,44 @@ namespace TP_ControlVehicular.Negocio.Services
                 _dataStore);
         }
 
-        // Resuelve la carpeta destino en Drive: usa la configurada si existe; si no,
-        // busca o crea "ControlVehicularBackups" y persiste su id en la configuración.
+        // Resuelve la carpeta destino en Drive: usa la configurada si todavía existe; si no,
+        // busca o crea "ControlVehicularBackups" y persiste su id real en la configuración.
         private async Task<string?> ObtenerOCrearCarpetaAsync(DriveService servicio, BackupConfiguracionDto config)
         {
             var carpetaId = string.IsNullOrWhiteSpace(config.DriveFolderId) ? null : config.DriveFolderId.Trim();
 
-            if (!string.IsNullOrEmpty(carpetaId))
+            if (!string.IsNullOrEmpty(carpetaId) && await EsCarpetaValidaAsync(servicio, carpetaId))
                 return carpetaId;
 
+            // El Id configurado ya no existe o no es una carpeta (p. ej. se escribió el
+            // nombre en vez del Id): se re-resuelve la carpeta y se persiste el Id real.
+            return await BuscarOCrearCarpetaAsync(servicio, config);
+        }
+
+        // Valida que un Id de Drive siga existiendo y sea una carpeta.
+        private static async Task<bool> EsCarpetaValidaAsync(DriveService servicio, string carpetaId)
+        {
+            try
+            {
+                var peticion = servicio.Files.Get(carpetaId);
+                peticion.Fields = "id, mimeType";
+                var archivo = await peticion.ExecuteAsync();
+
+                return string.Equals(
+                    archivo?.MimeType,
+                    "application/vnd.google-apps.folder",
+                    StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Google.GoogleApiException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                // La carpeta se eliminó en Drive o pertenece a otra cuenta: Id obsoleto.
+                return false;
+            }
+        }
+
+        // Busca la carpeta "ControlVehicularBackups" por nombre o la crea; persiste su Id.
+        private async Task<string> BuscarOCrearCarpetaAsync(DriveService servicio, BackupConfiguracionDto config)
+        {
             var consulta =
                 $"mimeType = 'application/vnd.google-apps.folder' and name = '{Escapar(NombreCarpetaDrive)}' and trashed = false";
 

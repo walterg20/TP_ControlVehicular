@@ -109,7 +109,7 @@
                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Carpeta en Drive (opcional):" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,8,0,8"/>
                     <StackPanel Grid.Row="3" Grid.Column="1" Margin="0,8,0,8">
                         <TextBox Text="{Binding DriveFolderId, UpdateSourceTrigger=LostFocus}" Height="30"/>
-                        <TextBlock Text="Id de la carpeta de Drive donde se subirán los respaldos. Si se deja vacío, se usa la raíz del Drive." FontSize="11" Foreground="#7F8C8D" Margin="0,4,0,0"/>
+                        <TextBlock Text="Solo el Id de la carpeta (no el nombre). Déjela vacía para que la app cree/busque la carpeta ControlVehicularBackups automáticamente." FontSize="11" Foreground="#7F8C8D" Margin="0,4,0,0"/>
                     </StackPanel>
 
                     <!-- Conexión con Drive -->

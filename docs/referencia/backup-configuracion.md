@@ -277,6 +277,7 @@ carpeta de salida del ejecutable (`AppContext.BaseDirectory`).
 | "No se encontró el archivo de credenciales... credenciales.json" | El JSON de Google Cloud no está junto al ejecutable (o con el nombre correcto). Ver §5.3. |
 | Se pide reconectar a Google cada semana | La pantalla de consentimiento está en **Testing**; publicarla (**In production**) para tokens duraderos. |
 | Error de tipo "acceso denegado" al subir a Drive | El scope `drive.file` solo permite ver/administrar archivos creados por la app. La carpeta destino debe ser accesible por la cuenta conectada (dejar el campo vacío para que la app cree `ControlVehicularBackups`). |
+| *"The service drive has thrown an exception HttpStatusCode in NotFound. File not found"* al resguardar | El campo **Carpeta en Drive** tiene el **nombre** de la carpeta en vez de su **Id** (o el Id quedó obsoleto: carpeta borrada en Drive / otra cuenta). Dejar el campo **vacío** y guardar: la app re-resuelve y persiste el Id real automáticamente. La app ya **valida** el Id guardado y se autocorrige en la siguiente subida. |
 
 ---
 
