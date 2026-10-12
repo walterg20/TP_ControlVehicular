@@ -286,7 +286,7 @@ Si `Test-NetConnection` falla: revisar servicio SQL iniciado, TCP/IP habilitado,
 
 ### 3.1 Creación de la base de datos
 
-Los scripts de `bd/` son **idempotentes**: se pueden ejecutar varias veces sin duplicar objetos ni datos. El orden de aplicación es **estricto** (`01` → `22`). Se ejecutan sobre la base `ControlVehicular` desde **SQL Server Management Studio (SSMS)** o `sqlcmd`.
+Los scripts de `bd/` son **idempotentes**: se pueden ejecutar varias veces sin duplicar objetos ni datos. El orden de aplicación es **estricto** (`01` → `05`). Se ejecutan sobre la base `ControlVehicular` desde **SQL Server Management Studio (SSMS)** o `sqlcmd`.
 
 ```sql
 -- Crear la base (si no existe) y seleccionarla
@@ -299,45 +299,21 @@ GO
 
 ### 3.2 Orden de ejecución de scripts (`bd/`)
 
+`bd/` está **consolidado por tipo**: cuatro scripts canónicos de esquema/datos más una utilidad de desarrollo. La numeración refleja el orden de aplicación.
+
 | # | Script | Propósito |
 |---|---|---|
-| 1 | `01_Estructura.sql` | Esquema base: tablas `Cliente`, `Marca`, `Modelo`, `Vehiculo`, `Roles`, `Usuarios`, `Taller`, `Servicio`, `RegistroServicio`, `DetalleServicio`, índices y claves. |
-| 2 | `02_Datos.sql` | Datos semilla: roles, usuarios, catálogos (marcas/modelos/servicios), clientes y vehículos de ejemplo. |
-| 3 | `02_StoredProcedures_Reportes.sql` | Procedimientos almacenados de reportes base. |
-| 4 | `03_CreateTable_Facturas.sql` | Tabla `Factura` (facturación). |
-| 5 | `04_schema_billing.sql` | Esquema de cobro: `Pago`, `MetodoPago` y relaciones. |
-| 6 | `05_WorkflowOrdenesServicio.sql` | Workflow de órdenes: estados canónicos y trigger `TR_DetalleServicio_BloquearModificacionFinalizada`. |
-| 7 | `06_Migraciones_Manuales.sql` | Migraciones manuales de estructura. |
-| 8 | `07_Reportes_Administrador.sql` | Reportes del perfil Administrador. |
-| 9 | `08_Migracion_PropietarioVehiculo.sql` | Tabla `PropietarioVehiculo`. |
-| 10 | `09_PermisosAvanzados.sql` | Tablas `Permisos` y `RolPermisos` + permisos avanzados. |
-| 11 | `10_ConfiguracionPermisosRecepcionMecanico.sql` | Configuración de permisos para Recepción y Mecánico. |
-| 12 | `11_SP_ReportesMecanico.sql` | SP de reportes del mecánico. |
-| 13 | `12_PermisosReportesPorRol.sql` | Permisos `Reporte.*.Ver` por rol. |
-| 14 | `13_SP_ReporteProductividadMecanicos.sql` | `sp_ReporteProductividadMecanicos` (Reporte Operativo, por tarea). |
-| 15 | `14_Fix_ReporteOperativo.sql` | Correcciones del Reporte Operativo. |
-| 16 | `15_Limpieza_Artefactos_TestE2E.sql` | Purga idempotente y FK-safe de artefactos de test E2E (patentes `TDD%`, clientes `EndToEnd`). |
-| 17 | `16_Fix_Colision_sp_ReporteIngresos.sql` | Separa `sp_ReporteIngresos` de `sp_ReporteIngresosAdmin` (nombres distintos). |
-| 18 | `17_QuitarMisTrabajosAdmin.sql` | Quita `MisTrabajos.Ver` al Administrador (pantalla exclusiva del Mecánico). |
-| 19 | `18_SP_ReporteServiciosPorRango.sql` | `sp_ReporteServiciosPorRango` (Reporte Gerencial, por tarea). |
-| 20 | `19_ConfiguracionEmpresa.sql` | Tabla singleton `ConfiguracionEmpresa` (identidad + logo) + fila semilla. |
-| 21 | `20_PermisosConfiguracionEmpresa.sql` | Permiso `Configuracion.Empresa.Gestionar` → Admin. |
-| 22 | `21_ConfiguracionBackup.sql` | Tabla singleton `dbo.ConfiguracionBackup` (`Id = 1`) + fila semilla. |
-| 23 | `22_PermisosBackup.sql` | Permiso `Configuracion.Backup.Gestionar` → Admin (`IdRol = 1`). |
-
-**Scripts auxiliares (no numerados):**
-
-| Script | Propósito |
-|---|---|
-| `BD_role_usuarios_script.sql` | Utilidades de roles/usuarios (referencia). **No** es la fuente de datos real; los usuarios productivos provienen de `02_Datos.sql`. |
-| `sp_GenerarComprobanteOrden.sql` | SP de comprobante de orden. |
-| `sp_GenerarComprobantePago.sql` | SP de comprobante de pago. |
+| 1 | `01_estructura.sql` | DDL: las 18 tablas del dominio (`Cliente`, `Marca`, `Modelo`, `Vehiculo`, `PropietarioVehiculo`, `Roles`, `Usuarios`, `Permisos`, `RolPermisos`, `Taller`, `Servicio`, `RegistroServicio`, `DetalleServicio`, `Factura`, `Pago`, `MetodoPago`, `ConfiguracionEmpresa`, `ConfiguracionBackup`), PK/FK, constraints e índices. |
+| 2 | `02_procedimientos.sql` | Todos los procedimientos almacenados: reportes por rol (`sp_ReporteIngresos`, `sp_ReporteIngresosAdmin`, `sp_ReporteProductividadMecanicos`, `sp_ReporteServiciosPorRango`), comprobantes (`sp_GenerarComprobanteOrden`, `sp_GenerarComprobantePago`) y workflow de órdenes. |
+| 3 | `03_triggers.sql` | Los tres triggers del dominio: validación de precio/cantidad y bloqueo de detalle de orden finalizada (`DetalleServicio`) y sincronización de kilometraje (`RegistroServicio`). |
+| 4 | `04_datos.sql` | Datos semilla idempotentes: roles, usuarios y credenciales, permisos y rol-permisos (RBAC), taller, configuraciones (`ConfiguracionEmpresa`, `ConfiguracionBackup`), Admin bootstrap y catálogo de marcas/modelos del mercado argentino. |
+| 5 | `05_utilidades_test.sql` | Utilidad de **desarrollo/test**: purga idempotente y FK-safe de artefactos E2E (patentes `TDD%`, clientes `EndToEnd`). No forma parte del bootstrap productivo. |
 
 > [!WARNING]
-> **No editar scripts ya aplicados.** Un permiso o SP nuevo = **script nuevo** (no modificar los existentes). Los cambios de esquema administrados por EF Core viven en `Migracion/`, no en `bd/`.
+> **Agregar cada objeto al script canónico de su tipo.** Un permiso, dato o semilla nuevos van a `04_datos.sql`; un SP nuevo, a `02_procedimientos.sql`; un trigger, a `03_triggers.sql`; una tabla o columna, a `01_estructura.sql`. Todos son idempotentes, así que se re-ejecutan sin duplicar objetos. Los cambios de esquema administrados por EF Core viven en `Migracion/`, no en `bd/`.
 
 > 📸 **CAPTURA REQUERIDA:** `docs/manuales/assets/tecnico/06-ssms-ejecucion-scripts.png`
-> - **Pantalla / Modal:** SSMS ejecutando los scripts `bd/` (pestañas con `01_Estructura.sql` … `22_PermisosBackup.sql`) o un bucle `sqlcmd`.
+> - **Pantalla / Modal:** SSMS ejecutando los scripts `bd/` (pestañas con `01_estructura.sql` … `04_datos.sql`) o un bucle `sqlcmd`.
 > - **Estado recomendado:** Mostrar la ejecución sin errores y el mensaje *Commands completed successfully*.
 > - **Elementos a resaltar:** Nombre del script (recuadro rojo) y el resultado de ejecución.
 > - **Epígrafe:** *Figura 3.1: Ejecución de los scripts idempotentes de `bd/` sobre `ControlVehicular`.*
@@ -395,7 +371,7 @@ GO
 
 ### 3.5 Usuario administrador por defecto y primer ingreso
 
-Los usuarios semilla de `02_Datos.sql` (base productiva) son:
+Los usuarios semilla de `04_datos.sql` (base productiva) son:
 
 | Nombre | DNI | Rol | Contraseña inicial |
 |---|---|---|---|
@@ -404,7 +380,7 @@ Los usuarios semilla de `02_Datos.sql` (base productiva) son:
 | Mecanico Demo | `10000002` | Mecánico (3) | `CHANGE_ME` |
 
 > [!WARNING]
-> **Cambiar las contraseñas semilla** inmediatamente después del primer ingreso en un entorno productivo. Las contraseñas del script `BD_role_usuarios_script.sql`  **no** son las de la base productiva: la fuente real es `02_Datos.sql`.
+> **Cambiar las contraseñas semilla** inmediatamente después del primer ingreso en un entorno productivo. En un despliegue nuevo, las credenciales provienen del bootstrap Admin de `04_datos.sql`.
 
 **Verificación del primer ingreso:** iniciar la app, autenticarse con el usuario Administrador y confirmar que se visualiza el menú completo (**Administración** con *Usuarios*, *Roles*, *Talleres*, *Configuración de Empresa* y *Respaldos*).
 
@@ -419,7 +395,7 @@ Los usuarios semilla de `02_Datos.sql` (base productiva) son:
 - `CtlBackup` — pantalla **💾 Respaldos de Base de Datos** (listado + acciones).
 - `CtlBackupConfiguracion` — pantalla **🗄️ Configuración de Respaldos** (rutas y Google Drive).
 
-El acceso está restringido por RBAC al permiso **`Configuracion.Backup.Gestionar`**, asignado **solo al rol Administrador (`IdRol = 1`)** (script `bd/22_PermisosBackup.sql`). Recepcionista y Mecánico no ven la opción.
+El acceso está restringido por RBAC al permiso **`Configuracion.Backup.Gestionar`**, asignado **solo al rol Administrador (`IdRol = 1`)** (permiso y asignación en el seed `bd/04_datos.sql`). Recepcionista y Mecánico no ven la opción.
 
 | Columna de `dbo.ConfiguracionBackup` | Notas |
 |---|---|
@@ -660,12 +636,12 @@ GO
 
 1. Copiar el ejecutable publicado (`TP_ControlVehicular.exe` + `appsettings.json` + dependencias) al nuevo servidor/puestos.
 2. Ajustar `Server=` en `appsettings.json` si cambió el nombre del servidor.
-3. Volver a aplicar los scripts de permisos si hiciera falta (`bd/09` – `bd/22`).
+3. Volver a aplicar el script de datos y permisos si hiciera falta (`bd/04_datos.sql`, idempotente).
 4. Iniciar la app y confirmar: login correcto, menú completo para Admin y listado de datos.
 
 ### 5.6 Reconstrucción de permisos (si se restauró solo la base)
 
-Si el respaldo restauró la base completa, los permisos (`Permisos`, `RolPermisos`, `ConfiguracionEmpresa`, `ConfiguracionBackup`) ya vienen incluidos. Si se parte de un esquema limpio, reejecutar en orden los scripts **`bd/09_PermisosAvanzados.sql` … `bd/22_PermisosBackup.sql`** (idempotentes) para reconstruir RBAC, configuración de empresa y configuración de respaldos.
+Si el respaldo restauró la base completa, los permisos (`Permisos`, `RolPermisos`, `ConfiguracionEmpresa`, `ConfiguracionBackup`) ya vienen incluidos. Si se parte de un esquema limpio, reejecutar en orden los scripts canónicos **`bd/01_estructura.sql` … `bd/04_datos.sql`** (idempotentes) para reconstruir el esquema, el RBAC, la configuración de empresa y la configuración de respaldos.
 
 ---
 
@@ -759,7 +735,7 @@ El menú lateral se ajusta dinámicamente a los permisos del usuario (`MainWindo
 | Reporte Gerencial | `Reporte.Gerencial.Ver` | ✅ | ❌ | ❌ |
 
 > [!NOTE]
-> **`MisTrabajos.Ver` es exclusivo del Mecánico** (el Administrador fue removido vía `bd/17_QuitarMisTrabajosAdmin.sql`). El permiso genérico `Reporte.Ver` está obsoleto: cada reporte tiene su permiso `Reporte.<Nombre>.Ver`.
+> **`MisTrabajos.Ver` es exclusivo del Mecánico** (la asignación al Administrador ya no se incluye en el seed de `bd/04_datos.sql`). El permiso genérico `Reporte.Ver` está obsoleto: cada reporte tiene su permiso `Reporte.<Nombre>.Ver`.
 
 ### 6.4 Manejo de secretos
 
@@ -787,7 +763,7 @@ Recomendaciones operativas:
 
 Pantalla **🏢 Configuración de Empresa** (`CtlConfiguracion`, permiso `Configuracion.Empresa.Gestionar`). Almacena la identidad del taller usada en el encabezado de reportes/comprobantes:
 
-| Campo | Valor semilla (`bd/19`) |
+| Campo | Valor semilla (`bd/04_datos.sql`) |
 |---|---|
 | Nombre | `TALLER PRO` |
 | Dirección | `Ruta Nacional 11 Km 1005 - Resistencia, Chaco` |
@@ -803,7 +779,7 @@ Cargar/validar los catálogos maestros antes de operar:
 - **Servicios** (nombre + precio).
 - **Talleres** (si aplica más de una sede).
 
-Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Etios*, *Kwid*; servicios *Cambio de Filtro Aire*, *Cambio de Correa de Distribución*.
+Semilla de ejemplo (`bd/04_datos.sql`): catálogo de marcas/modelos del mercado argentino (se preservan *Toyota* = Id 1 y *Renault* = Id 2); servicios *Cambio de Filtro Aire*, *Cambio de Correa de Distribución*.
 
 ### 7.4 Política de contraseñas
 
@@ -828,7 +804,7 @@ Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Eti
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| No aparece el menú de **Administración / Respaldos** | El usuario no es Admin o falta ejecutar `bd/22_PermisosBackup.sql`. | Iniciar con Admin y ejecutar el script de permisos. |
+| No aparece el menú de **Administración / Respaldos** | El usuario no es Admin o falta ejecutar `bd/04_datos.sql`. | Iniciar con Admin y ejecutar el script de datos y permisos. |
 | *"Debe configurar la Ruta de Backup del servidor…"* | El campo **Ruta en el servidor** está vacío. | Guardar la configuración de rutas (Capítulo 4.2). |
 | El listado de respaldos está vacío | La **Ruta compartida (UNC)** no existe o el puesto no tiene permiso de lectura. | Verificar la compartición SMB y el permiso de lectura. |
 | `Cannot open backup device … Operating system error 5 (Access is denied)` | Falta de permiso **NTFS** para el servicio SQL sobre la carpeta. | Otorgar `Modify` a `NT SERVICE\MSSQL$<INSTANCIA>` (Capítulo 6.1). |
@@ -869,7 +845,7 @@ Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Eti
 | `docs/referencia/` | Conocimiento de dominio (reportes, dashboard, base de datos, respaldos). |
 | `docs/manuales/` | Manuales de usuario y técnico (este documento). |
 | `docs/plan/` | Planes y bitácoras de ejecución (`AAAA-MM-DD_<spec>.md`). |
-| `bd/` | Scripts SQL idempotentes. |
+| `bd/` | Scripts SQL canónicos idempotentes (`01`–`05`). |
 | `openspec/` | Especificación formal (inglés): `specs/`, `changes/` y `changes/archive/`. |
 | `docs/DER.md` | Diagrama entidad-relación a respetar en todo cambio. |
 
@@ -878,7 +854,7 @@ Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Eti
 - **Rama por spec:** `git checkout -b feature/<nombre>`; integrar al finalizar.
 - **Commits atómicos** en **Conventional Commits** (`feat:`, `fix:`, `docs:`, `chore:`…).
 - **Spec-Driven Development:** antes de tocar código, definir en `openspec/` los artefactos `proposal.md`, `spec.md` (inglés, criterios BDD Given/When/Then), `design.md` y `tasks.md`.
-- **Un permiso o SP nuevo = script nuevo** en `bd/` (no editar scripts aplicados).
+- **Agregar cada objeto al script canónico de su tipo** en `bd/`: permisos/datos → `04_datos.sql`, SP → `02_procedimientos.sql`, triggers → `03_triggers.sql`, estructura → `01_estructura.sql` (manteniendo la idempotencia).
 - **Verificación obligatoria:** `dotnet build "TP_ControlVehicular.slnx"` sin errores (+ `dotnet test` cuando aplique) antes de cerrar un cambio.
 
 ### 9.3 Tareas de mantenimiento periódicas
@@ -888,7 +864,7 @@ Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Eti
 | Diaria | Verificar que el respaldo del día se generó (**💾 Hacer Backup**) y se resguardó (**☁️ Resguardar**). |
 | Semanal | Ejecutar **🧪 Probar Backup** para validar la restaurabilidad del último `.bak`. |
 | Mensual | Revisar logs de SQL Server y del Visor de eventos; validar espacio en disco del servidor. |
-| Por cambio | Aplicar scripts `bd/` nuevos (idempotentes) y/o `dotnet ef database update`. |
+| Por cambio | Re-ejecutar los scripts `bd/` canónicos (idempotentes) y/o `dotnet ef database update`. |
 | Trimestral | Ensayo de recuperación ante desastres en entorno de prueba (*Capítulo 5*). |
 
 ---

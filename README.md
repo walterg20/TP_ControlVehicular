@@ -53,15 +53,15 @@ Coloca la sección ConnectionStrings en Presentacion/appsettings.json o en el ex
 
 Configuración inicial de la Base de Datos
 -----------------------------------------
-Para inicializar la base de datos con todas las tablas necesarias y cargar los datos de prueba (roles y usuarios), debes ejecutar el script SQL que se encuentra en la carpeta docs:
+Para inicializar la base de datos (esquema, procedimientos almacenados, triggers y datos de prueba) ejecutá los scripts SQL canónicos de `bd/`, **en orden** (`01` → `04`). Son idempotentes.
 
-**Ubicación del script:** bd/BD_role_usuarios_script.sql
+**Ubicación de los scripts:** bd/01_estructura.sql, bd/02_procedimientos.sql, bd/03_triggers.sql, bd/04_datos.sql
 
-**Pasos para usarlo:**
+**Pasos para usarlos:**
 1. Abre **SQL Server Management Studio (SSMS)** y conéctate a tu servidor SQL.
-2. Abre el archivo bd/BD_role_usuarios_script.sql.
-3. Haz clic en el botón **Ejecutar** (Execute) o presiona F5.
-4. El script creará automáticamente la base de datos ControlVehicular, sus tablas y los usuarios iniciales.
+2. Abre y ejecutá, en orden, bd/01_estructura.sql, bd/02_procedimientos.sql, bd/03_triggers.sql y bd/04_datos.sql.
+3. Haz clic en el botón **Ejecutar** (Execute) o presiona F5 en cada uno.
+4. Los scripts aplican el esquema, los procedimientos, los triggers y los datos semilla (roles y usuarios iniciales) sobre la base ControlVehicular.
 
 **Usuarios de prueba disponibles:**
 Una vez ejecutado el script, puedes iniciar sesión en la aplicación utilizando cualquiera de estas credenciales según el rol que quieras probar:
