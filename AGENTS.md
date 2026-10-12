@@ -77,6 +77,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 | Dashboard por perfil | `docs/referencia/dashboard.md` |
 | Base de datos, scripts `bd/` y estados de orden | `docs/referencia/bd-y-dominio.md` |
 | Pantalla *Mis Trabajos* (mecánico) | `docs/referencia/mis-trabajos.md` |
+| Respaldo de BD y resguardo en Google Drive | `docs/referencia/backup.md` |
 | DER (a respetar en todo feature) | `docs/DER.md` |
 
 ## Mapa de herramientas

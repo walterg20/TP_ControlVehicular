@@ -147,12 +147,18 @@ namespace TP_ControlVehicular
             services.AddScoped<MisTareasViewModel>();
             services.AddScoped<MisTrabajosViewModel>();
             services.AddScoped<EmpresaConfiguracionViewModel>();
+            services.AddScoped<BackupViewModel>();
+            services.AddScoped<BackupConfiguracionViewModel>();
 
             // Repositorios de configuracion
             services.AddScoped<IConfiguracionEmpresaRepository, ConfiguracionEmpresaRepository>();
+            services.AddScoped<IConfiguracionBackupRepository, ConfiguracionBackupRepository>();
 
             // Servicios de negocio
             services.AddScoped<IEmpresaConfiguracionService, EmpresaConfiguracionService>();
+            services.AddScoped<IBackupConfiguracionService, BackupConfiguracionService>();
+            services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
+            services.AddScoped<IDriveBackupService, DriveBackupService>();
 
             // UserControls & Windows
             services.AddScoped<CtlCliente>();
@@ -167,6 +173,8 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlReporteOrdenes>();
             services.AddScoped<CtlServicio>();
             services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion>();
+            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup>();
+            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion>();
             services.AddTransient<FrmServicio>();
             services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();
             services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm>();

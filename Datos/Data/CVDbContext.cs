@@ -23,6 +23,7 @@ namespace TP_ControlVehicular.Datos.Data
         public DbSet<Pago> Pagos { get; set; } = null!;
         public DbSet<PropietarioVehiculo> PropietariosVehiculos { get; set; } = null!;
         public DbSet<ConfiguracionEmpresa> ConfiguracionEmpresa { get; set; } = null!;
+        public DbSet<ConfiguracionBackup> ConfiguracionBackup { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(CVDbContext).Assembly);
