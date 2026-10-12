@@ -17,7 +17,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 ## Stack
 - Lenguaje: C# 13 (.NET 10.0, WinExe, Nullable + ImplicitUsings)
 - Framework / runtime: WPF (UseWPF), Microsoft.Extensions.DependencyInjection/Hosting
-- Base de datos: SQL Server (Server=WALTERG20\SQLEXPRESS2019) vía EF Core 10.0.11 (Microsoft.EntityFrameworkCore.SqlServer)
+- Base de datos: SQL Server (Server=<SERVIDOR>\<INSTANCIA>) vía EF Core 10.0.11 (Microsoft.EntityFrameworkCore.SqlServer)
 - Mapeo: AutoMapper 13.x (perfil Entity→DTO unidireccional)
 - Tests: `TP_ControlVehicular.Tests` (xUnit + Moq)
 
@@ -85,7 +85,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - **OpenSpec** (`openspec/`) — SDD obligatorio antes de modificar código. Skills/workflows `openspec-*` y comandos `opsx-*` en `.opencode/` y `.agents/`.
 - **Subagentes SDD** (`.opencode/agents/`): `coordinator`, `planner`, `implementer`, `reviewer`.
 - **MCP servers** (`mcp.json`): `codegraph`, `github`, `sqlite`.
-- **Base de datos**: SQL Server `WALTERG20\SQLEXPRESS2019` vía EF Core 10; migraciones en `Migracion/`; scripts idempotentes en `bd/`.
+- **Base de datos**: SQL Server `<SERVIDOR>\<INSTANCIA>` vía EF Core 10; migraciones en `Migracion/`; scripts idempotentes en `bd/`.
 - **Tests**: `TP_ControlVehicular.Tests` (xUnit + Moq), `dotnet test` · **Scripts temporales**: `docs/script/` (.py/.ps1).
 
 ## No hagas

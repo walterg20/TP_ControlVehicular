@@ -71,7 +71,7 @@ La cuenta que escribe el `.bak` es la del **servicio** de la instancia (no la de
 Consultarla con PowerShell **como Administrador**:
 
 ```powershell
-Get-CimInstance Win32_Service -Filter "Name='MSSQL`$SQLEXPRESS2019'" |
+Get-CimInstance Win32_Service -Filter "Name='MSSQL`$<INSTANCIA>'" |
     Select-Object Name, State, StartName
 ```
 
@@ -80,38 +80,38 @@ Resultado típico (cuenta virtual por instancia):
 ```
 Name                    State   StartName
 ----                    -----   ---------
-MSSQL$SQLEXPRESS2019    Running NT Service\MSSQL$SQLEXPRESS2019
+MSSQL$<INSTANCIA>    Running NT Service\MSSQL$<INSTANCIA>
 ```
 
 > Si el servicio corre con otra cuenta (p. ej. `NT AUTHORITY\NETWORK SERVICE`, `LocalSystem` o un
 > usuario de dominio), otorgar el permiso **a esa** cuenta. Alternativa equivalente: el grupo
-> `SQLServerMSSQLUser$<EQUIPO>$SQLEXPRESS2019` que crea el Setup.
+> `SQLServerMSSQLUser$<SERVIDOR>$<INSTANCIA>` que crea el Setup.
 
 ### 4.2 Crear la carpeta y darle permiso de escritura al servicio SQL
 
-1. En el servidor, crear la carpeta de backups (por ejemplo `D:\Backups`):
+1. En el servidor, crear la carpeta de backups (por ejemplo `<RUTA_BACKUPS>`):
 
    ```powershell
-   New-Item -ItemType Directory -Path "D:\Backups" -Force
+   New-Item -ItemType Directory -Path "<RUTA_BACKUPS>" -Force
    ```
 
 2. Otorgar permiso **NTFS Modify** (lectura + escritura) a la cuenta del servicio SQL:
 
    ```powershell
-   icacls "D:\Backups" /grant 'NT SERVICE\MSSQL$SQLEXPRESS2019:(OI)(CI)M'
+   icacls "<RUTA_BACKUPS>" /grant 'NT SERVICE\MSSQL$<INSTANCIA>:(OI)(CI)M'
    ```
 
    - `(OI)(CI)` = hereda a archivos y subcarpetas · `M` = **Modify**.
-   - Usar **comillas simples** para que PowerShell no interprete `$SQLEXPRESS2019` como variable.
+   - Usar **comillas simples** para que PowerShell no interprete `$<INSTANCIA>` como variable.
    - Agregar `/T` **solo** si la carpeta ya contiene `.bak` con permisos restrictivos (recursivo).
 
 3. Verificar:
 
    ```powershell
-   icacls "D:\Backups"
+   icacls "<RUTA_BACKUPS>"
    ```
 
-   Debe figurar una línea con `NT SERVICE\MSSQL$SQLEXPRESS2019:(OI)(CI)(M)`.
+   Debe figurar una línea con `NT SERVICE\MSSQL$<INSTANCIA>:(OI)(CI)(M)`.
 
 > **NTFS ≠ Share.** Son dos permisos distintos y pueden fallar por separado:
 > - **NTFS** → permite que el *servicio SQL* **escriba** el `.bak`.
@@ -124,15 +124,15 @@ MSSQL$SQLEXPRESS2019    Running NT Service\MSSQL$SQLEXPRESS2019
 1. **Compartir** la carpeta en red con permiso de lectura:
 
    ```powershell
-   New-SmbShare -Name "Backups" -Path "D:\Backups" -ReadAccess "WALTERG20\Usuarios"
+   New-SmbShare -Name "Backups" -Path "<RUTA_BACKUPS>" -ReadAccess "<DOMINIO>\Usuarios"
    ```
 
-2. Verificar que las PCs la alcanzan: `\\NOMBRESERVIDOR\Backups`
+2. Verificar que las PCs la alcanzan: `\\<SERVIDOR>\Backups`
    - La cuenta de Windows que usa la app en cada PC debe poder **leer** esa compartición.
 
 > **Rutas de ejemplo**
-> - Ruta en el servidor (para el `BACKUP`): `D:\Backups`
-> - Ruta compartida UNC (que lee la app): `\\NOMBRESERVIDOR\Backups`
+> - Ruta en el servidor (para el `BACKUP`): `<RUTA_BACKUPS>`
+> - Ruta compartida UNC (que lee la app): `\\<SERVIDOR>\Backups`
 
 ---
 
@@ -197,8 +197,8 @@ avisa que no encontró `credenciales.json`.
    | Campo | Qué poner | Ejemplo |
    |---|---|---|
    | **Base de datos** | Nombre de la base a respaldar. | `ControlVehicular` |
-   | **Ruta en el servidor** | Ruta **absoluta del servidor** donde el servicio SQL escribe el `.bak`. | `D:\Backups` |
-   | **Ruta compartida** | Ruta **UNC** que lee la app para listar/subir. | `\\NOMBRESERVIDOR\Backups` |
+   | **Ruta en el servidor** | Ruta **absoluta del servidor** donde el servicio SQL escribe el `.bak`. | `<RUTA_BACKUPS>` |
+   | **Ruta compartida** | Ruta **UNC** que lee la app para listar/subir. | `\\<SERVIDOR>\Backups` |
    | **Carpeta en Drive (opcional)** | **Dejar vacío**: la app crea/busca sola la carpeta `ControlVehicularBackups`. Solo poner un Id si se quiere forzar otra carpeta. | *(vacío)* |
    | **Google Drive** | Botón **🔗 Conectar con Google Drive**. | — |
 
@@ -237,7 +237,7 @@ La app lee la conexión de `appsettings.json`:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=NOMBRESERVIDOR\\SQLEXPRESS2019;Database=ControlVehicular;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+    "DefaultConnection": "Server=<SERVIDOR>\\<INSTANCIA>;Database=ControlVehicular;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
   }
 }
 ```

@@ -60,14 +60,14 @@ Spec: `openspec/changes/reporte-operativo-productividad-mecanicos/`.
 - `dotnet build "TP_ControlVehicular.slnx"` → **0 errores** (65 warnings preexistentes).
 - `dotnet test "TP_ControlVehicular.Tests"` → **6/6**.
 - Aplicado el SP:
-  `sqlcmd -S "WALTERG20\SQLEXPRESS2019" -d ControlVehicular -E -C -i "bd\13_SP_ReporteProductividadMecanicos.sql"`.
+  `sqlcmd -S "<SERVIDOR>\<INSTANCIA>" -d ControlVehicular -E -C -i "bd\13_SP_ReporteProductividadMecanicos.sql"`.
 - Smoke test del SP vs agregación cruda (corrida **inicial**, antes de los fixes A/B y de la
   limpieza `bd/15`; ver §6 para las cifras definitivas):
   ```
   MecanicoId | MecanicoNombre   | TareasAsignadas | Pendientes | EnCurso | TareasCompletadas
-  2          | Pedro Canoero    | 13              | 0          | 1       | 12
-  3          | Juan Cruz        | 3               | 0          | 0       | 3
-  6          | Sergio Mecanico  | 4               | 0          | 0       | 4
+  2          | Mecánico A       | 13              | 0          | 1       | 12
+  3          | Mecánico B       | 3               | 0          | 0       | 3
+  6          | Mecánico C       | 4               | 0          | 0       | 4
   ```
   Filtro amplio (2020→2030) devuelve lo mismo; filtro futuro (2030→2031) devuelve vacío.
 - `openspec validate reporte-operativo-productividad-mecanicos` (normal y `--strict`).
@@ -90,11 +90,11 @@ Durante la validación con datos reales se detectaron y corrigieron cuatro probl
   WHERE u.RolId = 3                 -- solo Mecánicos
     AND rs.Estado <> 'Cancelada'    -- excluye órdenes canceladas
   ```
-  (`Juan Cruz`, recepcionista, aparecía indebidamente; el detalle de la orden 15, cancelada,
+  (`Mecánico B`, recepcionista, aparecía indebidamente; el detalle de la orden 15, cancelada,
   se contaba igual). Reaplicado con `sqlcmd`.
 
 ### B. Datos mal cargados (`DetalleServicio.UsuarioId`)
-- `bd/14_Fix_ReporteOperativo.sql`: `UPDATE` de los detalles 7, 9 y 11 → Pedro (Id 2) y
+- `bd/14_Fix_ReporteOperativo.sql`: `UPDATE` de los detalles 7, 9 y 11 → Mecánico A (Id 2) y
   detalle 19 → `Finalizada`. **No** se tocó `RegistroServicio`. Aplicado y verificado.
 
 ### 1. Bug de cancelación de órdenes
@@ -123,8 +123,8 @@ Durante la validación con datos reales se detectaron y corrigieron cuatro probl
 EXEC sp_ReporteProductividadMecanicos
 
 MecanicoId | MecanicoNombre   | TareasAsignadas | Pendientes | EnCurso | TareasCompletadas
-2          | Pedro Canoero    | 3               | 0          | 0       | 3
-6          | Sergio Mecanico  | 1               | 0          | 0       | 1
+2          | Mecánico A       | 3               | 0          | 0       | 3
+6          | Mecánico C       | 1               | 0          | 0       | 1
 ```
 - Total = 4 tareas, Completadas = 4, En curso = 0 → `% Avance` = 100 %.
 - El detalle de la orden 15 (`Cancelada`) queda excluido correctamente.

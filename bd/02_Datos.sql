@@ -2,7 +2,7 @@
 
 -- Datos para la tabla [dbo].[Cliente]
 SET IDENTITY_INSERT [dbo].[Cliente] ON;
-INSERT INTO [dbo].[Cliente] ([Id], [Nombre], [Apellido], [Dni], [FechaNacimiento], [Direccion], [Email], [Telefono], [Activo]) VALUES (1, 'walter', 'velazco', '31294048', '1979-01-26 00:00:00.000', 'Mz 121', 'walterg@gmail.com', '3624615465', 1);
+INSERT INTO [dbo].[Cliente] ([Id], [Nombre], [Apellido], [Dni], [FechaNacimiento], [Direccion], [Email], [Telefono], [Activo]) VALUES (1, 'Cliente', 'Demo', '20000001', '1990-01-01 00:00:00.000', 'Av. Siempre Viva 742', 'cliente@example.com', '3794000004', 1);
 SET IDENTITY_INSERT [dbo].[Cliente] OFF;
 
 -- Datos para la tabla [dbo].[Marca]
@@ -32,15 +32,14 @@ SET IDENTITY_INSERT [dbo].[Roles] OFF;
 
 -- Datos para la tabla [dbo].[Taller]
 SET IDENTITY_INSERT [dbo].[Taller] ON;
-INSERT INTO [dbo].[Taller] ([Id], [Nombre], [Direccion], [Telefono], [Activo]) VALUES (1, 'Taller PRO', 'Mz 121 PC 04', '3625586545', 1);
+INSERT INTO [dbo].[Taller] ([Id], [Nombre], [Direccion], [Telefono], [Activo]) VALUES (1, 'Taller PRO', 'Av. Siempre Viva 742', '3794000000', 1);
 SET IDENTITY_INSERT [dbo].[Taller] OFF;
 
 -- Datos para la tabla [dbo].[Usuarios]
 SET IDENTITY_INSERT [dbo].[Usuarios] ON;
-INSERT INTO [dbo].[Usuarios] ([Id], [RolId], [Nombre], [Contrasena], [Estado], [Apellido], [Dni], [Domicilio], [Email], [FechaNacimiento], [Telefono]) VALUES (1, 1, 'Walter', 'Base@Prog26', 1, 'Velazco', '31294048', 'Mxjasdjfalfjljhlalsdfjh', 'walterg20@correo.com', '2000-01-26 00:00:00.000', '362 4615765');
-INSERT INTO [dbo].[Usuarios] ([Id], [RolId], [Nombre], [Contrasena], [Estado], [Apellido], [Dni], [Domicilio], [Email], [FechaNacimiento], [Telefono]) VALUES (2, 3, 'Pedro', 'Base@Prog26', 1, 'Canoero', '31294050', 'asdfasfasdfasdfa', 'pedro@temp.com', '2008-09-16 00:00:00.000', '365156478');
-INSERT INTO [dbo].[Usuarios] ([Id], [RolId], [Nombre], [Contrasena], [Estado], [Apellido], [Dni], [Domicilio], [Email], [FechaNacimiento], [Telefono]) VALUES (3, 2, 'Juan', 'Base@Prog26', 1, 'Cruz', '31294049', 'ms 134 sdfdf', 'juan@temp.com', '2000-02-16 00:00:00.000', '3624564589');
-INSERT INTO [dbo].[Usuarios] ([Id], [RolId], [Nombre], [Contrasena], [Estado], [Apellido], [Dni], [Domicilio], [Email], [FechaNacimiento], [Telefono]) VALUES (6, 3, 'fasdfaa', 'rYr5cj@KZX', 1, 'asdfasfd', '31294051', 'asdfasdf', 'josso@jaasd.com', '2008-09-23 00:00:00.000', '3624658978');
+INSERT INTO [dbo].[Usuarios] ([Id], [RolId], [Nombre], [Contrasena], [Estado], [Apellido], [Dni], [Domicilio], [Email], [FechaNacimiento], [Telefono]) VALUES (1, 1, 'Admin', 'CHANGE_ME', 1, 'Sistema', '10000001', 'Av. Siempre Viva 742', 'admin@example.com', '2000-01-26 00:00:00.000', '3794000001');
+INSERT INTO [dbo].[Usuarios] ([Id], [RolId], [Nombre], [Contrasena], [Estado], [Apellido], [Dni], [Domicilio], [Email], [FechaNacimiento], [Telefono]) VALUES (2, 3, 'Mecanico', 'CHANGE_ME', 1, 'Demo', '10000002', 'Av. Siempre Viva 742', 'mecanico@example.com', '2008-09-16 00:00:00.000', '3794000002');
+INSERT INTO [dbo].[Usuarios] ([Id], [RolId], [Nombre], [Contrasena], [Estado], [Apellido], [Dni], [Domicilio], [Email], [FechaNacimiento], [Telefono]) VALUES (3, 2, 'Recepcion', 'CHANGE_ME', 1, 'Demo', '10000003', 'Av. Siempre Viva 742', 'recepcion@example.com', '2000-02-16 00:00:00.000', '3794000003');
 SET IDENTITY_INSERT [dbo].[Usuarios] OFF;
 
 -- Datos para la tabla [dbo].[RegistroServicio]

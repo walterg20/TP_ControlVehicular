@@ -60,6 +60,6 @@ Mecanismo de respaldo, verificación y resguardo en la nube. Se enlaza desde `AG
 ## Fuera de alcance (fase posterior)
 - **Cifrado** del `.bak`.
 - **Agendado/automatización** del respaldo (Task Scheduler + `sqlcmd`).
-- **Permisos SQL del login** (`db_backupoperator` / `dbcreator`) o SPs firmados por certificado: se resuelven en el despliegue real (hoy Windows Auth contra `WALTERG20\SQLEXPRESS2019`).
+- **Permisos SQL del login** (`db_backupoperator` / `dbcreator`) o SPs firmados por certificado: se resuelven en el despliegue real (hoy Windows Auth contra `<SERVIDOR>\<INSTANCIA>`).
 - Backup diferencial/logarítmico y retención GFS.
 - Instalador / alta automática de base y datos por defecto (aspiracional).

@@ -4,7 +4,7 @@
 -- Corrige datos historicos que quedaron con el usuario equivocado por rol:
 --   1) DetalleServicio.UsuarioId debe ser SIEMPRE un Mecanico (RolId = 3).
 --      Cualquier detalle asignado a un no-mecanico (ej. Recepcionista) se
---      reasigna a Pedro Canoero (Id 2), mecanico de referencia.
+--      reasigna a Mecánico A (Id 2), mecanico de referencia.
 --   2) Anomalia: una orden Cancelada no debe tener tareas activas.
 --      Las tareas 'En Curso' de ordenes 'Cancelada' se cierran ('Finalizada'),
 --      ya que DetalleServicio no posee un estado 'Cancelada'.
@@ -34,7 +34,7 @@ DISABLE TRIGGER TR_DetalleServicio_BloquearModificacionFinalizada ON DetalleServ
 BEGIN TRY
     DECLARE @IdMecanico INT = (
         SELECT TOP (1) Id FROM Usuarios WHERE RolId = 3 ORDER BY Id
-    );   -- Pedro Canoero (Id 2)
+    );   -- Mecánico A (Id 2)
 
     IF @IdMecanico IS NULL
         THROW 50000, 'No existe ningun usuario Mecanico (RolId = 3). Se aborta el fix.', 1;
