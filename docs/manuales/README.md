@@ -86,7 +86,7 @@ La siguiente matriz refleja la **visibilidad real del menú lateral** (`MainWind
 | ❌ Cerrar Sesión | *(siempre visible)* | ✅ | ✅ | ✅ |
 
 > [!IMPORTANT]
-> *Mis Trabajos* es una pantalla **exclusiva del Mecánico** (el Administrador no la ve). Ver `bd/17_QuitarMisTrabajosAdmin.sql`.
+> *Mis Trabajos* es una pantalla **exclusiva del Mecánico** (el Administrador no la ve); la asignación se controla en el seed de `bd/04_datos.sql`.
 > Mientras un rol carezca de todos los permisos de una sección, la sección del menú (*OPERACIONES*, *ADMINISTRACIÓN*, *REPORTES*) se oculta automáticamente.
 
 ---
