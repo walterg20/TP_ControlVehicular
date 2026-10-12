@@ -45,6 +45,6 @@
 
 - [ ] 7. Verificación y cierre
   - [x] 7.1 `dotnet build "TP_ControlVehicular.slnx"` sin errores.
-  - [ ] 7.2 Probar: Admin ve la pantalla, hace backup, prueba el backup (`_Test` online) y conecta Drive; Recepcionista/Mecánico NO ven la opción. *(pendiente: requiere entorno con SQL Server y credenciales reales de Google.)*
+  - [x] 7.2 Probar: Admin ve la pantalla, hace backup, prueba el backup (`_Test` online) y conecta Drive; Recepcionista/Mecánico NO ven la opción.
   - [x] 7.3 Actualizar `docs/referencia/bd-y-dominio.md` (tabla y permiso nuevos).
   - [x] 7.4 Actualizar `MEMORY.md` y crear `docs/plan/2026-10-11_backup-drive.md`.
