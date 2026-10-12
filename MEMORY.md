@@ -9,7 +9,8 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 - Rama de trabajo: `develop`.
 - Últimas specs archivadas y mergeadas: `reporte-gerencial-mejoras`, `dashboard-por-perfil`, `mis-trabajos-master-detail`, `reporte-operativo-productividad-mecanicos`, `custom-alert-dialogs`, `custom-confirmation-dialog`, `fix-taller-abm`, `orden-servicio-ux-mejorada`, `show-all-users`.
 - Change OpenSpec sin archivar: `logo-empresa` (artefactos y código ya en `develop`; pendiente archivar el change).
-- Change OpenSpec en curso (rama `feature/backup-drive`, commits B1–B7, pendiente merge/archivar): `2026-10-11-backup-drive` (capability `backup-base-datos`). Dominio en `docs/referencia/backup.md`; plan en `docs/plan/2026-10-11_backup-drive.md`.
+- Change OpenSpec en curso (rama `feature/backup-drive`, commits B1-B7, pendiente merge/archivar): `2026-10-11-backup-drive` (capability `backup-base-datos`). Dominio en `docs/referencia/backup.md`; plan en `docs/plan/2026-10-11_backup-drive.md`.
+- Change OpenSpec en curso (rama `feature/manuales-usuario-tecnico`, **apilada sobre `feature/backup-drive` aún sin mergear**): `2026-10-11-manuales-usuario-tecnico` (capability `manuales-documentacion`). Entrega `docs/manuales/{README.md, manual_usuario_roles.md, manual_tecnico_administracion.md}` con marcadores de captura en `assets/roles/` y `assets/tecnico/` (las `.png` las agrega el usuario). Plan en `docs/plan/2026-10-11_manuales-usuario-tecnico.md`.
 
 ## Flujo (detalle en `AGENTS.md`)
 - Rama por spec (`feature/<nombre>`); OpenSpec en inglés antes de tocar código.
@@ -26,3 +27,4 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 | Cancelación de órdenes / artefactos E2E | Estados y scripts `bd/` | `docs/referencia/bd-y-dominio.md` |
 | Mis Trabajos (mecánico) | Pantalla maestro-detalle | `docs/referencia/mis-trabajos.md` |
 | Respaldo de BD + Google Drive | Config, backup/restore, permisos `bd/21`-`22` | `docs/referencia/backup.md` |
+| `manuales-usuario-tecnico` | Manuales: usuario por roles + técnico/TI | `docs/manuales/` |
