@@ -51,7 +51,7 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                         c.Item().Text(_dto.TallerNombre).AlignRight();
                         c.Item().Text(_dto.TallerDireccion).AlignRight();
                         c.Item().Text(_dto.TallerTelefono).AlignRight();
-                        c.Item().Text("walterg20@gmail.com").AlignRight(); // Hardcoded from image
+                        c.Item().Text("contacto@taller.com").AlignRight(); // Hardcoded from image
                     });
                 });
                 
@@ -151,7 +151,7 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                     row.RelativeItem().Column(c =>
                     {
                         c.Item().Text("Firma del técnico").FontColor(Colors.Grey.Medium);
-                        c.Item().Text("walter velazco").Bold();
+                        c.Item().Text("Equipo Técnico").Bold();
                     });
                     
                     row.RelativeItem().Column(c =>
@@ -168,7 +168,7 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
             container.Column(col =>
             {
                 col.Item().LineHorizontal(1).LineColor(Colors.Black);
-                col.Item().PaddingTop(5).AlignCenter().Text($"{_dto.TallerDireccion} | {_dto.TallerTelefono} | walterg20@gmail.com").FontSize(9);
+                col.Item().PaddingTop(5).AlignCenter().Text($"{_dto.TallerDireccion} | {_dto.TallerTelefono} | contacto@taller.com").FontSize(9);
             });
         }
     }

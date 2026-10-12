@@ -70,7 +70,7 @@ Documentar en profundidad el mecanismo implementado en `docs/referencia/backup.m
    - Control de acceso: Exclusivo para usuarios con permiso `Configuracion.Backup.Gestionar` (Rol Administrador).
    - *Captura requerida:* `tecnico_backup_modulo_listado.png`.
 2. **Configuración de Rutas Duales:**
-   - **`RutaBackupServer` (Server-side):** Carpeta física en el servidor donde el servicio de SQL Server genera el archivo `.bak` (ej: `D:\Backups\ControlVehicular`).
+   - **`RutaBackupServer` (Server-side):** Carpeta física en el servidor donde el servicio de SQL Server genera el archivo `.bak` (ej: `<RUTA_BACKUPS>\ControlVehicular`).
    - **`RutaBackupUNC` (Red / Cliente):** Recurso compartido UNC (`\\SERVIDOR\Backups\ControlVehicular`) accesible desde los puestos clientes para que la app pueda leer los archivos `.bak` y subirlos.
    - *Captura requerida:* `tecnico_backup_configuracion_rutas.png`.
 3. **Generación del Backup:**

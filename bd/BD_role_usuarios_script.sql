@@ -1,16 +1,16 @@
 ﻿-- =========================================================================
--- SCRIPT DE GENERACIÓN LIMPIO DE BASE DE DATOS TP_ControlVehicular
+-- SCRIPT DE GENERACIÓN LIMPIO DE BASE DE DATOS ControlVehicular
 -- Sin dependencias de Migraciones (EF Core History)
 -- Incluye: Creación de BD, Tablas, Relaciones y Datos Semilla
 -- =========================================================================
 
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'TP_ControlVehicular')
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'ControlVehicular')
 BEGIN
-    CREATE DATABASE [TP_ControlVehicular];
+    CREATE DATABASE [ControlVehicular];
 END;
 GO
 
-USE [TP_ControlVehicular];
+USE [ControlVehicular];
 GO
 
 -- --------------------------------------------------
@@ -184,12 +184,12 @@ BEGIN
     SET IDENTITY_INSERT Usuarios ON;
     INSERT INTO Usuarios (Id, RolId, Nombre, Apellido, Dni, Email, Telefono, Domicilio, FechaNacimiento, Contrasena, Estado)
     VALUES 
-    -- Admin (Login con DNI: 11111111, Clave: admin123)
-    (1, 1, 'Admin', 'Sistema', '11111111', 'admin@taller.com', '3794000001', 'Calle Falsa 123', '1990-01-01', 'admin123', 1),
-    -- Recepcionista (Login con DNI: 22222222, Clave: recep123)
-    (2, 2, 'Ana', 'Lopez', '22222222', 'ana@taller.com', '3794000002', 'Avenida Siempre Viva 742', '1995-05-15', 'recep123', 1),
-    -- Mecánico (Login con DNI: 33333333, Clave: meca123)
-    (3, 3, 'Carlos', 'Gomez', '33333333', 'carlos@taller.com', '3794000003', 'Calle San Martin 450', '1985-11-20', 'meca123', 1);
+    -- Admin (Login con DNI: 11111111)
+    (1, 1, 'Admin', 'Sistema', '11111111', 'admin@taller.com', '3794000001', 'Calle Falsa 123', '1990-01-01', 'CHANGE_ME', 1),
+    -- Recepcionista (Login con DNI: 22222222)
+    (2, 2, 'Ana', 'Lopez', '22222222', 'ana@taller.com', '3794000002', 'Avenida Siempre Viva 742', '1995-05-15', 'CHANGE_ME', 1),
+    -- Mecánico (Login con DNI: 33333333)
+    (3, 3, 'Carlos', 'Gomez', '33333333', 'carlos@taller.com', '3794000003', 'Calle San Martin 450', '1985-11-20', 'CHANGE_ME', 1);
     SET IDENTITY_INSERT Usuarios OFF;
 END
 GO

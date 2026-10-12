@@ -10,9 +10,21 @@
 | Tipo | Aplicación de escritorio WPF (cliente–servidor) |
 | Plataforma | .NET 10.0 (WinExe) · WPF · MVVM |
 | Base de datos | Microsoft SQL Server (EF Core 10) |
-| Instancia de referencia | `WALTERG20\SQLEXPRESS2019` |
+| Instancia de referencia | `<SERVIDOR>\<INSTANCIA>` |
 | Base de datos de referencia | `ControlVehicular` |
 | Repositorio | Monorepo único (`Entidad/`, `Datos/`, `Migracion/`, `Negocio/`, `Presentacion/`, `bd/`, `docs/`, `openspec/`) |
+
+### Parámetros de la instalación
+
+Esta guía usa marcadores genéricos para no exponer valores de un entorno concreto. Sustitúyelos por los de tu instalación:
+
+| Marcador | Significado | Valor de ejemplo |
+|---|---|---|
+| `<SERVIDOR>` | Nombre del equipo o servidor | `SRV-TALLER` |
+| `<INSTANCIA>` | Instancia de SQL Server | `SQLEXPRESS` |
+| `<RUTA_BACKUPS>` | Carpeta de respaldos | `C:\Backups` |
+| `<RUTA_DATOS>` | Carpeta de datos | `C:\Data` |
+| `<DOMINIO>` | Dominio o equipo de usuarios | `TALLER\Usuarios` |
 
 > [!NOTE]
 > **Convención de capturas.** Cada paso relevante incluye un marcador `> 📸 **CAPTURA REQUERIDA:**` con la ruta de su imagen. El administrador toma las capturas reales durante la puesta en marcha y las guarda en `docs/manuales/assets/tecnico/` con la nomenclatura `NN-modulo[-variante].png`. El enlace `![...](assets/tecnico/…)` se resuelve **relativo a este archivo**.
@@ -46,8 +58,8 @@ flowchart TB
         PC1["PC Puesto 1 — Recepción<br/>TP_ControlVehicular.exe<br/>(WPF .NET 10)"]
         PC2["PC Puesto 2 — Taller<br/>TP_ControlVehicular.exe<br/>(WPF .NET 10)"]
     end
-    SRV["🖥️ Servidor<br/>SQL Server 2019/2022<br/>Instancia SQLEXPRESS2019"]
-    BK[("📁 Carpeta de backups<br/>D:\\Backups")]
+    SRV["🖥️ Servidor<br/>SQL Server 2019/2022<br/>Instancia SQLEXPRESS"]
+    BK[("📁 Carpeta de backups<br/>C:\\Backups")]
     PC1 -->|"TDS · TCP 1433"| SRV
     PC2 -->|"TDS · TCP 1433"| SRV
     SRV -->|"BACKUP DATABASE"| BK
@@ -57,7 +69,7 @@ flowchart TB
 
 > 📸 **CAPTURA REQUERIDA:** `docs/manuales/assets/tecnico/01-topologia-despliegue.png`
 > - **Pantalla / Modal:** Diagrama de topología de despliegue (servidor + 2 puestos) tal como quedó implementado en el taller.
-> - **Estado recomendado:** Mostrar el servidor con la instancia `SQLEXPRESS2019`, los dos puestos cliente y la carpeta de respaldos compartida.
+> - **Estado recomendado:** Mostrar el servidor con la instancia `<INSTANCIA>`, los dos puestos cliente y la carpeta de respaldos compartida.
 > - **Elementos a resaltar:** Instancia SQL (recuadro rojo), puerto TCP 1433 y la ruta UNC `\\SERVIDOR\Backups`.
 > - **Epígrafe:** *Figura 1.1: Topología cliente–servidor del despliegue en el taller.*
 
@@ -141,7 +153,7 @@ sequenceDiagram
 
 ### 2.1 Instalación de requisitos previos
 
-1. **Servidor:** instalar SQL Server 2019/2022 (típicamente edición **Express**) con la instancia nombrada `SQLEXPRESS2019`. Registrar la cuenta de servicio (por defecto `NT Service\MSSQL$SQLEXPRESS2019`).
+1. **Servidor:** instalar SQL Server 2019/2022 (típicamente edición **Express**) con la instancia nombrada `<INSTANCIA>`. Registrar la cuenta de servicio (por defecto `NT Service\MSSQL$<INSTANCIA>`).
 2. **Servidor y clientes:** instalar el **Microsoft .NET Desktop Runtime 10.0 (x64)**.
 3. **Clientes:** no requieren SQL Server local; consumen la instancia central.
 
@@ -169,14 +181,14 @@ La aplicación lee la cadena de conexión `DefaultConnection` desde `appsettings
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=NOMBRESERVIDOR\\SQLEXPRESS2019;Database=ControlVehicular;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
+    "DefaultConnection": "Server=<SERVIDOR>\\<INSTANCIA>;Database=ControlVehicular;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
   }
 }
 ```
 
 | Parámetro | Significado | Nota de despliegue |
 |---|---|---|
-| `Server` | Equipo + instancia (`EQUIPO\INSTANCIA`). | Apuntar al **servidor central** del taller. |
+| `Server` | Equipo + instancia (`<SERVIDOR>\<INSTANCIA>`). | Apuntar al **servidor central** del taller. |
 | `Database` | Base de datos de trabajo. | `ControlVehicular`. |
 | `Trusted_Connection=True` | Autenticación **Windows** (Integrated Security). | La cuenta de Windows del usuario del puesto debe existir como login en SQL. |
 | `TrustServerCertificate=True` | Omite la validación del certificado TLS del servidor. | Necesario con certificados autofirmados en la LAN. |
@@ -198,18 +210,18 @@ La aplicación lee la cadena de conexión `DefaultConnection` desde `appsettings
 Por defecto, SQL Server Express puede tener el protocolo **TCP/IP deshabilitado** y usar **puertos dinámicos**, lo que impide la conexión desde los puestos. Procedimiento en el **servidor**:
 
 1. Abrir **SQL Server Configuration Manager** (`SQLServerManager<versión>.msc`).
-2. Ir a **SQL Server Network Configuration → Protocols for SQLEXPRESS2019**.
+2. Ir a **SQL Server Network Configuration → Protocols for <INSTANCIA>**.
 3. Habilitar el protocolo **TCP/IP** (Properties → *Protocol* → `Enabled = Yes` → reiniciar el servicio).
 4. En la pestaña **IP Addresses → IPAll**, configurar un **puerto estático**:
    - `TCP Dynamic Ports` = *(vacío)*
    - `TCP Port` = `1433`
-5. **Reiniciar el servicio** `SQL Server (SQLEXPRESS2019)` desde el mismo administrador o con `services.msc`.
+5. **Reiniciar el servicio** `SQL Server (<INSTANCIA>)` desde el mismo administrador o con `services.msc`.
 
 > [!NOTE]
-> Con una **instancia nombrada**, los clientes resuelven el nombre `EQUIPO\SQLEXPRESS2019` a través del **SQL Server Browser** (UDP 1434). Alternativas: (a) mantener el servicio **SQL Server Browser** en ejecución, o (b) fijar el puerto estático `1433` y usar `Server=EQUIPO,1433` o un **alias de cliente** (SQL Native Client Configuration → Aliases).
+> Con una **instancia nombrada**, los clientes resuelven el nombre `<SERVIDOR>\<INSTANCIA>` a través del **SQL Server Browser** (UDP 1434). Alternativas: (a) mantener el servicio **SQL Server Browser** en ejecución, o (b) fijar el puerto estático `1433` y usar `Server=<SERVIDOR>,1433` o un **alias de cliente** (SQL Native Client Configuration → Aliases).
 
 > 📸 **CAPTURA REQUERIDA:** `docs/manuales/assets/tecnico/04-sql-protocolos-tcpip.png`
-> - **Pantalla / Modal:** SQL Server Configuration Manager — *Protocols for SQLEXPRESS2019* / pestaña *IP Addresses → IPAll*.
+> - **Pantalla / Modal:** SQL Server Configuration Manager — *Protocols for <INSTANCIA>* / pestaña *IP Addresses → IPAll*.
 > - **Estado recomendado:** TCP/IP en `Enabled`, `TCP Port = 1433`, `TCP Dynamic Ports` vacío.
 > - **Elementos a resaltar:** Estado `Enabled` del protocolo y el puerto `1433` (recuadro rojo).
 > - **Epígrafe:** *Figura 2.2: Habilitación de TCP/IP y puerto estático 1433 en SQL Server.*
@@ -236,7 +248,7 @@ New-NetFirewallRule -DisplayName "SQL Server Browser UDP 1434" `
 Verificación rápida desde un puesto cliente:
 
 ```powershell
-Test-NetConnection -ComputerName "NOMBRESERVIDOR" -Port 1433
+Test-NetConnection -ComputerName "<SERVIDOR>" -Port 1433
 ```
 
 > 📸 **CAPTURA REQUERIDA:** `docs/manuales/assets/tecnico/05-firewall-puerto-1433.png`
@@ -260,10 +272,10 @@ Para el módulo de respaldos, la cuenta de conexión necesita además permisos d
 
 ```powershell
 # 1) ¿Responde el host y el puerto?
-Test-NetConnection -ComputerName "NOMBRESERVIDOR" -Port 1433
+Test-NetConnection -ComputerName "<SERVIDOR>" -Port 1433
 
 # 2) ¿Resuelve la instancia? (local, en el servidor)
-sqlcmd -S "NOMBRESERVIDOR\SQLEXPRESS2019" -Q "SELECT @@VERSION;"
+sqlcmd -S "<SERVIDOR>\<INSTANCIA>" -Q "SELECT @@VERSION;"
 ```
 
 Si `Test-NetConnection` falla: revisar servicio SQL iniciado, TCP/IP habilitado, puerto correcto y regla de firewall. Si el puerto responde pero `sqlcmd` falla: revisar el login/permisos y `TrustServerCertificate`.
@@ -387,12 +399,12 @@ Los usuarios semilla de `02_Datos.sql` (base productiva) son:
 
 | Nombre | DNI | Rol | Contraseña inicial |
 |---|---|---|---|
-| Walter Velazco | `31294048` | Administrador (1) | `Base@Prog26` |
-| Juan Cruz | `31294049` | Recepcionista (2) | `Base@Prog26` |
-| Pedro Canoero | `31294050` | Mecánico (3) | `Base@Prog26` |
+| Admin Sistema | `10000001` | Administrador (1) | `CHANGE_ME` |
+| Recepcion Demo | `10000003` | Recepcionista (2) | `CHANGE_ME` |
+| Mecanico Demo | `10000002` | Mecánico (3) | `CHANGE_ME` |
 
 > [!WARNING]
-> **Cambiar las contraseñas semilla** inmediatamente después del primer ingreso en un entorno productivo. Las contraseñas del script `BD_role_usuarios_script.sql` (`admin123`, etc.) **no** son las de la base productiva: la fuente real es `02_Datos.sql`.
+> **Cambiar las contraseñas semilla** inmediatamente después del primer ingreso en un entorno productivo. Las contraseñas del script `BD_role_usuarios_script.sql`  **no** son las de la base productiva: la fuente real es `02_Datos.sql`.
 
 **Verificación del primer ingreso:** iniciar la app, autenticarse con el usuario Administrador y confirmar que se visualiza el menú completo (**Administración** con *Usuarios*, *Roles*, *Talleres*, *Configuración de Empresa* y *Respaldos*).
 
@@ -431,7 +443,7 @@ El acceso está restringido por RBAC al permiso **`Configuracion.Backup.Gestiona
 
 El respaldo usa **dos rutas** porque quien **escribe** el `.bak` es el **servicio de SQL Server**, mientras que quien **lee/sube** el archivo es la **aplicación** en cada puesto:
 
-- **`RutaBackupServer`** (server-side): carpeta física del servidor, por ejemplo `D:\Backups` o `D:\Backups\ControlVehicular`. El `BACKUP DATABASE` se ejecuta desde el motor y escribe aquí.
+- **`RutaBackupServer`** (server-side): carpeta física del servidor, por ejemplo `<RUTA_BACKUPS>` o `<RUTA_BACKUPS>\ControlVehicular`. El `BACKUP DATABASE` se ejecuta desde el motor y escribe aquí.
 - **`RutaBackupUNC`** (red): recurso compartido UNC, por ejemplo `\\SERVIDOR\Backups`, accesible desde los puestos para **listar** y **subir** el `.bak`.
 
 Configuración en la app: menú **Administración → 🗄️ Configuración de Respaldos**, completar:
@@ -439,7 +451,7 @@ Configuración en la app: menú **Administración → 🗄️ Configuración de 
 | Campo | Valor de ejemplo | Obligatorio |
 |---|---|---|
 | **Base de datos** | `ControlVehicular` | Sí |
-| **Ruta en el servidor** | `D:\Backups` | Sí |
+| **Ruta en el servidor** | `<RUTA_BACKUPS>` | Sí |
 | **Ruta compartida** | `\\SERVIDOR\Backups` | Sí |
 | **Carpeta en Drive (opcional)** | *(vacío)* | No |
 
@@ -448,7 +460,7 @@ Configuración en la app: menú **Administración → 🗄️ Configuración de 
 
 > 📸 **CAPTURA REQUERIDA:** `docs/manuales/assets/tecnico/09-backup-configuracion-rutas.png`
 > - **Pantalla / Modal:** `CtlBackupConfiguracion` — "🗄️ Configuración de Respaldos".
-> - **Estado recomendado:** Campos cargados con `ControlVehicular`, `D:\Backups`, `\\SERVIDOR\Backups` y **"✅ Conectado con Google Drive en esta PC."**.
+> - **Estado recomendado:** Campos cargados con `ControlVehicular`, `<RUTA_BACKUPS>`, `\\SERVIDOR\Backups` y **"✅ Conectado con Google Drive en esta PC."**.
 > - **Elementos a resaltar:** Los tres campos obligatorios, el botón **🔗 Conectar con Google Drive** y el botón **💾 Guardar** (recuadro rojo).
 > - **Epígrafe:** *Figura 4.2: Configuración de rutas duales (server-side + UNC) del respaldo.*
 
@@ -460,10 +472,10 @@ La sentencia ejecutada por el motor (vía `Microsoft.Data.SqlClient.SqlConnectio
 
 ```sql
 BACKUP DATABASE [ControlVehicular]
-TO DISK = N'D:\Backups\ControlVehicular_YYYYMMDD_HHMMSS_FULL.bak'
+TO DISK = N'<RUTA_BACKUPS>\ControlVehicular_YYYYMMDD_HHMMSS_FULL.bak'
 WITH INIT, CHECKSUM, STATS = 10;
 -- Verificación posterior:
-RESTORE VERIFYONLY FROM DISK = N'D:\Backups\ControlVehicular_YYYYMMDD_HHMMSS_FULL.bak';
+RESTORE VERIFYONLY FROM DISK = N'<RUTA_BACKUPS>\ControlVehicular_YYYYMMDD_HHMMSS_FULL.bak';
 ```
 
 **Convención de nombres:** `ControlVehicular_YYYYMMDD_HHMMSS_FULL.bak` (fecha/hora del respaldo).
@@ -583,13 +595,13 @@ Guía procedimental ante **pérdida total o falla de hardware** del servidor. El
 
 ### 5.1 Reinstalación del entorno en un nuevo servidor
 
-1. Instalar **SQL Server 2019/2022** (instancia `SQLEXPRESS2019`) y el **.NET Desktop Runtime 10.0 (x64)**.
+1. Instalar **SQL Server 2019/2022** (instancia `<INSTANCIA>`) y el **.NET Desktop Runtime 10.0 (x64)**.
 2. Repetir la configuración de red de *Capítulo 2* (TCP/IP, puerto 1433, firewall).
-3. Recrear la carpeta de respaldos (`D:\Backups`) y sus permisos NTFS/share (*Capítulo 6*).
+3. Recrear la carpeta de respaldos (`<RUTA_BACKUPS>`) y sus permisos NTFS/share (*Capítulo 6*).
 
 ### 5.2 Descarga del último respaldo
 
-Desde Google Drive, descargar el archivo más reciente **`ControlVehicular_YYYYMMDD_FULL.bak`** de la carpeta `ControlVehicularBackups` y copiarlo al servidor (por ejemplo, `D:\Backups\restore`).
+Desde Google Drive, descargar el archivo más reciente **`ControlVehicular_YYYYMMDD_FULL.bak`** de la carpeta `ControlVehicularBackups` y copiarlo al servidor (por ejemplo, `<RUTA_BACKUPS>\restore`).
 
 ### 5.3 Restauración de la base `ControlVehicular`
 
@@ -601,15 +613,15 @@ GO
 
 -- 1) Ver nombres lógicos del respaldo
 RESTORE FILELISTONLY
-FROM DISK = N'D:\Backups\restore\ControlVehicular_YYYYMMDD_FULL.bak';
+FROM DISK = N'<RUTA_BACKUPS>\restore\ControlVehicular_YYYYMMDD_FULL.bak';
 GO
 
 -- 2) Restaurar (ajustar los MOVE a las rutas del nuevo servidor)
 RESTORE DATABASE [ControlVehicular]
-FROM DISK = N'D:\Backups\restore\ControlVehicular_YYYYMMDD_FULL.bak'
+FROM DISK = N'<RUTA_BACKUPS>\restore\ControlVehicular_YYYYMMDD_FULL.bak'
 WITH
-    MOVE N'ControlVehicular'     TO N'D:\Data\ControlVehicular.mdf',
-    MOVE N'ControlVehicular_log' TO N'D:\Data\ControlVehicular_log.ldf',
+    MOVE N'ControlVehicular'     TO N'<RUTA_DATOS>\ControlVehicular.mdf',
+    MOVE N'ControlVehicular_log' TO N'<RUTA_DATOS>\ControlVehicular_log.ldf',
     REPLACE, RECOVERY, STATS = 10;
 GO
 ```
@@ -666,7 +678,7 @@ Quien **escribe** el `.bak` es el **servicio de SQL Server** (no el usuario de l
 **Identificar la cuenta del servicio** (PowerShell como Administrador):
 
 ```powershell
-Get-CimInstance Win32_Service -Filter "Name='MSSQL`$SQLEXPRESS2019'" |
+Get-CimInstance Win32_Service -Filter "Name='MSSQL`$<INSTANCIA>'" |
     Select-Object Name, State, StartName
 ```
 
@@ -675,25 +687,25 @@ Resultado típico:
 ```
 Name                    State   StartName
 ----                    -----   ---------
-MSSQL$SQLEXPRESS2019    Running NT Service\MSSQL$SQLEXPRESS2019
+MSSQL$<INSTANCIA>    Running NT Service\MSSQL$<INSTANCIA>
 ```
 
 **Crear la carpeta y otorgar permiso:**
 
 ```powershell
-New-Item -ItemType Directory -Path "D:\Backups" -Force
-icacls "D:\Backups" /grant 'NT SERVICE\MSSQL$SQLEXPRESS2019:(OI)(CI)M'
-icacls "D:\Backups"   # verificación
+New-Item -ItemType Directory -Path "<RUTA_BACKUPS>" -Force
+icacls "<RUTA_BACKUPS>" /grant 'NT SERVICE\MSSQL$<INSTANCIA>:(OI)(CI)M'
+icacls "<RUTA_BACKUPS>"   # verificación
 ```
 
 - `(OI)(CI)` = hereda a archivos y subcarpetas · `M` = **Modify** (lectura + escritura).
-- Usar **comillas simples** para que PowerShell no interprete `$SQLEXPRESS2019` como variable.
+- Usar **comillas simples** para que PowerShell no interprete `$<INSTANCIA>` como variable.
 - Agregar `/T` solo si la carpeta ya contiene `.bak` con permisos restrictivos.
 
 **Compartir la carpeta (UNC) para que la lean los puestos:**
 
 ```powershell
-New-SmbShare -Name "Backups" -Path "D:\Backups" -ReadAccess "WALTERG20\Usuarios"
+New-SmbShare -Name "Backups" -Path "<RUTA_BACKUPS>" -ReadAccess "<DOMINIO>\Usuarios"
 ```
 
 > [!IMPORTANT]
@@ -704,8 +716,8 @@ New-SmbShare -Name "Backups" -Path "D:\Backups" -ReadAccess "WALTERG20\Usuarios"
 > El error típico `Operating system error 5 (Access denied)` en el `BACKUP` es falta de permiso **NTFS**.
 
 > 📸 **CAPTURA REQUERIDA:** `docs/manuales/assets/tecnico/17-permisos-ntfs-sql.png`
-> - **Pantalla / Modal:** Propiedades de la carpeta (pestaña *Seguridad*) o la salida de `icacls "D:\Backups"`.
-> - **Estado recomendado:** La cuenta `NT SERVICE\MSSQL$SQLEXPRESS2019` con permiso **Modificar**.
+> - **Pantalla / Modal:** Propiedades de la carpeta (pestaña *Seguridad*) o la salida de `icacls "<RUTA_BACKUPS>"`.
+> - **Estado recomendado:** La cuenta `NT SERVICE\MSSQL$<INSTANCIA>` con permiso **Modificar**.
 > - **Elementos a resaltar:** La cuenta del servicio y el permiso *Modificar* (recuadro rojo).
 > - **Epígrafe:** *Figura 6.1: Permiso NTFS de modificación otorgado a la cuenta del servicio SQL.*
 
@@ -796,7 +808,7 @@ Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Eti
 ### 7.4 Política de contraseñas
 
 - No existen restricciones de complejidad implementadas a nivel aplicación: la política debe imponerse **operativamente**.
-- Cambiar las **contraseñas semilla** (`Base@Prog26`) inmediatamente.
+- Cambiar las **contraseñas semilla** (`CHANGE_ME`) inmediatamente.
 - Recomendado: mínimo 8 caracteres, combinación de mayúsculas/minúsculas/números/símbolos, rotación periódica y no reutilización.
 
 ---
@@ -807,8 +819,8 @@ Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Eti
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| *"A network-related or instance-specific error occurred…"* | Servicio SQL detenido, TCP/IP deshabilitado, puerto incorrecto o firewall bloqueando. | Verificar que el servicio `SQL Server (SQLEXPRESS2019)` esté **iniciado**; habilitar **TCP/IP**; fijar puerto `1433`; abrir la regla de firewall (Capítulo 2). |
-| La app no conecta pero el servidor responde al ping | Instancia nombrada sin **SQL Server Browser** ni puerto estático. | Iniciar *SQL Server Browser* (UDP 1434) o fijar puerto estático y usar `Server=EQUIPO,1433` o un alias. |
+| *"A network-related or instance-specific error occurred…"* | Servicio SQL detenido, TCP/IP deshabilitado, puerto incorrecto o firewall bloqueando. | Verificar que el servicio `SQL Server (<INSTANCIA>)` esté **iniciado**; habilitar **TCP/IP**; fijar puerto `1433`; abrir la regla de firewall (Capítulo 2). |
+| La app no conecta pero el servidor responde al ping | Instancia nombrada sin **SQL Server Browser** ni puerto estático. | Iniciar *SQL Server Browser* (UDP 1434) o fijar puerto estático y usar `Server=<SERVIDOR>,1433` o un alias. |
 | `Login failed for user …` | La cuenta de Windows no tiene login/permisos, o se configuró SQL Auth sin credenciales válidas. | Crear el login y otorgar permisos sobre `ControlVehicular`; o usar `Trusted_Connection=True`. |
 | Error de certificado TLS | Certificado autofirmado. | Mantener `TrustServerCertificate=True`. |
 
@@ -819,7 +831,7 @@ Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Eti
 | No aparece el menú de **Administración / Respaldos** | El usuario no es Admin o falta ejecutar `bd/22_PermisosBackup.sql`. | Iniciar con Admin y ejecutar el script de permisos. |
 | *"Debe configurar la Ruta de Backup del servidor…"* | El campo **Ruta en el servidor** está vacío. | Guardar la configuración de rutas (Capítulo 4.2). |
 | El listado de respaldos está vacío | La **Ruta compartida (UNC)** no existe o el puesto no tiene permiso de lectura. | Verificar la compartición SMB y el permiso de lectura. |
-| `Cannot open backup device … Operating system error 5 (Access is denied)` | Falta de permiso **NTFS** para el servicio SQL sobre la carpeta. | Otorgar `Modify` a `NT SERVICE\MSSQL$SQLEXPRESS2019` (Capítulo 6.1). |
+| `Cannot open backup device … Operating system error 5 (Access is denied)` | Falta de permiso **NTFS** para el servicio SQL sobre la carpeta. | Otorgar `Modify` a `NT SERVICE\MSSQL$<INSTANCIA>` (Capítulo 6.1). |
 | *"BACKUP DATABASE WITH COMPRESSION is not supported on Express Edition"* | Sentencia con `WITH COMPRESSION` (no soportada en Express). | La app ya no la usa; verificar versión y que la sentencia no se haya copiado a mano. |
 | `icacls` responde `C:\$Recycle.Bin\S-1-5-18\*: Acceso denegado` | La ruta pasada a `icacls` **no existe**. | Crear primero la carpeta y recién después otorgar el permiso. |
 | La **prueba (restore)** falla | Falta permiso de creación de base (`dbcreator`) o el `.bak` no es accesible desde el servidor. | Otorgar permisos de restore y verificar acceso al `.bak`. |
@@ -888,7 +900,7 @@ Semilla de ejemplo (`bd/02_Datos.sql`): marcas *Toyota*, *Renault*; modelos *Eti
 | Elemento | Ruta |
 |---|---|
 | Ejecutable + `appsettings.json` + `credenciales.json` | Carpeta de instalación del puesto (`AppContext.BaseDirectory`). |
-| Carpeta de respaldos (servidor) | `RutaBackupServer` (ej. `D:\Backups`). |
+| Carpeta de respaldos (servidor) | `RutaBackupServer` (ej. `<RUTA_BACKUPS>`). |
 | Carpeta de respaldos (UNC) | `RutaBackupUNC` (ej. `\\SERVIDOR\Backups`). |
 | Token de Drive (cifrado DPAPI) | `%LocalAppData%\TP_ControlVehicular\Drive`. |
 | Logo override por usuario | `%LocalAppData%\TP_ControlVehicular\Empresa\logo.png`. |
@@ -910,12 +922,12 @@ dotnet test "TP_ControlVehicular.slnx"
 
 ```powershell
 # Servicio SQL: cuenta de ejecución
-Get-CimInstance Win32_Service -Filter "Name='MSSQL`$SQLEXPRESS2019'" | Select-Object Name, State, StartName
+Get-CimInstance Win32_Service -Filter "Name='MSSQL`$<INSTANCIA>'" | Select-Object Name, State, StartName
 
 # Permisos de carpeta de respaldos
-New-Item -ItemType Directory -Path "D:\Backups" -Force
-icacls "D:\Backups" /grant 'NT SERVICE\MSSQL$SQLEXPRESS2019:(OI)(CI)M'
-New-SmbShare -Name "Backups" -Path "D:\Backups" -ReadAccess "WALTERG20\Usuarios"
+New-Item -ItemType Directory -Path "<RUTA_BACKUPS>" -Force
+icacls "<RUTA_BACKUPS>" /grant 'NT SERVICE\MSSQL$<INSTANCIA>:(OI)(CI)M'
+New-SmbShare -Name "Backups" -Path "<RUTA_BACKUPS>" -ReadAccess "<DOMINIO>\Usuarios"
 
 # Firewall
 New-NetFirewallRule -DisplayName "SQL Server TCP 1433" -Direction Inbound -Protocol TCP -LocalPort 1433 -Action Allow
