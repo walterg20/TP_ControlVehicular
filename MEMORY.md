@@ -7,11 +7,9 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 
 ## Estado actual (verificar con `git`)
 - Rama de trabajo: `develop`.
-- Últimas specs archivadas y mergeadas: `reporte-gerencial-mejoras`, `dashboard-por-perfil`, `mis-trabajos-master-detail`, `reporte-operativo-productividad-mecanicos`, `custom-alert-dialogs`, `custom-confirmation-dialog`, `fix-taller-abm`, `orden-servicio-ux-mejorada`, `show-all-users`, `2026-10-12-reorganizacion-bd`.
-- Changes OpenSpec **ya mergeados en `develop` pero aún sin archivar** (artefactos y código presentes en la rama):
-  - `logo-empresa`.
-  - `2026-10-11-backup-drive` (capability `backup-base-datos`). Dominio en `docs/referencia/backup.md`; plan en `docs/historico/plan/2026-10-11_backup-drive.md`.
-  - `2026-10-11-manuales-usuario-tecnico` (capability `manuales-documentacion`). Entrega `docs/manuales/{README.md, manual_usuario_roles.md, manual_tecnico_administracion.md}` con marcadores de captura (las `.png` las agrega el usuario). Plan en `docs/historico/plan/2026-10-11_manuales-usuario-tecnico.md`.
+- Últimas specs archivadas y mergeadas: `reporte-gerencial-mejoras`, `dashboard-por-perfil`, `mis-trabajos-master-detail`, `reporte-operativo-productividad-mecanicos`, `custom-alert-dialogs`, `custom-confirmation-dialog`, `fix-taller-abm`, `orden-servicio-ux-mejorada`, `show-all-users`, `2026-10-12-reorganizacion-bd`, `2026-10-10-logo-empresa`, `2026-10-11-backup-drive`, `2026-10-11-manuales-usuario-tecnico`.
+- **No quedan changes activos** en `openspec/changes/` (solo `archive/`).
+- Specs publicadas a partir de esos changes: `configuracion-empresa` (logo/identidad de empresa; `reportes` ampliada con datos de encabezado) · `backup-base-datos` (respaldo full + verificación + Google Drive; dominio en `docs/referencia/backup.md`) · `manuales-documentacion` (entrega `docs/manuales/{README.md, manual_usuario_roles.md, manual_tecnico_administracion.md}` con marcadores de captura; las `.png` las agrega el usuario).
 - Change cerrado (rama `feature/reorganizacion-bd`, mergeada con `--no-ff` y archivado): `2026-10-12-reorganizacion-bd` (capability `esquema-base-datos`). Consolida `bd/` en scripts **canónicos por tipo** (`01_estructura.sql`, `02_procedimientos.sql`, `03_triggers.sql`, `04_datos.sql`, `05_utilidades_test.sql` + `README.md`) y compacta `docs/` (DER/ERS finales; versiones 1 y material de trabajo en `docs/historico/`). Plan/bitácora en `docs/plan/2026-10-12_reorganizacion-bd.md`.
 
 ## Flujo (detalle en `AGENTS.md`)
