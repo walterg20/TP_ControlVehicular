@@ -54,7 +54,7 @@
                     <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,8,0,8">
                         <TextBox Text="{Binding NombreBaseDatos, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}" Height="30">
                             <TextBox.Style>
-                                <Style TargetType="TextBox">
+                                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
                                     <Setter Property="BorderBrush" Value="#BDC3C7"/>
                                     <Style.Triggers>
                                         <Trigger Property="Validation.HasError" Value="True">
@@ -72,7 +72,7 @@
                     <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,8,0,8">
                         <TextBox Text="{Binding RutaBackupServer, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}" Height="30">
                             <TextBox.Style>
-                                <Style TargetType="TextBox">
+                                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
                                     <Setter Property="BorderBrush" Value="#BDC3C7"/>
                                     <Style.Triggers>
                                         <Trigger Property="Validation.HasError" Value="True">
@@ -91,7 +91,7 @@
                     <StackPanel Grid.Row="2" Grid.Column="1" Margin="0,8,0,8">
                         <TextBox Text="{Binding RutaBackupUNC, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}" Height="30">
                             <TextBox.Style>
-                                <Style TargetType="TextBox">
+                                <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
                                     <Setter Property="BorderBrush" Value="#BDC3C7"/>
                                     <Style.Triggers>
                                         <Trigger Property="Validation.HasError" Value="True">
