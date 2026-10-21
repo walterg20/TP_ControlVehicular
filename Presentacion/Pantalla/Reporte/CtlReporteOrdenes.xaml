@@ -32,41 +32,60 @@
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="200"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <!-- Búsqueda General y Fechas -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Desde:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                    <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,15,0"/>
-                    
-                    <TextBlock Text="Hasta:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                    <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,15,0"/>
-                    
-                    <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
-                             Width="200" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1">
-                        <TextBox.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="6"/>
-                            </Style>
-                        </TextBox.Resources>
-                    </TextBox>
-                </StackPanel>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Filtro por Estado -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <TextBlock Text="Estado:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,8,0"/>
-                    <ComboBox SelectedValue="{Binding EstadoFiltro, Mode=TwoWay}" SelectedValuePath="Content" Width="130" Padding="8,6">
-                        <ComboBoxItem Content="Todos" IsSelected="True"/>
-                        <ComboBoxItem Content="Pendiente"/>
-                        <ComboBoxItem Content="En Proceso"/>
-                        <ComboBoxItem Content="Completada"/>
-                        <ComboBoxItem Content="Entregada"/>
-                    </ComboBox>
-                </StackPanel>
+                    <!-- Búsqueda General, Fechas y Limpiar -->
+                    <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Desde:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
+                        <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,12,0"/>
+                        
+                        <TextBlock Text="Hasta:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
+                        <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,12,0"/>
+                        
+                        <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
+                        <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                                 Width="180" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1" Margin="0,0,10,0">
+                            <TextBox.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+
+                        <Button Content="🔄 Limpiar" Command="{Binding LimpiarFiltrosCommand}" Padding="10,6" Background="#95A5A6" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Restablecer filtros">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </WrapPanel>
+
+                    <!-- Filtro por Estado -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10,0,0,0">
+                        <TextBlock Text="Estado:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,8,0"/>
+                        <ComboBox SelectedValue="{Binding EstadoFiltro, Mode=TwoWay}" SelectedValuePath="Content" Width="130" Padding="8,6">
+                            <ComboBoxItem Content="Todos" IsSelected="True"/>
+                            <ComboBoxItem Content="Abierta"/>
+                            <ComboBoxItem Content="En Proceso"/>
+                            <ComboBoxItem Content="Completada"/>
+                            <ComboBoxItem Content="Pagada"/>
+                            <ComboBoxItem Content="Cancelada"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Mensaje de Validación de Fechas -->
+                <TextBlock Grid.Row="1" Text="{Binding MensajeValidacionFechas}" Foreground="#E74C3C" FontWeight="SemiBold" Margin="0,6,0,0"/>
             </Grid>
         </Border>
 

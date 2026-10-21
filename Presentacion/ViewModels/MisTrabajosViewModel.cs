@@ -145,6 +145,32 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        private DateTime? _fechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        public DateTime? FechaDesde
+        {
+            get => _fechaDesde;
+            set
+            {
+                _fechaDesde = value;
+                OnPropertyChanged();
+                OrdenesView.Refresh();
+                OnPropertyChanged(nameof(IsListEmpty));
+            }
+        }
+
+        private DateTime? _fechaHasta = DateTime.Today;
+        public DateTime? FechaHasta
+        {
+            get => _fechaHasta;
+            set
+            {
+                _fechaHasta = value;
+                OnPropertyChanged();
+                OrdenesView.Refresh();
+                OnPropertyChanged(nameof(IsListEmpty));
+            }
+        }
+
         private string _filtroEstado = "Pendientes";
         public string FiltroEstado
         {
@@ -159,6 +185,22 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
 
         public bool IsListEmpty => OrdenesView.IsEmpty;
+
+        private ICommand? _limpiarFiltrosCommand;
+        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(() =>
+        {
+            _fechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            _fechaHasta = DateTime.Today;
+            _filtroEstado = "Pendientes";
+            _textoBusqueda = string.Empty;
+            OnPropertyChanged(nameof(FechaDesde));
+            OnPropertyChanged(nameof(FechaHasta));
+            OnPropertyChanged(nameof(FiltroEstado));
+            OnPropertyChanged(nameof(TextoBusqueda));
+            OrdenesView.Refresh();
+            OnPropertyChanged(nameof(IsListEmpty));
+            return Task.CompletedTask;
+        });
 
         private MiOrdenItemViewModel? _ordenSeleccionada;
         public MiOrdenItemViewModel? OrdenSeleccionada
@@ -183,6 +225,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             if (item is MiOrdenItemViewModel orden)
             {
+                // Filtro por fecha de la orden
+                if (FechaDesde.HasValue && orden.Fecha.Date < FechaDesde.Value.Date) return false;
+                if (FechaHasta.HasValue && orden.Fecha.Date > FechaHasta.Value.Date) return false;
+
                 // Filtro por estado de las tareas del mecanico
                 if (FiltroEstado == "Pendientes" && !orden.TienePendientes) return false;
                 if (FiltroEstado == "Finalizados" && orden.TienePendientes) return false;
@@ -332,6 +378,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 var historial = await _historialHandler.HandleAsync(OrdenSeleccionada.Orden.VehiculoId);
+                if (FechaDesde.HasValue) historial = historial.Where(h => h.Fecha.Date >= FechaDesde.Value.Date).ToList();
+                if (FechaHasta.HasValue) historial = historial.Where(h => h.Fecha.Date <= FechaHasta.Value.Date).ToList();
                 var vehiculoDesc = OrdenSeleccionada.VehiculoCompleto;
                 var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"Historial_{OrdenSeleccionada.VehiculoPatente}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
                 var document = QuestPDF.Fluent.Document.Create(container =>
@@ -345,7 +393,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         page.Footer().Element(c => c.ComposePieDePagina());
                         page.Content().PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(col =>
                         {
-                            col.Item().Text($"Vehículo: {vehiculoDesc}").FontSize(12).SemiBold().FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
+                            var subtitulo = $"Vehículo: {vehiculoDesc}";
+                            if (FechaDesde.HasValue || FechaHasta.HasValue)
+                            {
+                                subtitulo += $" | Período: {(FechaDesde.HasValue ? FechaDesde.Value.ToString("dd/MM/yyyy") : "Inicio")} a {(FechaHasta.HasValue ? FechaHasta.Value.ToString("dd/MM/yyyy") : "Fin")}";
+                            }
+                            col.Item().Text(subtitulo).FontSize(12).SemiBold().FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
                             col.Item().PaddingTop(8).Table(table =>
                             {
                                 table.ColumnsDefinition(columns =>
@@ -388,7 +441,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 var usuario = (System.Windows.Application.Current.MainWindow as MainWindow)?.UsuarioSesionActual;
                 if (usuario == null) return;
-                var tareas = await _hojaTrabajoHandler.HandleAsync(usuario.IdUsuario, DateTime.Today);
+                var fechaTrabajo = FechaHasta ?? DateTime.Today;
+                var tareas = await _hojaTrabajoHandler.HandleAsync(usuario.IdUsuario, fechaTrabajo);
                 var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"TareasDia_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
                 var document = QuestPDF.Fluent.Document.Create(container =>
                 {
@@ -401,7 +455,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         page.Footer().Element(c => c.ComposePieDePagina());
                         page.Content().PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(col =>
                         {
-                            col.Item().Text($"Mecánico: {usuario.Nombre} - {DateTime.Today:dd/MM/yyyy}").FontSize(12).SemiBold().FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
+                            col.Item().Text($"Mecánico: {usuario.Nombre} - {fechaTrabajo:dd/MM/yyyy}").FontSize(12).SemiBold().FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
                             col.Item().PaddingTop(8).Table(table =>
                             {
                                 table.ColumnsDefinition(columns =>

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio"
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -26,44 +26,82 @@
             </StackPanel>
         </Grid>
 
-        <!-- BARRA DE BUSQUEDA Y NUEVO -->
+        <!-- BARRA DE FILTROS, BUSQUEDA Y ACCIONES -->
         <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,10,0"/>
-                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
-                             Width="260" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1">
-                        <TextBox.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="6"/>
-                            </Style>
-                        </TextBox.Resources>
-                    </TextBox>
-                    <!-- Aquí el botón buscar simplemente actualiza (ya se actualiza solo por el Binding en realidad) pero por consistencia -->
-                    <Button Content="Buscar" Width="80" Padding="8,6" Margin="10,0,0,0" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="6"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
-                </StackPanel>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <Button x:Name="btnNuevaOrden" Grid.Column="1" Content="➕ Nueva Orden" Click="BtnNuevaOrden_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Visibility="{Binding PuedeCrear, Converter={StaticResource BoolToVis}}">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="6"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
+                    <!-- FILTROS: FECHAS, ESTADO Y BÚSQUEDA -->
+                    <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Desde:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
+                        <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,12,0"/>
+
+                        <TextBlock Text="Hasta:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
+                        <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,12,0"/>
+
+                        <TextBlock Text="Estado:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
+                        <ComboBox SelectedValue="{Binding EstadoFiltro, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Content" Width="115" Margin="0,0,12,0" Height="30">
+                            <ComboBoxItem Content="Todos" IsSelected="True"/>
+                            <ComboBoxItem Content="Abierta"/>
+                            <ComboBoxItem Content="En Proceso"/>
+                            <ComboBoxItem Content="Completada"/>
+                            <ComboBoxItem Content="Pagada"/>
+                            <ComboBoxItem Content="Cancelada"/>
+                        </ComboBox>
+
+                        <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
+                        <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                                 Width="150" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1" Margin="0,0,8,0">
+                            <TextBox.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+
+                        <Button Content="🔄 Limpiar" Command="{Binding LimpiarFiltrosCommand}" Padding="10,6" Margin="0,0,8,0" Background="#95A5A6" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Restablecer filtros">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </WrapPanel>
+
+                    <!-- ACCIONES SUPERIORES -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                        <Button Content="📄 Imprimir Listado" Command="{Binding ImprimirListadoFiltradoCommand}" Padding="12,8" Margin="0,0,8,0" Background="#8E44AD" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Exportar órdenes filtradas a PDF">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+
+                        <Button x:Name="btnNuevaOrden" Content="➕ Nueva Orden" Click="BtnNuevaOrden_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Visibility="{Binding PuedeCrear, Converter={StaticResource BoolToVis}}">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- MENSAJE DE VALIDACION DE FECHAS -->
+                <TextBlock Grid.Row="1" Text="{Binding MensajeValidacionFechas}" Foreground="#E74C3C" FontWeight="SemiBold" Margin="0,6,0,0"/>
             </Grid>
         </Border>
 
