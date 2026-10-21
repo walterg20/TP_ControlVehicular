@@ -14,5 +14,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public bool Activo { get; set; }
 
         public string NombreCompletoConDni => $"{Nombre} {Apellido} [{Dni}]".Trim();
+        public override string ToString() => NombreCompletoConDni;
     }
 }

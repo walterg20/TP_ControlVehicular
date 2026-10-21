@@ -11,6 +11,16 @@
             </Border>
         </ControlTemplate>
 
+        <Style x:Key="ComboBoxTextBoxStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <ScrollViewer x:Name="PART_ContentHost" Background="Transparent" Focusable="False" VerticalAlignment="Center" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <ControlTemplate x:Key="RoundedComboBoxTemplate" TargetType="{x:Type ComboBox}">
             <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
                 <Grid.ColumnDefinitions>
@@ -41,8 +51,67 @@
                         </ControlTemplate>
                     </ToggleButton.Template>
                 </ToggleButton>
-                <ContentPresenter ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" IsHitTestVisible="false" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+                <!-- Watermark / Placeholder cuando no hay selección -->
+                <TextBlock x:Name="placeholderText"
+                           Text="-- Seleccionar --"
+                           Foreground="#95A5A6"
+                           FontStyle="Italic"
+                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                           Margin="{TemplateBinding Padding}"
+                           IsHitTestVisible="False"
+                           Visibility="Collapsed" />
+
+                <!-- ContentPresenter para modo estándar (no editable) -->
+                <ContentPresenter x:Name="contentPresenter"
+                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                  Content="{TemplateBinding SelectionBoxItem}"
+                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                  ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  IsHitTestVisible="false"
+                                  Margin="{TemplateBinding Padding}"
+                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+                <!-- TextBox para modo editable (IsEditable="True") -->
+                <TextBox x:Name="PART_EditableTextBox"
+                         Style="{StaticResource ComboBoxTextBoxStyle}"
+                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                         Margin="{TemplateBinding Padding}"
+                         Focusable="True"
+                         Background="Transparent"
+                         Visibility="Hidden"
+                         IsReadOnly="{TemplateBinding IsReadOnly}" />
             </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsEditable" Value="true">
+                    <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="contentPresenter" Property="Visibility" Value="Hidden" />
+                </Trigger>
+                <Trigger Property="SelectedItem" Value="{x:Null}">
+                    <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
+                </Trigger>
+                <Trigger Property="SelectedIndex" Value="-1">
+                    <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsEditable" Value="true"/>
+                        <Condition Property="Text" Value=""/>
+                    </MultiTrigger.Conditions>
+                    <Setter TargetName="placeholderText" Property="Visibility" Value="Visible"/>
+                </MultiTrigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsEditable" Value="true"/>
+                        <Condition Property="IsKeyboardFocusWithin" Value="true"/>
+                    </MultiTrigger.Conditions>
+                    <Setter TargetName="placeholderText" Property="Visibility" Value="Collapsed"/>
+                </MultiTrigger>
+            </ControlTemplate.Triggers>
         </ControlTemplate>
 
         <ControlTemplate x:Key="RoundedPasswordBoxTemplate" TargetType="{x:Type PasswordBox}">

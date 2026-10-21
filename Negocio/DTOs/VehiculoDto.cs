@@ -13,5 +13,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string MarcaNombre { get; set; } = string.Empty;
 
         public string DescripcionCompleta => $"{MarcaNombre} {ModeloNombre} [{Patente}]".Trim();
+        public override string ToString() => DescripcionCompleta;
     }
 }

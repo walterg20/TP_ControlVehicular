@@ -60,7 +60,13 @@
                     <ComboBox Grid.Column="0" x:Name="cmbClientes" Height="30"
                               ItemsSource="{Binding ClientesDisponibles}"
                               SelectedValue="{Binding ClienteId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValuePath="IdCliente" DisplayMemberPath="NombreCompletoConDni" />
+                              SelectedValuePath="IdCliente" DisplayMemberPath="NombreCompletoConDni">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding NombreCompletoConDni}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                     <Button Grid.Column="1" x:Name="btnNuevoCliente" Content="➕" Width="30" Height="30" Margin="5,0,0,0" ToolTip="Nuevo Cliente" Click="BtnNuevoCliente_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
                 </Grid>
 
@@ -74,7 +80,13 @@
                     <ComboBox Grid.Column="0" x:Name="cmbVehiculos" Height="30"
                               ItemsSource="{Binding VehiculosDisponibles}"
                               SelectedValue="{Binding VehiculoId, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
-                              SelectedValuePath="Id" DisplayMemberPath="DescripcionCompleta" />
+                              SelectedValuePath="Id" DisplayMemberPath="DescripcionCompleta">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DescripcionCompleta}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                     <Button Grid.Column="1" x:Name="btnNuevoVehiculo" Content="➕" Width="30" Height="30" Margin="5,0,0,0" ToolTip="Nuevo Vehículo" Click="BtnNuevoVehiculo_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
                 </Grid>
 
