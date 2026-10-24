@@ -1,3 +1,4 @@
+// walterg20
 namespace TP_ControlVehicular.Negocio.DTOs.Reportes
 {
     public class ComprobanteOrdenRowDto
@@ -11,11 +12,11 @@ namespace TP_ControlVehicular.Negocio.DTOs.Reportes
         public DateTime FechaRecepcion { get; set; }
         public DateTime? FechaEstimadaEntrega { get; set; }
         public string Observaciones { get; set; } = string.Empty;
-        
+
         public string TallerNombre { get; set; } = string.Empty;
         public string TallerDireccion { get; set; } = string.Empty;
         public string TallerTelefono { get; set; } = string.Empty;
-        
+
         public int? DetalleId { get; set; }
         public string? ProductoOServicio { get; set; }
         public string? ObservacionDetalle { get; set; }

@@ -1,3 +1,4 @@
+// walterg20
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Rol
         {
             var seleccionados = _permisosDisponibles.Where(p => p.Asignado).Select(p => p.IdPermiso).ToList();
             var handler = App.ServiceProvider.GetRequiredService<ActualizarPermisosRolHandler>();
-            
+
             bool result = await handler.HandleAsync(_rolId, seleccionados);
             if (result)
             {

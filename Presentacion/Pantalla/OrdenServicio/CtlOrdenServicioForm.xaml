@@ -60,7 +60,7 @@
                     <ComboBox Grid.Column="0" x:Name="cmbClientes" Height="30"
                               ItemsSource="{Binding ClientesDisponibles}"
                               SelectedValue="{Binding ClienteId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValuePath="IdCliente" DisplayMemberPath="NombreCompletoConDni">
+                              SelectedValuePath="IdCliente">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding NombreCompletoConDni}"/>
@@ -80,7 +80,7 @@
                     <ComboBox Grid.Column="0" x:Name="cmbVehiculos" Height="30"
                               ItemsSource="{Binding VehiculosDisponibles}"
                               SelectedValue="{Binding VehiculoId, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"
-                              SelectedValuePath="Id" DisplayMemberPath="DescripcionCompleta">
+                              SelectedValuePath="Id">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding DescripcionCompleta}"/>

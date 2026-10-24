@@ -1,3 +1,4 @@
+// walterg20
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace TP_ControlVehicular.Negocio.Handlers
                 .OrderBy(p => p.Nombre)
                 .ToListAsync();
 
-            return permisos.Select(p => new PermisoDto 
+            return permisos.Select(p => new PermisoDto
             {
                 IdPermiso = p.IdPermiso,
                 Nombre = p.Nombre,

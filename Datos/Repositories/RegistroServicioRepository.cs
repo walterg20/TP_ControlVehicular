@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+// walterg20
+using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.Interfaces;
@@ -17,7 +18,7 @@ namespace TP_ControlVehicular.Datos.Repositories
         public new async Task UpdateAsync(RegistroServicio entity)
         {
             _cvDbContext.ChangeTracker.Clear();
-            
+
             var existente = await _cvDbContext.RegistroServicios
                 .Include(r => r.Detalles)
                 .FirstOrDefaultAsync(r => r.Id == entity.Id);
@@ -50,7 +51,7 @@ namespace TP_ControlVehicular.Datos.Repositories
                         existente.Detalles.Add(detalleModel);
                     }
                 }
-                
+
                 await _cvDbContext.SaveChangesAsync();
             }
             else

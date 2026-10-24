@@ -1,3 +1,4 @@
+// walterg20
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             _handler = handler;
             CmdGenerarReporte = new RelayCommand(GenerarReporteAsync);
-            
+
             // Validar rol de usuario para la visibilidad del selector de mecánicos
             if (UserSession.CurrentUser != null && UserSession.CurrentUser.IdRol == 3)
             {

@@ -1,3 +1,4 @@
+// walterg20
 using AutoMapper;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -29,15 +30,15 @@ namespace TP_ControlVehicular.Negocio.Services
                     order++;
                 }
             }
-            
+
             registro.Estado = RegistroServicio.EstadoEnProceso; // Al registrar, está en proceso de ejecución de tareas
 
             await _repository.AddAsync(registro);
-            
+
             // Recargar con relaciones para el mapeo completo al DTO
             var list = await _repository.GetReporteCompletoAsync();
             var added = list.FirstOrDefault(r => r.Id == registro.Id) ?? registro;
-            
+
             return _mapper.Map<RegistroServicioDto>(added);
         }
     }

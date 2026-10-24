@@ -1,3 +1,4 @@
+// walterg20
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TP_ControlVehicular.Entidad;
@@ -8,7 +9,7 @@ namespace TP_ControlVehicular.Datos.Configuracion
     {
         public void Configure(EntityTypeBuilder<DetalleServicio> builder)
         {
-            builder.ToTable("DetalleServicio", tb => 
+            builder.ToTable("DetalleServicio", tb =>
             {
                 tb.HasTrigger("TR_DetalleServicio_ValidarPrecioYCantidad");
                 tb.HasTrigger("TR_DetalleServicio_BloquearModificacionFinalizada");

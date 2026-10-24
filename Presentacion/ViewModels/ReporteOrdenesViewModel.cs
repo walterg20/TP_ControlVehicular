@@ -1,3 +1,4 @@
+// walterg20
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -210,7 +211,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         private void ComposeContent(QuestPDF.Infrastructure.IContainer container)
         {
-            container.PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(column => 
+            container.PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(column =>
             {
                 column.Item().PaddingBottom(10).Text($"Filtros aplicados: {ObtenerTextoFiltros()}").FontSize(11).FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
 

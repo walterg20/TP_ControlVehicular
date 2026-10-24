@@ -1,3 +1,4 @@
+// walterg20
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -69,7 +70,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public DashboardViewModel(ObtenerDashboardHandler obtenerDashboardHandler)
         {
             _obtenerDashboardHandler = obtenerDashboardHandler;
-            
+
             CargarDashboardCommand = new RelayCommand(LoadAsync);
         }
 

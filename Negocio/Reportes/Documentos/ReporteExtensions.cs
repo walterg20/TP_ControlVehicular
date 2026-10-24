@@ -1,3 +1,4 @@
+// walterg20
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -61,12 +62,12 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                 x.Span(" - Sistema de Control Vehicular");
             });
         }
-        
+
         public static IContainer CeldaCabecera(this IContainer container)
         {
             return container.BorderBottom(1).BorderColor(Colors.Grey.Medium).PaddingVertical(5);
         }
-        
+
         public static IContainer CeldaDato(this IContainer container)
         {
             return container.PaddingVertical(5);

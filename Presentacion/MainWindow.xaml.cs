@@ -1,3 +1,4 @@
+// walterg20
 using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -129,7 +130,7 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlDashboard());
         }
 
-        
+
         private void AplicarRestriccionesPorRol()
         {
             if (UsuarioSesionActual == null || UsuarioSesionActual.Permisos == null) return;
@@ -137,25 +138,25 @@ namespace TP_ControlVehicular
 
             // Mostrar u ocultar menús según permisos de "Ver"
             secAdministracion.Visibility = (permisos.Contains("Usuario.Ver") || permisos.Contains("Taller.Ver") || permisos.Contains("Vehiculo.Ver") || permisos.Contains("Configuracion.Empresa.Gestionar") || permisos.Contains("Configuracion.Backup.Gestionar")) ? Visibility.Visible : Visibility.Collapsed;
-            
+
             btnUsuario.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed;
-            btnRol.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed; 
+            btnRol.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnTaller.Visibility = permisos.Contains("Taller.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnConfiguracionEmpresa.Visibility = permisos.Contains("Configuracion.Empresa.Gestionar") ? Visibility.Visible : Visibility.Collapsed;
 
             bool gestionaBackup = permisos.Contains("Configuracion.Backup.Gestionar");
             btnBackup.Visibility = gestionaBackup ? Visibility.Visible : Visibility.Collapsed;
             btnBackupConfiguracion.Visibility = gestionaBackup ? Visibility.Visible : Visibility.Collapsed;
-            
+
             btnCliente.Visibility = permisos.Contains("Cliente.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnVehiculo.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnModelo.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnMarca.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
-            
+
             btnServicio.Visibility = permisos.Contains("Servicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
             btnOrdenesTrabajo.Visibility = permisos.Contains("OrdenServicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
-            btnMisTrabajos.Visibility = permisos.Contains("MisTrabajos.Ver") ? Visibility.Visible : Visibility.Collapsed; 
-            
+            btnMisTrabajos.Visibility = permisos.Contains("MisTrabajos.Ver") ? Visibility.Visible : Visibility.Collapsed;
+
             // Reportes: un permiso por reporte (ver openspec/specs/reportes-rbac)
             bool verReporteOrdenes = permisos.Contains("Reporte.Ordenes.Ver");
             bool verReporteOperativo = permisos.Contains("Reporte.Operativo.Ver");
@@ -175,7 +176,7 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlDashboard());
         }
 
-                private void MenuItem_Click_ReporteGerencial(object sender, RoutedEventArgs e)
+        private void MenuItem_Click_ReporteGerencial(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
             if (App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteGerencial)) is TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteGerencial ctl)

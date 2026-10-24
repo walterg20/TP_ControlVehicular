@@ -1,3 +1,4 @@
+// walterg20
 using System.Windows;
 
 [assembly: ThemeInfo(

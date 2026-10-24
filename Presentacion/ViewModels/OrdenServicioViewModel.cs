@@ -1,3 +1,4 @@
+// walterg20
 using AutoMapper;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -66,11 +67,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ServiciosDisponibles = new ObservableCollection<ServicioDto>();
             MecanicosDisponibles = new ObservableCollection<UsuarioDto>();
 
-            ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) => {
+            ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) =>
+            {
                 OnPropertyChanged(nameof(ListadoOrdenesFiltered));
                 OnPropertyChanged(nameof(IsListEmpty));
             };
-            
+
             Fecha = DateTime.Now;
             Estado = "Abierta";
         }
@@ -92,11 +94,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public int ClienteId
         {
             get => _clienteId;
-            set 
-            { 
-                _clienteId = value; 
-                OnPropertyChanged(); 
-                FiltrarVehiculosPorCliente(); 
+            set
+            {
+                _clienteId = value;
+                OnPropertyChanged();
+                FiltrarVehiculosPorCliente();
             }
         }
 
@@ -358,7 +360,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _estado = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
-        
+
         private bool EsMecanico
         {
             get { return !TienePermiso("OrdenServicio.Crear"); }
@@ -402,7 +404,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             TalleresDisponibles.Clear();
             ServiciosDisponibles.Clear();
             MecanicosDisponibles.Clear();
-            
+
             try
             {
                 var clientes = await _clienteRepository.GetAllAsync();
@@ -416,7 +418,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 {
                     _todosLosVehiculos.Add(_mapper.Map<VehiculoDto>(v));
                 }
-                
+
                 ClienteId = currentClienteId; // This triggers FiltrarVehiculosPorCliente()
                 if (ClienteId == 0) FiltrarVehiculosPorCliente();
                 VehiculoId = currentVehiculoId;
@@ -426,7 +428,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 {
                     TalleresDisponibles.Add(_mapper.Map<TallerDto>(t));
                 }
-                
+
                 TallerId = currentTallerId;
                 if (TallerId == 0 && TalleresDisponibles.Any())
                 {
@@ -456,7 +458,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             OnPropertyChanged(nameof(PuedeImprimirRecepcion));
             OnPropertyChanged(nameof(PuedePagar));
             OnPropertyChanged(nameof(PuedeVerComprobantePago));
-            
+
             Ordenes.Clear();
             await LoadCombosAsync();
 
@@ -495,7 +497,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     Origen = d.Origen,
                     Estado = d.Estado,
                     OrdenEjecucion = d.OrdenEjecucion,
-                    
+
                     Observaciones = d.Observaciones
                 }).ToList() ?? new List<Entidad.DetalleServicio>()
             };
@@ -528,7 +530,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public async Task<bool> GuardarOrdenAsync()
         {
             if (!ValidateAll()) return false;
-            
+
             if (IsLoading) return false;
             IsLoading = true;
 
@@ -596,7 +598,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 IsLoading = false;
             }
         }
-        
+
         public event EventHandler<string>? RegistrationFailed;
 
         public override bool ValidateProperty([CallerMemberName] string? propertyName = null)
@@ -628,7 +630,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public bool ValidateAll()
         {
-            
+
             ValidateProperty(nameof(VehiculoId));
             ValidateProperty(nameof(TallerId));
             ValidateProperty(nameof(KmIngreso));

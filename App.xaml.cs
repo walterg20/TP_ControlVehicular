@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+// walterg20
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,7 @@ namespace TP_ControlVehicular
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            
+
             // Configurar licencia de QuestPDF (Community)
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 

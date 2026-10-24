@@ -1,3 +1,4 @@
+// walterg20
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
@@ -20,7 +21,7 @@ public class GenerarComprobanteOrdenHandler
         var resultados = await _dbContext.Database
             .SqlQueryRaw<ComprobanteOrdenRowDto>("EXEC sp_GenerarComprobanteOrden @OrdenId", parametro)
             .ToListAsync();
-            
+
         if (!resultados.Any()) return null;
 
         var cabecera = resultados.First();

@@ -1,3 +1,4 @@
+// walterg20
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,14 +28,14 @@ namespace TP_ControlVehicular.Negocio.Services
         public async Task<VehiculoDto?> HandleAsync(string patente, int idCliente)
         {
             var vehiculo = await _vehiculoRepository.GetByPatenteAsync(patente);
-            
+
             if (vehiculo == null)
             {
                 return null;
             }
 
             var propietarioActual = vehiculo.Propietarios.FirstOrDefault(p => p.EsActual);
-            
+
             if (propietarioActual != null && propietarioActual.ClienteId == idCliente)
             {
                 return _mapper.Map<VehiculoDto>(vehiculo);

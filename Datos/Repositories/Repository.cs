@@ -1,3 +1,4 @@
+// walterg20
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using TP_ControlVehicular.Negocio.Interfaces;
 
 namespace TP_ControlVehicular.Datos.Repositories
 {
-    public  class Repository<T> : IRepository<T> where T : class
+    public class Repository<T> : IRepository<T> where T : class
     {
         private readonly CVDbContext _cvDbContext;
         private readonly DbSet<T> _dbSet;
@@ -19,7 +20,7 @@ namespace TP_ControlVehicular.Datos.Repositories
             _cvDbContext = cvDbContext;
             _dbSet = _cvDbContext.Set<T>();
         }
-        public async Task<T?> GetByIdAsync(int id) 
+        public async Task<T?> GetByIdAsync(int id)
         {
             var keyName = _cvDbContext.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.Select(x => x.Name).SingleOrDefault();
             if (keyName != null)
@@ -28,7 +29,7 @@ namespace TP_ControlVehicular.Datos.Repositories
             }
             return await _dbSet.FindAsync(id);
         }
-        
+
         public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.AsNoTracking().ToListAsync();
 
         public async Task AddAsync(T entity)
