@@ -1,4 +1,5 @@
-﻿using System;
+// walterg20
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,5 +12,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string Direccion { get; set; }
         public string Telefono { get; set; }
         public bool Activo { get; set; }
+        public override string ToString() => Nombre ?? string.Empty;
     }
 }

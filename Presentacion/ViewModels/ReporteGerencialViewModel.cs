@@ -1,3 +1,4 @@
+// walterg20
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -126,7 +127,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         private void ComposeIngresosContent(IContainer container)
         {
-            container.PaddingVertical(1, Unit.Centimetre).Column(column => 
+            container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
                 var total = Ingresos.Sum(i => i.IngresosTotales);
                 column.Item().PaddingBottom(10).Text($"Total Recaudado en el periodo: {total:C}").FontSize(14).Bold();
@@ -182,7 +183,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         private void ComposeTopClientesContent(IContainer container)
         {
-            container.PaddingVertical(1, Unit.Centimetre).Column(column => 
+            container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
                 column.Item().Table(table =>
                 {
@@ -238,7 +239,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         private void ComposeModelosContent(IContainer container)
         {
-            container.PaddingVertical(1, Unit.Centimetre).Column(column => 
+            container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
                 column.Item().Table(table =>
                 {

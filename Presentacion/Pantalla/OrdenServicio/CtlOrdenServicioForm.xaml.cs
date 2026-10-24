@@ -1,3 +1,4 @@
+// walterg20
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -18,7 +19,8 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             lblTitulo.Text = "Registrar Nueva Orden";
             ConfigurarViewModel(null);
             ConfigurarValidacionAlPerderFoco();
-            this.Unloaded += (s, e) => {
+            this.Unloaded += (s, e) =>
+            {
                 if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
@@ -36,7 +38,8 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             lblTitulo.Text = $"Modificar Orden #{orden.Id}";
             ConfigurarViewModel(orden);
             ConfigurarValidacionAlPerderFoco();
-            this.Unloaded += (s, e) => {
+            this.Unloaded += (s, e) =>
+            {
                 if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
@@ -57,7 +60,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     if (dp != null)
                     {
                         var binding = BindingOperations.GetBinding(element, dp);
-                        if(binding == null && element is ComboBox)
+                        if (binding == null && element is ComboBox)
                             binding = BindingOperations.GetBinding(element, ComboBox.SelectedItemProperty);
 
                         if (binding != null && binding.Path != null && !string.IsNullOrEmpty(binding.Path.Path))
@@ -78,7 +81,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 if (App.ServiceProvider?.GetService(typeof(OrdenServicioViewModel)) is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     DataContext = vmOrdenServicioForm;
-                    
+
                     if (vmOrdenServicioForm.VehiculosDisponibles.Count == 0 || vmOrdenServicioForm.TalleresDisponibles.Count == 0 || vmOrdenServicioForm.ServiciosDisponibles.Count == 0)
                         await vmOrdenServicioForm.LoadCombosAsync();
 
@@ -125,7 +128,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                         vmOrdenServicioForm.KmIngreso = 0;
                         vmOrdenServicioForm.Fecha = DateTime.Now;
                         vmOrdenServicioForm.Estado = "Abierta";
-                        
+
                         if (Application.Current.MainWindow is MainWindow mainWin && mainWin.UsuarioSesionActual != null)
                         {
                             vmOrdenServicioForm.UsuarioId = mainWin.UsuarioSesionActual.IdUsuario;
@@ -155,7 +158,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                             if (view != null)
                             {
                                 int currentUserId = mWin.UsuarioSesionActual.IdUsuario;
-                                view.Filter = item => 
+                                view.Filter = item =>
                                 {
                                     if (item is TP_ControlVehicular.Negocio.DTOs.DetalleServicioDto det)
                                     {
@@ -241,7 +244,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             }
         }
 
-                private async void BtnNuevoServicio_Click(object sender, RoutedEventArgs e)
+        private async void BtnNuevoServicio_Click(object sender, RoutedEventArgs e)
         {
             var frm = new Servicio.FrmServicio();
             frm.Owner = Window.GetWindow(this);
@@ -317,7 +320,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 }
             }
         }
-    
+
         private void CheckBoxRevisado_Changed(object sender, RoutedEventArgs e)
         {
             if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)

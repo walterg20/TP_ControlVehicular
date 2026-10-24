@@ -1,4 +1,5 @@
-﻿using System.Windows;
+// walterg20
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -16,7 +17,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
             InitializeComponent();
             _esModificacion = false;
             this.Title = "Registrar Nuevo Usuario";
-            
+
             // Configurar límites del DatePicker (min: 80 años atrás, max: 18 años atrás)
             dtpFechaNacimiento.DisplayDateStart = DateTime.Today.AddYears(-80);
             dtpFechaNacimiento.DisplayDateEnd = DateTime.Today.AddYears(-18);
@@ -86,12 +87,12 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                         vmUsuario.Email = usuario.Email;
                         vmUsuario.Telefono = usuario.Telefono;
                         vmUsuario.Domicilio = usuario.Domicilio;
-                        
+
                         if (usuario.FechaNacimiento.Year < 1900)
                             vmUsuario.FechaNacimiento = DateTime.Today.AddYears(-18);
                         else
                             vmUsuario.FechaNacimiento = usuario.FechaNacimiento;
-                            
+
                         vmUsuario.Contrasena = usuario.Contrasena;
                         vmUsuario.IdRol = usuario.IdRol;
                         vmUsuario.Estado = usuario.Estado;
@@ -120,7 +121,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                     }
 
                     vmUsuario.ClearAllErrors();
-                    
+
                     vmUsuario.RegistrationFailed -= VmUsuario_RegistrationFailed;
                     vmUsuario.RegistrationFailed += VmUsuario_RegistrationFailed;
                 }

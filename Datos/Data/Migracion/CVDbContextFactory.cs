@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+// walterg20
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;

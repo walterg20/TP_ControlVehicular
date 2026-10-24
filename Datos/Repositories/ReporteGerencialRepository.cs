@@ -1,4 +1,5 @@
-﻿using Dapper;
+// walterg20
+using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -16,7 +17,7 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public ReporteGerencialRepository(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection") 
+            _connectionString = configuration.GetConnectionString("DefaultConnection")
                 ?? throw new InvalidOperationException("No se encontró la cadena de conexión 'DefaultConnection'.");
         }
 

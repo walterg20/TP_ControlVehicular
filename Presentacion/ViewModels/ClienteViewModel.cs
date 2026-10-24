@@ -1,4 +1,4 @@
-
+// walterg20
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -10,7 +10,7 @@ using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class ClienteViewModel: BaseViewModel, INotifyDataErrorInfo
+    public class ClienteViewModel : BaseViewModel, INotifyDataErrorInfo
     {
         private readonly RegistrarClienteHandler _registrarClienteHandler;
         private readonly TP_ControlVehicular.Negocio.Interfaces.IClienteRepository _clienteRepository;
@@ -103,6 +103,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _activo = value; OnPropertyChanged(); }
         }
 
+        public ClienteDto? ClienteSeleccionado { get; set; }
         public ICommand RegistrarCommand { get; }
 
         public async Task LoadAsync()

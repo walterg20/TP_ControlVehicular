@@ -1,3 +1,4 @@
+// walterg20
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
@@ -20,11 +21,11 @@ public class GenerarComprobantePagoHandler
         var resultados = await _dbContext.Database
             .SqlQueryRaw<ComprobantePagoRowDto>("EXEC sp_GenerarComprobantePago @OrdenId", parametro)
             .ToListAsync();
-            
+
         if (!resultados.Any()) return null;
 
         var cabecera = resultados.First();
-        
+
         var dto = new ComprobantePagoDto
         {
             OrdenId = cabecera.OrdenId,

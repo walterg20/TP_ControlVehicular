@@ -1,3 +1,4 @@
+// walterg20
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -54,7 +55,7 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                         c.Item().Text("contacto@taller.com").AlignRight(); // Hardcoded from image
                     });
                 });
-                
+
                 col.Item().PaddingVertical(10).LineHorizontal(1).LineColor(Colors.Black);
             });
         }
@@ -135,9 +136,9 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                         c.Item().Row(r => { r.RelativeItem().Text("Subtotal:"); r.ConstantItem(80).Text($"${_dto.Subtotal:N0}"); });
                         c.Item().Row(r => { r.RelativeItem().Text("IVA:"); r.ConstantItem(80).Text($"${_dto.Iva:N0}"); });
                         c.Item().Row(r => { r.RelativeItem().Text("Total").Bold().FontSize(12); r.ConstantItem(80).Text($"${_dto.TotalGeneral:N0}").Bold().FontSize(12); });
-                        
+
                         c.Item().PaddingVertical(5).LineHorizontal(1).LineColor(Colors.Black);
-                        
+
                         var pagadoAmount = _dto.EstadoOrden == "Pagada" ? _dto.TotalGeneral : 0;
                         var saldoAmount = _dto.TotalGeneral - pagadoAmount;
                         c.Item().Row(r => { r.RelativeItem().Text("Pagado:"); r.ConstantItem(80).Text($"${pagadoAmount:N0}"); });
@@ -153,7 +154,7 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                         c.Item().Text("Firma del técnico").FontColor(Colors.Grey.Medium);
                         c.Item().Text("Equipo Técnico").Bold();
                     });
-                    
+
                     row.RelativeItem().Column(c =>
                     {
                         c.Item().Text("Firma del cliente").FontColor(Colors.Grey.Medium);

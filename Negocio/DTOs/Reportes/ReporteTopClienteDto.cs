@@ -1,3 +1,4 @@
+// walterg20
 namespace TP_ControlVehicular.Negocio.DTOs.Reportes
 {
     public class ReporteTopClienteDto
@@ -8,7 +9,7 @@ namespace TP_ControlVehicular.Negocio.DTOs.Reportes
         public string Dni { get; set; } = string.Empty;
         public int CantidadServicios { get; set; }
         public decimal TotalGastado { get; set; }
-        
+
         public string NombreCompleto => $"{Nombre} {Apellido}";
     }
 }

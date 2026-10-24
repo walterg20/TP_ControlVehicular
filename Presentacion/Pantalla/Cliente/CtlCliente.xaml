@@ -75,11 +75,11 @@
 
             <DataGrid x:Name="dgClientes"
                       ItemsSource="{Binding Clientes}"
+                      SelectedItem="{Binding ClienteSeleccionado, Mode=TwoWay}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       CanUserAddRows="False"
                       SelectionMode="Single" 
-                      SelectionChanged="dgClientes_SelectionChanged"
                       GridLinesVisibility="Horizontal"
                       HeadersVisibility="Column"
                       Background="Transparent"

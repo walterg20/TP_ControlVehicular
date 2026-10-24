@@ -1,3 +1,4 @@
+// walterg20
 using AutoMapper;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,6 +7,11 @@ using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Services;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using TP_ControlVehicular.Negocio.Reportes.Documentos;
+using System.Diagnostics;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
@@ -61,11 +67,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ServiciosDisponibles = new ObservableCollection<ServicioDto>();
             MecanicosDisponibles = new ObservableCollection<UsuarioDto>();
 
-            ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) => {
+            ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) =>
+            {
                 OnPropertyChanged(nameof(ListadoOrdenesFiltered));
                 OnPropertyChanged(nameof(IsListEmpty));
             };
-            
+
             Fecha = DateTime.Now;
             Estado = "Abierta";
         }
@@ -87,11 +94,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public int ClienteId
         {
             get => _clienteId;
-            set 
-            { 
-                _clienteId = value; 
-                OnPropertyChanged(); 
-                FiltrarVehiculosPorCliente(); 
+            set
+            {
+                _clienteId = value;
+                OnPropertyChanged();
+                FiltrarVehiculosPorCliente();
             }
         }
 
@@ -131,16 +138,185 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _textoBusqueda = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
         }
 
-        public IEnumerable<RegistroServicioDto> ListadoOrdenesFiltered =>
-            string.IsNullOrWhiteSpace(TextoBusqueda)
-                ? Ordenes
-                : Ordenes.Where(o => (o.VehiculoPatente ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                  || (o.VehiculoDetalle ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                  || (o.RecepcionistaNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                  || (o.TallerNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                  || (o.Estado ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
-                                  
+        private DateTime? _fechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        public DateTime? FechaDesde
+        {
+            get => _fechaDesde;
+            set { _fechaDesde = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+        }
+
+        private DateTime? _fechaHasta = DateTime.Today;
+        public DateTime? FechaHasta
+        {
+            get => _fechaHasta;
+            set { _fechaHasta = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+        }
+
+        private string _estadoFiltro = "Todos";
+        public string EstadoFiltro
+        {
+            get => _estadoFiltro;
+            set { _estadoFiltro = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+        }
+
+        private string _mensajeValidacionFechas = string.Empty;
+        public string MensajeValidacionFechas
+        {
+            get => _mensajeValidacionFechas;
+            set { _mensajeValidacionFechas = value; OnPropertyChanged(); }
+        }
+
+        public IEnumerable<RegistroServicioDto> ListadoOrdenesFiltered
+        {
+            get
+            {
+                if (FechaDesde.HasValue && FechaHasta.HasValue && FechaDesde.Value.Date > FechaHasta.Value.Date)
+                {
+                    MensajeValidacionFechas = "La fecha 'Desde' no puede ser posterior a 'Hasta'.";
+                    return Enumerable.Empty<RegistroServicioDto>();
+                }
+                MensajeValidacionFechas = string.Empty;
+
+                var query = Ordenes.AsEnumerable();
+
+                if (FechaDesde.HasValue)
+                {
+                    query = query.Where(o => o.Fecha.Date >= FechaDesde.Value.Date);
+                }
+
+                if (FechaHasta.HasValue)
+                {
+                    query = query.Where(o => o.Fecha.Date <= FechaHasta.Value.Date);
+                }
+
+                if (!string.IsNullOrWhiteSpace(EstadoFiltro) && EstadoFiltro != "Todos")
+                {
+                    query = query.Where(o => string.Equals(o.Estado, EstadoFiltro, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (!string.IsNullOrWhiteSpace(TextoBusqueda))
+                {
+                    var txt = TextoBusqueda.Trim();
+                    query = query.Where(o => (o.VehiculoPatente ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
+                                          || (o.VehiculoDetalle ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
+                                          || (o.RecepcionistaNombre ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
+                                          || (o.TallerNombre ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
+                                          || (o.ClienteDetalle ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
+                                          || (o.Estado ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
+                                          || o.Id.ToString().Contains(txt));
+                }
+
+                return query;
+            }
+        }
+
         public bool IsListEmpty => !ListadoOrdenesFiltered.Any();
+
+        private ICommand? _limpiarFiltrosCommand;
+        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(() =>
+        {
+            FechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            FechaHasta = DateTime.Today;
+            EstadoFiltro = "Todos";
+            TextoBusqueda = string.Empty;
+            return Task.CompletedTask;
+        });
+
+        private ICommand? _imprimirListadoFiltradoCommand;
+        public ICommand ImprimirListadoFiltradoCommand => _imprimirListadoFiltradoCommand ??= new RelayCommand(async () => await ImprimirListadoFiltradoAsync());
+
+        public async Task ImprimirListadoFiltradoAsync()
+        {
+            var ordenes = ListadoOrdenesFiltered.ToList();
+            var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ListadoOrdenes_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+
+            var filtrosTexto = $"Estado: {EstadoFiltro}";
+            if (FechaDesde.HasValue) filtrosTexto += $" | Desde: {FechaDesde.Value:dd/MM/yyyy}";
+            if (FechaHasta.HasValue) filtrosTexto += $" | Hasta: {FechaHasta.Value:dd/MM/yyyy}";
+            if (!string.IsNullOrWhiteSpace(TextoBusqueda)) filtrosTexto += $" | Búsqueda: '{TextoBusqueda}'";
+
+            var document = QuestPDF.Fluent.Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(QuestPDF.Helpers.PageSizes.A4.Landscape());
+                    page.Margin(1, QuestPDF.Infrastructure.Unit.Centimetre);
+                    page.PageColor(QuestPDF.Helpers.Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(10));
+
+                    page.Header().Element(c => c.ComposeEncabezadoTaller("Listado de Órdenes de Trabajo"));
+                    page.Content().PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(col =>
+                    {
+                        col.Item().PaddingBottom(10).Text($"Filtros aplicados: {filtrosTexto} (Total: {ordenes.Count} órdenes)").FontSize(11).FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
+
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.ConstantColumn(45);   // N°
+                                columns.ConstantColumn(95);   // Fecha
+                                columns.RelativeColumn(2);    // Cliente
+                                columns.ConstantColumn(70);   // Patente
+                                columns.RelativeColumn(2);    // Vehículo
+                                columns.RelativeColumn(1.5f); // Recepción
+                                columns.ConstantColumn(55);   // Km
+                                columns.ConstantColumn(80);   // Estado
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().Element(CellStyle).Text("N°");
+                                header.Cell().Element(CellStyle).Text("Fecha");
+                                header.Cell().Element(CellStyle).Text("Cliente");
+                                header.Cell().Element(CellStyle).Text("Patente");
+                                header.Cell().Element(CellStyle).Text("Vehículo");
+                                header.Cell().Element(CellStyle).Text("Recepción");
+                                header.Cell().Element(CellStyle).Text("Km");
+                                header.Cell().Element(CellStyle).Text("Estado");
+
+                                static QuestPDF.Infrastructure.IContainer CellStyle(QuestPDF.Infrastructure.IContainer container)
+                                {
+                                    return container.DefaultTextStyle(x => x.SemiBold()).PaddingVertical(5).BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Black);
+                                }
+                            });
+
+                            foreach (var ord in ordenes)
+                            {
+                                table.Cell().Element(Block).Text(ord.Id.ToString());
+                                table.Cell().Element(Block).Text(ord.Fecha.ToString("dd/MM/yyyy HH:mm"));
+                                table.Cell().Element(Block).Text(ord.ClienteDetalle ?? "-");
+                                table.Cell().Element(Block).Text(ord.VehiculoPatente ?? "-");
+                                table.Cell().Element(Block).Text(ord.VehiculoDetalle ?? "-");
+                                table.Cell().Element(Block).Text(ord.RecepcionistaNombre ?? "-");
+                                table.Cell().Element(Block).Text(ord.KmIngreso.ToString());
+                                table.Cell().Element(Block).Text(ord.Estado ?? "-");
+
+                                static QuestPDF.Infrastructure.IContainer Block(QuestPDF.Infrastructure.IContainer container)
+                                {
+                                    return container.PaddingVertical(2).PaddingHorizontal(2);
+                                }
+                            }
+                        });
+                    });
+                    page.Footer().Element(c => c.ComposePieDePagina());
+                });
+            });
+
+            await Task.Run(() => document.GeneratePdf(filePath));
+
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = filePath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error al abrir PDF: {ex.Message}");
+            }
+        }
 
         private int _vehiculoId;
         public int VehiculoId
@@ -184,7 +360,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _estado = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
-        
+
         private bool EsMecanico
         {
             get { return !TienePermiso("OrdenServicio.Crear"); }
@@ -228,7 +404,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             TalleresDisponibles.Clear();
             ServiciosDisponibles.Clear();
             MecanicosDisponibles.Clear();
-            
+
             try
             {
                 var clientes = await _clienteRepository.GetAllAsync();
@@ -242,7 +418,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 {
                     _todosLosVehiculos.Add(_mapper.Map<VehiculoDto>(v));
                 }
-                
+
                 ClienteId = currentClienteId; // This triggers FiltrarVehiculosPorCliente()
                 if (ClienteId == 0) FiltrarVehiculosPorCliente();
                 VehiculoId = currentVehiculoId;
@@ -252,7 +428,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 {
                     TalleresDisponibles.Add(_mapper.Map<TallerDto>(t));
                 }
-                
+
                 TallerId = currentTallerId;
                 if (TallerId == 0 && TalleresDisponibles.Any())
                 {
@@ -282,7 +458,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             OnPropertyChanged(nameof(PuedeImprimirRecepcion));
             OnPropertyChanged(nameof(PuedePagar));
             OnPropertyChanged(nameof(PuedeVerComprobantePago));
-            
+
             Ordenes.Clear();
             await LoadCombosAsync();
 
@@ -321,7 +497,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     Origen = d.Origen,
                     Estado = d.Estado,
                     OrdenEjecucion = d.OrdenEjecucion,
-                    
+
                     Observaciones = d.Observaciones
                 }).ToList() ?? new List<Entidad.DetalleServicio>()
             };
@@ -354,7 +530,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public async Task<bool> GuardarOrdenAsync()
         {
             if (!ValidateAll()) return false;
-            
+
             if (IsLoading) return false;
             IsLoading = true;
 
@@ -422,7 +598,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 IsLoading = false;
             }
         }
-        
+
         public event EventHandler<string>? RegistrationFailed;
 
         public override bool ValidateProperty([CallerMemberName] string? propertyName = null)
@@ -454,7 +630,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public bool ValidateAll()
         {
-            
+
             ValidateProperty(nameof(VehiculoId));
             ValidateProperty(nameof(TallerId));
             ValidateProperty(nameof(KmIngreso));

@@ -1,3 +1,4 @@
+// walterg20
 using Moq;
 using System.Threading.Tasks;
 using System;
@@ -60,7 +61,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             
             Assert.True(viewModel.HasErrors);
             var errores = viewModel.GetErrors(nameof(viewModel.FechaNacimiento));
-            Assert.Contains(errores.Cast<string>(), e => e.Contains("18 años"));
+            Assert.Contains(errores.Cast<string>(), e => e.Contains("18 aÃ±os"));
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+// walterg20
+using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
@@ -58,7 +59,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 if (!vmOrdenServicio.PuedeCrear) { Compartido.FrmConfirmacion.MostrarAviso("No tiene permisos para crear órdenes.", "Acceso Denegado", Window.GetWindow(this)); return; }
                 // Limpiar selección actual si la hubiera
                 vmOrdenServicio.OrdenSeleccionada = null;
-                
+
                 if (Application.Current.MainWindow is MainWindow mainWindow)
                 {
                     mainWindow.AgregarPagina(new CtlOrdenServicioForm());
@@ -95,7 +96,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 }
 
                 var confirmacion = Compartido.FrmConfirmacion.Mostrar(
-                    $"¿Está seguro de querer cancelar la orden #{vmOrdenServicio.OrdenSeleccionada.Id} del vehículo {vmOrdenServicio.OrdenSeleccionada.VehiculoPatente}?", 
+                    $"¿Está seguro de querer cancelar la orden #{vmOrdenServicio.OrdenSeleccionada.Id} del vehículo {vmOrdenServicio.OrdenSeleccionada.VehiculoPatente}?",
                     "Confirmación", Window.GetWindow(this));
 
                 if (confirmacion)

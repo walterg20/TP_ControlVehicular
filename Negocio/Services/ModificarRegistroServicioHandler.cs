@@ -1,3 +1,4 @@
+// walterg20
 using AutoMapper;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -46,11 +47,11 @@ namespace TP_ControlVehicular.Negocio.Services
             }
 
             await _repository.UpdateAsync(registro);
-            
+
             // Recargar con relaciones
             var list = await _repository.GetReporteCompletoAsync();
             var updated = list.FirstOrDefault(r => r.Id == registro.Id) ?? registro;
-            
+
             return _mapper.Map<RegistroServicioDto>(updated);
         }
     }

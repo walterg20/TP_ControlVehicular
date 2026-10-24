@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+// walterg20
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TP_ControlVehicular.Entidad;
 

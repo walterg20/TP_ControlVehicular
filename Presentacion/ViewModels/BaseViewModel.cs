@@ -1,4 +1,5 @@
-﻿using System.Collections;
+// walterg20
+using System.Collections;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using TP_ControlVehicular.Negocio.Context;
@@ -44,8 +45,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public bool TienePermiso(string permiso)
         {
             var main = System.Windows.Application.Current?.MainWindow as MainWindow;
-            if (main == null || main.UsuarioSesionActual == null || main.UsuarioSesionActual.Permisos == null) 
-                return true; 
+            if (main == null || main.UsuarioSesionActual == null || main.UsuarioSesionActual.Permisos == null)
+                return true;
             return main.UsuarioSesionActual.Permisos.Contains(permiso);
         }
 

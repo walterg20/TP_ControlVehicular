@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+// walterg20
+using AutoMapper;
 using System.Collections.ObjectModel;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -41,7 +42,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
             MarcasDisponibles = new ObservableCollection<MarcaDto>();
             ModelosDisponibles = new ObservableCollection<ModeloDto>();
-            ((ObservableCollection<VehiculoDto>)Vehiculos).CollectionChanged += (s, e) => {
+            ((ObservableCollection<VehiculoDto>)Vehiculos).CollectionChanged += (s, e) =>
+            {
                 OnPropertyChanged(nameof(ListadoVehiculosFiltered));
                 OnPropertyChanged(nameof(IsListEmpty));
             };

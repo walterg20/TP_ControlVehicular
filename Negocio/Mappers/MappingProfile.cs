@@ -1,3 +1,4 @@
+// walterg20
 using AutoMapper;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -17,7 +18,7 @@ namespace TP_ControlVehicular.Negocio.Mappers
             CreateMap<Vehiculo, VehiculoDto>()
                 .ForMember(dest => dest.IdCliente, opt => opt.MapFrom((src, dest) => src.Propietarios.FirstOrDefault(p => p.EsActual)?.Cliente?.Id ?? 0))
                 .ForMember(dest => dest.IdModelo, opt => opt.MapFrom(src => src.ModeloId))
-                .ForMember(dest => dest.ClienteNombre, opt => opt.MapFrom((src, dest) => 
+                .ForMember(dest => dest.ClienteNombre, opt => opt.MapFrom((src, dest) =>
                 {
                     var c = src.Propietarios.FirstOrDefault(p => p.EsActual)?.Cliente;
                     return c != null ? $"[{c.Dni}] {c.Nombre} {c.Apellido}".Trim() : "Sin asignar";
@@ -44,7 +45,7 @@ namespace TP_ControlVehicular.Negocio.Mappers
             // ConfiguracionBackup -> BackupConfiguracionDto
             CreateMap<ConfiguracionBackup, BackupConfiguracionDto>();
 
-                        // Permiso -> PermisoDto
+            // Permiso -> PermisoDto
             CreateMap<Permiso, PermisoDto>()
                 .ForMember(dest => dest.Asignado, opt => opt.Ignore());
 
@@ -66,13 +67,13 @@ namespace TP_ControlVehicular.Negocio.Mappers
 
             // RegistroServicio -> RegistroServicioDto
             CreateMap<RegistroServicio, RegistroServicioDto>()
-                .ForMember(dest => dest.ClienteDetalle, opt => opt.MapFrom((src, dest) => 
+                .ForMember(dest => dest.ClienteDetalle, opt => opt.MapFrom((src, dest) =>
                 {
                     var c = src.Vehiculo?.Propietarios.FirstOrDefault(p => p.EsActual)?.Cliente;
                     return c != null ? $"{c.Nombre} {c.Apellido} [{c.Dni}]" : "Sin asignar";
                 }))
                 .ForMember(dest => dest.VehiculoPatente, opt => opt.MapFrom(src => src.Vehiculo != null ? src.Vehiculo.Patente : string.Empty))
-                .ForMember(dest => dest.VehiculoDetalle, opt => opt.MapFrom(src => src.Vehiculo != null && src.Vehiculo.Modelo != null && src.Vehiculo.Modelo.Marca != null 
+                .ForMember(dest => dest.VehiculoDetalle, opt => opt.MapFrom(src => src.Vehiculo != null && src.Vehiculo.Modelo != null && src.Vehiculo.Modelo.Marca != null
                     ? $"{src.Vehiculo.Modelo.Marca.NombreMarca} {src.Vehiculo.Modelo.NombreModelo}" : string.Empty))
                 .ForMember(dest => dest.TallerNombre, opt => opt.MapFrom(src => src.Taller != null ? src.Taller.Nombre : string.Empty))
                 .ForMember(dest => dest.RecepcionistaNombre, opt => opt.MapFrom(src => src.Usuario != null ? $"{src.Usuario.Nombre} {src.Usuario.Apellido}".Trim() : string.Empty))

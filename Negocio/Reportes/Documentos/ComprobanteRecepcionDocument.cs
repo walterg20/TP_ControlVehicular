@@ -1,3 +1,4 @@
+// walterg20
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -31,7 +32,7 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                 {
                     col.Spacing(15);
                     col.Item().Text("Datos de Recepción").FontSize(14).SemiBold().FontColor(Colors.Blue.Medium);
-                    
+
                     col.Item().Border(1).BorderColor(Colors.Grey.Lighten1).Padding(10).Column(inner =>
                     {
                         inner.Spacing(5);
@@ -46,7 +47,7 @@ namespace TP_ControlVehicular.Negocio.Reportes.Documentos
                     });
 
                     col.Item().PaddingTop(20).Text("Detalle de Servicios Solicitados").FontSize(14).SemiBold().FontColor(Colors.Blue.Medium);
-                    
+
                     col.Item().Table(table =>
                     {
                         table.ColumnsDefinition(columns =>

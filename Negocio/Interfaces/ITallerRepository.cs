@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+// walterg20
+using System.Collections.Generic;
 using TP_ControlVehicular.Entidad;
 
 namespace TP_ControlVehicular.Negocio.Interfaces
