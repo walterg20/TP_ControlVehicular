@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+<<<<<<< Updated upstream
     <None Remove="appsettings.json" />
   </ItemGroup>
 
@@ -16,6 +17,12 @@
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+=======
+    <Compile Remove="spec\**" />
+    <EmbeddedResource Remove="spec\**" />
+    <None Remove="spec\**" />
+    <Page Remove="spec\**" />
+>>>>>>> Stashed changes
   </ItemGroup>
 
   <ItemGroup>
