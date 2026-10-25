@@ -15,6 +15,6 @@ namespace TP_ControlVehicular.Datos.Repositories
         }
 
         public async Task<List<Rol>> GetActivosAsync() =>
-            await _cvDbContext.Roles.Where(r => r.Estado).ToListAsync();
+            await _cvDbContext.Roles.Include(r => r.Permisos).Where(r => r.Estado).ToListAsync();
     }
 }

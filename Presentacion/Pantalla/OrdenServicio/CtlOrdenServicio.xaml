@@ -1,4 +1,4 @@
-<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio"
+﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
-    <Grid Margin="10">
+    <UserControl.Resources><BooleanToVisibilityConverter x:Key="BoolToVis"/></UserControl.Resources><Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- Encabezado -->
@@ -57,7 +57,7 @@
                     </Button>
                 </StackPanel>
 
-                <Button Grid.Column="1" Content="➕ Nueva Orden" Click="BtnNuevaOrden_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeCrear}">
+                <Button x:Name="btnNuevaOrden" Grid.Column="1" Content="➕ Nueva Orden" Click="BtnNuevaOrden_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Visibility="{Binding PuedeCrear, Converter={StaticResource BoolToVis}}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>
@@ -73,6 +73,12 @@
                 <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
 
+            <Grid>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding IsListEmpty, Converter={StaticResource BoolToVis}}" Panel.ZIndex="10" Margin="0,50,0,0">
+                    <TextBlock Text="🔍" FontSize="48" HorizontalAlignment="Center" Foreground="#BDC3C7"/>
+                    <TextBlock Text="No se encontraron órdenes de servicio" FontSize="16" FontWeight="SemiBold" Foreground="#7F8C8D" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Crea una nueva o intentá con otra búsqueda." FontSize="13" Foreground="#95A5A6" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                </StackPanel>
             <DataGrid x:Name="dgOrdenes"
                       ItemsSource="{Binding ListadoOrdenesFiltered}"
                       SelectedItem="{Binding OrdenSeleccionada}"
@@ -99,14 +105,15 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="N°" Binding="{Binding Id}" Width="60"/>
                     <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat=dd/MM/yyyy HH:mm}" Width="130"/>
+                    <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteDetalle}" Width="*"/>
                     <DataGridTextColumn Header="Patente" Binding="{Binding VehiculoPatente}" Width="100"/>
-                    <DataGridTextColumn Header="Vehículo" Binding="{Binding VehiculoDetalle}" Width="*"/>
-                    <DataGridTextColumn Header="Taller" Binding="{Binding TallerNombre}" Width="150"/>
-                    <DataGridTextColumn Header="Recepción" Binding="{Binding RecepcionistaNombre}" Width="150"/>
+                    <DataGridTextColumn Header="Vehículo" Binding="{Binding VehiculoDetalle}" Width="100"/>
+                    <DataGridTextColumn Header="Recepción" Binding="{Binding RecepcionistaNombre}" Width="100"/>
                     <DataGridTextColumn Header="Km" Binding="{Binding KmIngreso}" Width="80"/>
                     <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="100"/>
                 </DataGrid.Columns>
             </DataGrid>
+            </Grid>
         </Border>
 
         <!-- PIE DE ACCIONES -->
@@ -115,6 +122,27 @@
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="&#x1F4C4; Comp. Recepción" Click="BtnComprobanteOrden_Click" Padding="12,8" Background="#8E44AD" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" Visibility="{Binding PuedeImprimirRecepcion, Converter={StaticResource BoolToVis}}">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                <Button Content="&#x1F4C4; Comp. Pago" Click="BtnComprobantePago_Click" Padding="12,8" Background="#8E44AD" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" Visibility="{Binding PuedeVerComprobantePago, Converter={StaticResource BoolToVis}}">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                <Button Content="💳 Pagar" Click="BtnPagar_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" Visibility="{Binding PuedePagar, Converter={StaticResource BoolToVis}}">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
                 <Button Content="✏️ Editar Seleccionada" Click="BtnEditar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -122,7 +150,7 @@
                         </Style>
                     </Button.Resources>
                 </Button>
-                <Button Content="🗑️ Eliminar / Cancelar" Click="BtnEliminar_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeEliminar}">
+                <Button x:Name="btnEliminar" Content="🗑️ Eliminar / Cancelar" Click="BtnEliminar_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Visibility="{Binding PuedeEliminar, Converter={StaticResource BoolToVis}}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>
@@ -133,3 +161,5 @@
         </Border>
     </Grid>
 </UserControl>
+
+

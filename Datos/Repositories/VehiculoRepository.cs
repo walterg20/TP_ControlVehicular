@@ -16,16 +16,16 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<IEnumerable<Vehiculo>> GetByClienteAsync(int idCliente) =>
             await _cvDbContext.Vehiculos
-                .Include(v => v.Cliente)
+                .Include(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(v => v.Modelo)
                 .ThenInclude(m => m.Marca)
-                .Where(v => v.ClienteId == idCliente)
+                .Where(v => v.Propietarios.Any(p => p.ClienteId == idCliente && p.EsActual))
                 .ToListAsync();
 
         public async Task<IEnumerable<Vehiculo>> GetAllWithDetailsAsync(int? mecanicoId = null)
         {
             var query = _cvDbContext.Vehiculos
-                .Include(v => v.Cliente)
+                .Include(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(v => v.Modelo)
                 .ThenInclude(m => m.Marca)
                 .AsQueryable();
@@ -37,6 +37,16 @@ namespace TP_ControlVehicular.Datos.Repositories
             }
 
             return await query.ToListAsync();
+        }
+
+        public async Task<Vehiculo?> GetByPatenteAsync(string patente)
+        {
+            return await _cvDbContext.Vehiculos
+                .Include(v => v.Propietarios)
+                .ThenInclude(p => p.Cliente)
+                .Include(v => v.Modelo)
+                .ThenInclude(m => m.Marca)
+                .FirstOrDefaultAsync(v => v.Patente.ToLower() == patente.ToLower());
         }
     }
 }

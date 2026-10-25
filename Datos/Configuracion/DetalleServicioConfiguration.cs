@@ -8,7 +8,11 @@ namespace TP_ControlVehicular.Datos.Configuracion
     {
         public void Configure(EntityTypeBuilder<DetalleServicio> builder)
         {
-            builder.ToTable("DetalleServicio");
+            builder.ToTable("DetalleServicio", tb => 
+            {
+                tb.HasTrigger("TR_DetalleServicio_ValidarPrecioYCantidad");
+                tb.HasTrigger("TR_DetalleServicio_BloquearModificacionFinalizada");
+            });
             builder.HasKey(d => d.Id);
 
             builder.Property(d => d.Precio)

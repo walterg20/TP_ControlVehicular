@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,6 +7,8 @@ using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Datos.Repositories;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Mappers;
+using TP_ControlVehicular.Negocio.Reportes;
+using TP_ControlVehicular.Negocio.Handlers;
 using TP_ControlVehicular.Negocio.Services;
 using TP_ControlVehicular.Presentacion.Cliente;
 using TP_ControlVehicular.Presentacion.Marca;
@@ -20,6 +22,9 @@ using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Reportes;
+using TP_ControlVehicular.Negocio.Handlers;
+using TP_ControlVehicular.Datos.Repositories;
 
 namespace TP_ControlVehicular
 {
@@ -33,18 +38,24 @@ namespace TP_ControlVehicular
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            
+            // Configurar licencia de QuestPDF (Community)
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
             var services = new ServiceCollection();
             // Registrar logging para que AutoMapper y otros componentes que lo requieran
             // puedan resolverse desde el contenedor de dependencias.
             services.AddLogging();
             // AutoMapper
             services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
+
             // DbContext
             var builder = new ConfigurationBuilder()
                             .SetBasePath(AppContext.BaseDirectory)
                             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             IConfiguration configuration = builder.Build();
+            services.AddSingleton<IConfiguration>(configuration);
 
             services.AddDbContext<CVDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
@@ -60,6 +71,12 @@ namespace TP_ControlVehicular
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<IServicioRepository, ServicioRepository>();
             services.AddScoped<IRegistroServicioRepository, RegistroServicioRepository>();
+            services.AddScoped<IReporteRepository, ReporteRepository>();
+            services.AddScoped<TP_ControlVehicular.Negocio.Reportes.IReporteGerencialRepository, TP_ControlVehicular.Datos.Repositories.ReporteGerencialRepository>();
+            services.AddScoped<IFacturaRepository, FacturaRepository>();
+            services.AddScoped<IPagoRepository, PagoRepository>();
+            services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
+            services.AddScoped<IBillingService, BillingService>();
 
             // Handlers
             services.AddScoped<RegistrarClienteHandler>();
@@ -86,8 +103,15 @@ namespace TP_ControlVehicular
             services.AddScoped<ModificarUsuarioHandler>();
             services.AddScoped<ListarUsuariosHandler>();
             services.AddScoped<AutenticarUsuarioHandler>();
+            services.AddScoped<ObtenerPermisosHandler>();
+            services.AddScoped<ActualizarPermisosRolHandler>();
             services.AddScoped<ObtenerDashboardHandler>();
             services.AddScoped<ObtenerReporteOrdenesHandler>();
+            services.AddScoped<ObtenerReporteIngresosHandler>();
+            services.AddScoped<ObtenerReporteTiemposResolucionHandler>();
+            services.AddScoped<ObtenerHistorialClinicoVehiculoHandler>();
+            services.AddScoped<ObtenerHojaTrabajoDiariaHandler>();
+
             services.AddScoped<ListarServiciosHandler>();
             services.AddScoped<RegistrarServicioHandler>();
             services.AddScoped<ModificarServicioHandler>();
@@ -95,7 +119,15 @@ namespace TP_ControlVehicular
             services.AddScoped<ListarRegistroServiciosHandler>();
             services.AddScoped<RegistrarRegistroServicioHandler>();
             services.AddScoped<ModificarRegistroServicioHandler>();
+            services.AddScoped<AvanzarEstadoTareaHandler>();
+            services.AddScoped<ListarTareasPorEspecialistaHandler>();
+            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler>();
+            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler>();
+            services.AddScoped<AsignarVehiculoPorPatenteHandler>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
+            // Servicios Especiales
+            services.AddTransient<IReporteService, QuestPdfReporteService>();
 
             // ViewModels
             services.AddScoped<ClienteViewModel>();
@@ -108,8 +140,25 @@ namespace TP_ControlVehicular
             services.AddScoped<LoginViewModel>();
             services.AddScoped<DashboardViewModel>();
             services.AddScoped<ReporteOrdenesViewModel>();
+            services.AddScoped<ReporteOperativoViewModel>();
+            services.AddScoped<ReporteGerencialViewModel>();
             services.AddScoped<ServicioViewModel>();
             services.AddScoped<OrdenServicioViewModel>();
+            services.AddScoped<MisTareasViewModel>();
+            services.AddScoped<MisTrabajosViewModel>();
+            services.AddScoped<EmpresaConfiguracionViewModel>();
+            services.AddScoped<BackupViewModel>();
+            services.AddScoped<BackupConfiguracionViewModel>();
+
+            // Repositorios de configuracion
+            services.AddScoped<IConfiguracionEmpresaRepository, ConfiguracionEmpresaRepository>();
+            services.AddScoped<IConfiguracionBackupRepository, ConfiguracionBackupRepository>();
+
+            // Servicios de negocio
+            services.AddScoped<IEmpresaConfiguracionService, EmpresaConfiguracionService>();
+            services.AddScoped<IBackupConfiguracionService, BackupConfiguracionService>();
+            services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
+            services.AddScoped<IDriveBackupService, DriveBackupService>();
 
             // UserControls & Windows
             services.AddScoped<CtlCliente>();
@@ -123,9 +172,12 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlDashboard>();
             services.AddScoped<CtlReporteOrdenes>();
             services.AddScoped<CtlServicio>();
+            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion>();
+            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup>();
+            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion>();
             services.AddTransient<FrmServicio>();
             services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();
-            services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.FrmOrdenServicio>();
+            services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();
@@ -147,3 +199,4 @@ namespace TP_ControlVehicular
     }
 
 }
+

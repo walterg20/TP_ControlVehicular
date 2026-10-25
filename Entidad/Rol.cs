@@ -8,5 +8,6 @@ namespace TP_ControlVehicular.Entidad
         public bool Estado { get; set; } = true;
 
         public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+        public ICollection<Permiso> Permisos { get; set; } = new List<Permiso>();
     }
 }

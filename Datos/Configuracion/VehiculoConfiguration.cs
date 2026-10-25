@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TP_ControlVehicular.Entidad;
@@ -23,9 +23,6 @@ namespace TP_ControlVehicular.Datos.Configuracion
             builder.Property(v => v.KmActual)
                    .IsRequired();
 
-            builder.HasOne(v => v.Cliente)
-                   .WithMany(c => c.Vehiculos)
-                   .HasForeignKey(v => v.ClienteId);
 
             builder.HasOne(v => v.Modelo)
                    .WithMany(m => m.Vehiculos)

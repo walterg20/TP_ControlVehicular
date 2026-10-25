@@ -33,13 +33,15 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task AddAsync(T entity)
         {
+            _cvDbContext.ChangeTracker.Clear();
             await _dbSet.AddAsync(entity);
             await _cvDbContext.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(T entity)
         {
-            _dbSet.Update(entity);
+            _cvDbContext.ChangeTracker.Clear();
+            _cvDbContext.Entry(entity).State = EntityState.Modified;
             await _cvDbContext.SaveChangesAsync();
         }
 

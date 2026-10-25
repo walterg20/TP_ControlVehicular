@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -44,7 +44,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
         {
             AddHandler(UIElement.LostFocusEvent, new RoutedEventHandler((s, e) =>
             {
-                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vm)
+                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vmUsuario)
                 {
                     DependencyProperty? dp = null;
                     if (element is TextBox)
@@ -61,7 +61,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                         if (binding != null && binding.Path != null && !string.IsNullOrEmpty(binding.Path.Path))
                         {
                             be?.UpdateSource();
-                            vm.ValidateProperty(binding.Path.Path);
+                            vmUsuario.ValidateProperty(binding.Path.Path);
                         }
                     }
                 }
@@ -95,6 +95,10 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                         vmUsuario.Contrasena = usuario.Contrasena;
                         vmUsuario.IdRol = usuario.IdRol;
                         vmUsuario.Estado = usuario.Estado;
+
+                        // En modo edición, ocultar el input por defecto y mostrar el botón "Setear Clave"
+                        btnSetearClave.Visibility = Visibility.Visible;
+                        pnlContrasenaInput.Visibility = Visibility.Collapsed;
                     }
                     else
                     {
@@ -109,6 +113,10 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                         vmUsuario.Contrasena = string.Empty;
                         vmUsuario.IdRol = 0;
                         vmUsuario.Estado = true;
+
+                        // En modo creación, mostrar el input de contraseña directamente
+                        btnSetearClave.Visibility = Visibility.Collapsed;
+                        pnlContrasenaInput.Visibility = Visibility.Visible;
                     }
 
                     vmUsuario.ClearAllErrors();
@@ -126,6 +134,63 @@ namespace TP_ControlVehicular.Presentacion.Usuario
         private void VmUsuario_RegistrationFailed(object? sender, string errorMessage)
         {
             Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso(errorMessage, "Error de Guardado", Window.GetWindow(this));
+        }
+
+        private void BtnSetearClave_Click(object sender, RoutedEventArgs e)
+        {
+            btnSetearClave.Visibility = Visibility.Collapsed;
+            pnlContrasenaInput.Visibility = Visibility.Visible;
+            BtnGenerarClave_Click(sender, e);
+        }
+
+        private void BtnGenerarClave_Click(object sender, RoutedEventArgs e)
+        {
+            string claveRandom = Validaciones.ValidadorGlobal.GenerarContrasenaRandom();
+            if (DataContext is UsuarioViewModel vmUsuario)
+            {
+                vmUsuario.Contrasena = claveRandom;
+                vmUsuario.ValidateProperty(nameof(vmUsuario.Contrasena));
+            }
+            txtContrasena.Text = claveRandom;
+            pwdContrasena.Password = claveRandom;
+
+            // Asegurar que la clave sea visible al generarla
+            txtContrasena.Visibility = Visibility.Visible;
+            pwdContrasena.Visibility = Visibility.Collapsed;
+            btnToggleVerClave.Content = "👁️";
+        }
+
+        private void BtnToggleVerClave_Click(object sender, RoutedEventArgs e)
+        {
+            if (txtContrasena.Visibility == Visibility.Visible)
+            {
+                pwdContrasena.Password = txtContrasena.Text;
+                txtContrasena.Visibility = Visibility.Collapsed;
+                pwdContrasena.Visibility = Visibility.Visible;
+                btnToggleVerClave.Content = "🙈";
+                pwdContrasena.Focus();
+            }
+            else
+            {
+                txtContrasena.Text = pwdContrasena.Password;
+                pwdContrasena.Visibility = Visibility.Collapsed;
+                txtContrasena.Visibility = Visibility.Visible;
+                btnToggleVerClave.Content = "👁️";
+                txtContrasena.Focus();
+                txtContrasena.SelectionStart = txtContrasena.Text.Length;
+            }
+        }
+
+        private void PwdContrasena_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (pwdContrasena.Visibility == Visibility.Visible)
+            {
+                txtContrasena.Text = pwdContrasena.Password;
+                if (DataContext is UsuarioViewModel vmUsuario)
+                {
+                    vmUsuario.Contrasena = pwdContrasena.Password;
+                }
+            }
         }
 
         private async void BtnAgregarRol_Click(object sender, RoutedEventArgs e)
@@ -164,6 +229,15 @@ namespace TP_ControlVehicular.Presentacion.Usuario
         private void BtnCancelar_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = false;
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            if (DataContext is UsuarioViewModel vmUsuario)
+            {
+                vmUsuario.RegistrationFailed -= VmUsuario_RegistrationFailed;
+            }
+            base.OnClosed(e);
         }
     }
 }

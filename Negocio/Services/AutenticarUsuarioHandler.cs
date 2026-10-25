@@ -74,13 +74,13 @@ namespace TP_ControlVehicular.Negocio.Services
                     Mensaje = "Autenticación exitosa."
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // Captura errores de red o fallo de conexión con el motor SQL Server
                 return new AuthResponseDto
                 {
                     Resultado = ResultadoAutenticacion.ErrorBaseDatos,
-                    Mensaje = "Error de conexión con la base de datos."
+                    Mensaje = $"Error BD: {ex.InnerException?.Message ?? ex.Message}"
                 };
             }
         }

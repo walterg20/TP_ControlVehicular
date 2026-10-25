@@ -13,15 +13,37 @@ namespace TP_ControlVehicular.Datos.Data
         public DbSet<Marca> Marcas { get; set; } = null!;
         public DbSet<Taller> Talleres { get; set; } = null!;
         public DbSet<Rol> Roles { get; set; } = null!;
+        public DbSet<Permiso> Permisos { get; set; } = null!;
         public DbSet<Usuario> Usuarios { get; set; } = null!;
         public DbSet<Servicio> Servicios { get; set; } = null!;
         public DbSet<RegistroServicio> RegistroServicios { get; set; } = null!;
         public DbSet<DetalleServicio> DetalleServicios { get; set; } = null!;
-
+        public DbSet<Factura> Facturas { get; set; } = null!;
+        public DbSet<MetodoPago> MetodosPago { get; set; } = null!;
+        public DbSet<Pago> Pagos { get; set; } = null!;
+        public DbSet<PropietarioVehiculo> PropietariosVehiculos { get; set; } = null!;
+        public DbSet<ConfiguracionEmpresa> ConfiguracionEmpresa { get; set; } = null!;
+        public DbSet<ConfiguracionBackup> ConfiguracionBackup { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(CVDbContext).Assembly);
+            
+            modelBuilder.Entity<TP_ControlVehicular.Negocio.DTOs.Reportes.ReporteIngresosDto>().HasNoKey();
+            modelBuilder.Entity<TP_ControlVehicular.Negocio.DTOs.Reportes.ReporteTiemposResolucionDto>().HasNoKey();
+
+            
+            modelBuilder.Entity<Permiso>().ToTable("Permisos").HasKey(p => p.IdPermiso);
+            modelBuilder.Entity<Rol>()
+                .HasMany(r => r.Permisos)
+                .WithMany(p => p.Roles)
+                .UsingEntity<Dictionary<string, object>>(
+                    "RolPermisos",
+                    j => j.HasOne<Permiso>().WithMany().HasForeignKey("IdPermiso"),
+                    j => j.HasOne<Rol>().WithMany().HasForeignKey("IdRol")
+                );
+
             base.OnModelCreating(modelBuilder);
         }
     }
 }
+

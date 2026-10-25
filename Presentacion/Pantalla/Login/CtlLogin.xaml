@@ -51,19 +51,64 @@
 
                 <!-- Campo Contraseña -->
                 <TextBlock Text="Contraseña" Foreground="#34495E" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                <PasswordBox x:Name="txtPassword" 
-                             PasswordChanged="TxtPassword_PasswordChanged"
+                <Grid Margin="0,0,0,24">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- PasswordBox para modo oculto -->
+                    <PasswordBox x:Name="txtPassword" 
+                                 Grid.Column="0"
+                                 PasswordChanged="TxtPassword_PasswordChanged"
+                                 Padding="10,8" 
+                                 FontSize="14" 
+                                 BorderBrush="#BDC3C7" 
+                                 BorderThickness="1,1,0,1" 
+                                 Visibility="Visible">
+                        <PasswordBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8,0,0,8"/>
+                            </Style>
+                        </PasswordBox.Resources>
+                    </PasswordBox>
+
+                    <!-- TextBox para modo texto plano (visible) -->
+                    <TextBox x:Name="txtPasswordVisible" 
+                             Grid.Column="0"
+                             TextChanged="TxtPasswordVisible_TextChanged"
                              Padding="10,8" 
                              FontSize="14" 
                              BorderBrush="#BDC3C7" 
-                             BorderThickness="1" 
-                             Margin="0,0,0,24">
-                    <PasswordBox.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </PasswordBox.Resources>
-                </PasswordBox>
+                             BorderThickness="1,1,0,1" 
+                             Visibility="Collapsed">
+                        <TextBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8,0,0,8"/>
+                            </Style>
+                        </TextBox.Resources>
+                    </TextBox>
+
+                    <!-- Botón Toggle Ver / Ocultar -->
+                    <Button x:Name="btnTogglePassword" 
+                            Grid.Column="1" 
+                            Content="👁️" 
+                            Width="42" 
+                            ToolTip="Ver / Ocultar contraseña" 
+                            Background="#ECF0F1" 
+                            Foreground="#2C3E50" 
+                            FontSize="14"
+                            BorderBrush="#BDC3C7"
+                            BorderThickness="0,1,1,1" 
+                            Cursor="Hand" 
+                            Click="BtnTogglePassword_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="0,8,8,0"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </Grid>
 
                 <!-- Botón Iniciar Sesión -->
                 <Button Content="Iniciar Sesión" 

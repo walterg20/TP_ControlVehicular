@@ -1,6 +1,7 @@
-using System.Collections;
+﻿using System.Collections;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using TP_ControlVehicular.Negocio.Context;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
@@ -10,13 +11,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
         private readonly Dictionary<string, List<string>> _errors = new();
-
-        // Control de Permisos
-        public virtual bool PuedeCrear => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Administrador || TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Recepcionista;
-        
-        public virtual bool PuedeEditar => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Administrador || TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Recepcionista;
-
-        public virtual bool PuedeEliminar => TP_ControlVehicular.Negocio.Context.UserSession.CurrentUser?.IdRol == (int)TP_ControlVehicular.Negocio.Context.RolesSistema.Administrador;
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null!)
         {
@@ -31,7 +25,37 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             return true;
         }
 
+
+        private bool _isLoading;
+        public bool IsNotLoading => !IsLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set { SetProperty(ref _isLoading, value); OnPropertyChanged(nameof(IsNotLoading)); }
+        }
         public bool HasErrors => _errors.Values.Any(list => list.Count > 0);
+
+        protected virtual string Modulo => string.Empty;
+
+        public bool PuedeCrear => string.IsNullOrEmpty(Modulo) || TienePermiso($"{Modulo}.Crear");
+        public bool PuedeEditar => string.IsNullOrEmpty(Modulo) || TienePermiso($"{Modulo}.Editar");
+        public bool PuedeEliminar => string.IsNullOrEmpty(Modulo) || TienePermiso($"{Modulo}.Eliminar");
+
+        public bool TienePermiso(string permiso)
+        {
+            var main = System.Windows.Application.Current?.MainWindow as MainWindow;
+            if (main == null || main.UsuarioSesionActual == null || main.UsuarioSesionActual.Permisos == null) 
+                return true; 
+            return main.UsuarioSesionActual.Permisos.Contains(permiso);
+        }
+
+        public void NotificarPermisos()
+        {
+            OnPropertyChanged(nameof(PuedeCrear));
+            OnPropertyChanged(nameof(PuedeEditar));
+            OnPropertyChanged(nameof(PuedeEliminar));
+        }
+
 
         public IEnumerable GetErrors(string? propertyName)
         {
@@ -84,3 +108,5 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
     }
 }
+
+
