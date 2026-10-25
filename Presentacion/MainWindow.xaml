@@ -203,7 +203,17 @@
 
                     <!-- ESPACIADOR -->
                     <Separator Background="#34495E" Margin="0,15"/>
-                    
+                     
+                    <!-- Botón Ayuda / Manual de Usuario -->
+                    <Button x:Name="btnManualUsuario" Content="❓ Manual de Usuario" Click="MenuItem_Click_ManualUsuario" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
                     <!-- Botón Salir -->
                     <Button x:Name="btnSalir" Content="❌ Cerrar Sesión" Click="MenuItem_Click_Salir"
                             Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left"

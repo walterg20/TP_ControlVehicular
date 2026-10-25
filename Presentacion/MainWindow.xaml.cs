@@ -329,6 +329,23 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlMarca());
         }
 
+        private void MenuItem_Click_ManualUsuario(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var handler = App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler)) as TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler
+                    ?? new TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler();
+                var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
+                var path = handler.Handle(version);
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+                MostrarToast("Manual de usuario generado.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo generar el manual: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void MenuItem_Click_Salir(object sender, RoutedEventArgs e)
         {
             // Al salir/cerrar sesión, volvemos a mostrar el login
