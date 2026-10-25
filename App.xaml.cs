@@ -124,6 +124,7 @@ namespace TP_ControlVehicular
             services.AddScoped<ListarTareasPorEspecialistaHandler>();
             services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler>();
             services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler>();
+            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler>();
             services.AddScoped<AsignarVehiculoPorPatenteHandler>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
