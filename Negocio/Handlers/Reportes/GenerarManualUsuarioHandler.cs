@@ -1,12 +1,18 @@
 // walterg20
 using System.IO;
 using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 using TP_ControlVehicular.Negocio.Reportes.Documentos;
 
 namespace TP_ControlVehicular.Negocio.Handlers.Reportes
 {
     public class GenerarManualUsuarioHandler
     {
+        static GenerarManualUsuarioHandler()
+        {
+            QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+        }
+
         public string Handle(string version)
         {
             var dir = Path.Combine(
