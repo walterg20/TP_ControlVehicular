@@ -405,13 +405,80 @@ GO
 -- ============================================================================
 -- 12. Servicio (catálogo demo, por clave natural Nombre)
 -- ============================================================================
-IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Filtro Aire')
-    INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
-    VALUES (N'Cambio de Filtro Aire', 25000.00, 1);
+-- 1. Cambio de Filtro Aire (Original)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Filtro Aire')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Filtro Aire', 25000.00, 1);
 
-IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Correa de Distribucion')
-    INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
-    VALUES (N'Cambio de Correa de Distribucion', 15000.00, 1);
+    -- 2. Cambio de Correa de Distribucion (Original)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Correa de Distribucion')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Correa de Distribucion', 15000.00, 1);
+
+    -- 3. Cambio de Filtro de Aceite (Original)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Filtro de Aceite')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Filtro de Aceite', 34000.00, 1);
+
+    -- 4. Cambio de Aceite de Motor (Sintético)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Aceite de Motor')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Aceite de Motor', 65000.00, 1);
+
+    -- 5. Alineación y Balanceo (4 Ruedas)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Alineación y Balanceo')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Alineación y Balanceo', 38000.00, 1);
+
+    -- 6. Cambio de Pastillas de Freno Delanteras
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Pastillas de Freno')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Pastillas de Freno', 45000.00, 1);
+
+    -- 7. Cambio de Bujías (Set de 4)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Bujías')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Bujías', 28000.00, 1);
+
+    -- 8. Recarga y Control de Aire Acondicionado
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Recarga de Aire Acondicionado')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Recarga de Aire Acondicionado', 55000.00, 1);
+
+    -- 9. Cambio de Batería (Incluye instalación)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Batería')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Batería', 95000.00, 1);
+
+    -- 10. Escaneo Computarizado de Diagnóstico
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Diagnóstico Computarizado OBD2')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Diagnóstico Computarizado OBD2', 20000.00, 1);
+
+    -- 11. Limpieza e Inyección de Inyectores
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Limpieza de Inyectores')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Limpieza de Inyectores', 48000.00, 1);
+
+    -- 12. Cambio de Líquido de Frenos
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Líquido de Frenos')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Líquido de Frenos', 22000.00, 1);
+
+    -- 13. Rotación de Neumáticos
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Rotación de Neumáticos')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Rotación de Neumáticos', 12000.00, 1);
+
+    -- 14. Cambio de Filtro de Habitáculo (Polen)
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Cambio de Filtro de Habitáculo')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Cambio de Filtro de Habitáculo', 18000.00, 1);
+
+    -- 15. Lavado de Motor Técnico
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Servicio] WHERE [Nombre] = N'Lavado de Motor')
+        INSERT INTO [dbo].[Servicio] ([Nombre], [Precio], [Activo])
+        VALUES (N'Lavado de Motor', 16000.00, 1);
 GO
 
 -- ============================================================================
