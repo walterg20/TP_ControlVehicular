@@ -14,6 +14,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ListarRolHandler _listarRolHandler;
         private readonly RegistrarRolHandler _registrarRolHandler;
         private readonly ModificarRolHandler _modificarRolHandler;
+        private readonly ReactivarRolHandler _reactivarRolHandler;
         private readonly IMapper _mapper;
         private readonly Dictionary<string, List<string>> _errors = new();
 
@@ -21,15 +22,17 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ListarRolHandler listarRolHandler,
             RegistrarRolHandler registrarRolHandler,
             ModificarRolHandler modificarRolHandler,
+            ReactivarRolHandler reactivarRolHandler,
             IMapper mapper)
         {
             _listarRolHandler = listarRolHandler;
             _registrarRolHandler = registrarRolHandler;
             _modificarRolHandler = modificarRolHandler;
+            _reactivarRolHandler = reactivarRolHandler;
             _mapper = mapper;
             Roles = new ObservableCollection<RolDto>();
             ((ObservableCollection<RolDto>)Roles).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoRolesFiltered));
-            Estado = true;
+            Activo = true;
             RegistrarCommand = new RelayCommand(async () => await GuardarRolAsync(), () => !HasErrors);
         }
 
@@ -61,11 +64,26 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _descripcion = value; OnPropertyChanged(); }
         }
 
-        private bool _estado;
-        public bool Estado
+        private bool _activo;
+        public bool Activo
         {
-            get => _estado;
-            set { _estado = value; OnPropertyChanged(); }
+            get => _activo;
+            set { _activo = value; OnPropertyChanged(); }
+        }
+
+        private bool _mostrarInactivos;
+        public bool MostrarInactivos
+        {
+            get => _mostrarInactivos;
+            set
+            {
+                if (_mostrarInactivos != value)
+                {
+                    _mostrarInactivos = value;
+                    OnPropertyChanged(nameof(MostrarInactivos));
+                    _ = LoadAsync();
+                }
+            }
         }
 
         public RolDto? RolSeleccionado { get; set; }
@@ -77,7 +95,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             Roles.Clear();
             try
             {
-                var lista = await _listarRolHandler.HandleAsync();
+                var lista = await _listarRolHandler.HandleAsync(MostrarInactivos);
                 foreach (var rol in lista)
                 {
                     Roles.Add(rol);
@@ -99,7 +117,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Id = rolSeleccionado?.IdRol ?? 0,
                 Nombre = Nombre,
                 Descripcion = Descripcion,
-                Estado = Estado
+                Activo = Activo
             };
 
             try
@@ -135,17 +153,17 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        public async Task ToggleEstadoAsync()
+        public async Task ToggleActivoAsync()
         {
             if (RolSeleccionado == null) return;
-            RolSeleccionado.Estado = !RolSeleccionado.Estado;
+            RolSeleccionado.Activo = !RolSeleccionado.Activo;
 
             var rol = new Entidad.Rol
             {
                 Id = RolSeleccionado.IdRol,
                 Nombre = RolSeleccionado.Nombre,
                 Descripcion = RolSeleccionado.Descripcion,
-                Estado = RolSeleccionado.Estado
+                Activo = RolSeleccionado.Activo
             };
 
             try
@@ -166,6 +184,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 RegistrationFailed?.Invoke(this, "Error al actualizar estado del rol: " + ex.Message);
             }
+        }
+
+        public async Task ReactivarAsync(int id)
+        {
+            await _reactivarRolHandler.HandleAsync(id);
+            await LoadAsync();
         }
 
         public event EventHandler<bool>? RegistrationCompleted;

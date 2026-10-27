@@ -39,7 +39,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             RolesDisponibles = new ObservableCollection<RolDto>();
 
             ((ObservableCollection<UsuarioDto>)Usuarios).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoUsuariosFiltered));
-            Estado = true;
+            Activo = true;
             FechaNacimiento = DateTime.Today.AddYears(-20);
             RegistrarCommand = new RelayCommand(async () => await GuardarUsuarioAsync(), () => !HasErrors);
         }
@@ -125,11 +125,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _contrasena = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
-        private bool _estado;
-        public bool Estado
+        private bool _activo;
+        public bool Activo
         {
-            get => _estado;
-            set { _estado = value; OnPropertyChanged(); }
+            get => _activo;
+            set { _activo = value; OnPropertyChanged(); }
         }
 
         public UsuarioDto? UsuarioSeleccionado { get; set; }
@@ -204,7 +204,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Domicilio = Domicilio,
                 FechaNacimiento = FechaNacimiento,
                 Contrasena = Contrasena,
-                Estado = Estado
+                Activo = Activo
             };
 
             try
@@ -257,10 +257,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        public async Task ToggleEstadoAsync()
+        public async Task ToggleActivoAsync()
         {
             if (UsuarioSeleccionado == null) return;
-            UsuarioSeleccionado.Estado = !UsuarioSeleccionado.Estado;
+            UsuarioSeleccionado.Activo = !UsuarioSeleccionado.Activo;
 
             var usuario = new Usuario
             {
@@ -274,7 +274,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Domicilio = UsuarioSeleccionado.Domicilio,
                 FechaNacimiento = UsuarioSeleccionado.FechaNacimiento,
                 Contrasena = UsuarioSeleccionado.Contrasena,
-                Estado = UsuarioSeleccionado.Estado
+                Activo = UsuarioSeleccionado.Activo
             };
 
             try
@@ -293,12 +293,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
-                UsuarioSeleccionado.Estado = !UsuarioSeleccionado.Estado; // Rollback visual
+                UsuarioSeleccionado.Activo = !UsuarioSeleccionado.Activo; // Rollback visual
                 RegistrationFailed?.Invoke(this, "Error de base de datos al actualizar estado del usuario: " + (ex.InnerException?.Message ?? ex.Message));
             }
             catch (Exception ex)
             {
-                UsuarioSeleccionado.Estado = !UsuarioSeleccionado.Estado; // Rollback visual
+                UsuarioSeleccionado.Activo = !UsuarioSeleccionado.Activo; // Rollback visual
                 RegistrationFailed?.Invoke(this, "Error al actualizar estado del usuario: " + ex.Message);
             }
         }

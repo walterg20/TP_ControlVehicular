@@ -42,7 +42,7 @@ namespace TP_ControlVehicular.Tests.Unit
                 Domicilio = "Calle 1",
                 FechaNacimiento = new DateTime(1990, 5, 20),
                 Contrasena = contrasena,
-                Estado = estado,
+                Activo = estado,
                 Rol = new Rol
                 {
                     Id = 2,
@@ -270,7 +270,7 @@ namespace TP_ControlVehicular.Tests.Unit
                 Apellido = "Uno",
                 Dni = "20000000",
                 Contrasena = "clave",
-                Estado = true
+                Activo = true
             };
             var recargado = new Usuario
             {
@@ -280,7 +280,7 @@ namespace TP_ControlVehicular.Tests.Unit
                 Apellido = "Uno",
                 Dni = "20000000",
                 Contrasena = "clave",
-                Estado = true,
+                Activo = true,
                 Rol = new Rol { Id = 3, Nombre = "Mecanico", Permisos = new List<Permiso>() }
             };
             var repo = new Mock<IUsuarioRepository>();
@@ -312,7 +312,7 @@ namespace TP_ControlVehicular.Tests.Unit
                 Apellido = "Dos",
                 Dni = "20000001",
                 Contrasena = "clave",
-                Estado = true
+                Activo = true
             };
             var repo = new Mock<IUsuarioRepository>();
             repo.Setup(r => r.AddAsync(nuevo)).Returns(Task.CompletedTask);
@@ -341,7 +341,7 @@ namespace TP_ControlVehicular.Tests.Unit
                 Apellido = "Tres",
                 Dni = "30000001",
                 Contrasena = "clave",
-                Estado = false
+                Activo = false
             };
             var recargado = new Usuario
             {
@@ -351,7 +351,7 @@ namespace TP_ControlVehicular.Tests.Unit
                 Apellido = "Tres",
                 Dni = "30000001",
                 Contrasena = "clave",
-                Estado = false,
+                Activo = false,
                 Rol = new Rol { Id = 2, Nombre = "Recepcionista", Permisos = new List<Permiso>() }
             };
             var repo = new Mock<IUsuarioRepository>();
@@ -365,7 +365,7 @@ namespace TP_ControlVehicular.Tests.Unit
             // Assert
             Assert.Equal(5, dto.IdUsuario);
             Assert.Equal("Recepcionista", dto.RolNombre);
-            Assert.False(dto.Estado);
+            Assert.False(dto.Activo);
             Assert.Equal("Mod Tres [30000001]", dto.NombreCompletoYDni);
             repo.Verify(r => r.UpdateAsync(usuario), Times.Once);
             repo.Verify(r => r.GetByNombreAsync("Mod"), Times.Once);

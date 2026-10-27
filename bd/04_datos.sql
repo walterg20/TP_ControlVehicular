@@ -35,15 +35,15 @@ GO
 SET IDENTITY_INSERT [dbo].[Roles] ON;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Roles] WHERE [Id] = 1)
-    INSERT INTO [dbo].[Roles] ([Id], [Nombre], [Descripcion], [Estado])
+    INSERT INTO [dbo].[Roles] ([Id], [Nombre], [Descripcion], [Activo])
     VALUES (1, N'Administrador', N'Este administrado tiene permiso para todo el uso del sistema', 1);
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Roles] WHERE [Id] = 2)
-    INSERT INTO [dbo].[Roles] ([Id], [Nombre], [Descripcion], [Estado])
+    INSERT INTO [dbo].[Roles] ([Id], [Nombre], [Descripcion], [Activo])
     VALUES (2, N'Recepcionista', N'La recepcionista puede crear orden de servicio, cliente y vehiculo', 1);
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Roles] WHERE [Id] = 3)
-    INSERT INTO [dbo].[Roles] ([Id], [Nombre], [Descripcion], [Estado])
+    INSERT INTO [dbo].[Roles] ([Id], [Nombre], [Descripcion], [Activo])
     VALUES (3, N'Mecánico', N'Mecanico puede agregar servicio a la orden de servicio y tildar lo que se hizo para que luego le facuten', 1);
 
 SET IDENTITY_INSERT [dbo].[Roles] OFF;
@@ -384,19 +384,19 @@ GO
 --     El rol se resuelve por Id de rol (1/2/3) y se evita duplicar por Email.
 -- ============================================================================
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Usuarios] WHERE [Email] = N'admin@example.com')
-    INSERT INTO [dbo].[Usuarios] ([RolId], [Nombre], [Apellido], [Dni], [Email], [Telefono], [Domicilio], [FechaNacimiento], [Contrasena], [Estado])
+    INSERT INTO [dbo].[Usuarios] ([RolId], [Nombre], [Apellido], [Dni], [Email], [Telefono], [Domicilio], [FechaNacimiento], [Contrasena], [Activo])
     SELECT r.[Id], N'Admin', N'Sistema', N'10000001', N'admin@example.com', N'3794000001', N'Av. Siempre Viva 742', CAST(N'2000-01-26T00:00:00' AS datetime2), N'CHANGE_ME', 1
     FROM [dbo].[Roles] r
     WHERE r.[Id] = 1;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Usuarios] WHERE [Email] = N'mecanico@example.com')
-    INSERT INTO [dbo].[Usuarios] ([RolId], [Nombre], [Apellido], [Dni], [Email], [Telefono], [Domicilio], [FechaNacimiento], [Contrasena], [Estado])
+    INSERT INTO [dbo].[Usuarios] ([RolId], [Nombre], [Apellido], [Dni], [Email], [Telefono], [Domicilio], [FechaNacimiento], [Contrasena], [Activo])
     SELECT r.[Id], N'Mecanico', N'Demo', N'10000002', N'mecanico@example.com', N'3794000002', N'Av. Siempre Viva 742', CAST(N'2008-09-16T00:00:00' AS datetime2), N'CHANGE_ME', 1
     FROM [dbo].[Roles] r
     WHERE r.[Id] = 3;
 
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Usuarios] WHERE [Email] = N'recepcion@example.com')
-    INSERT INTO [dbo].[Usuarios] ([RolId], [Nombre], [Apellido], [Dni], [Email], [Telefono], [Domicilio], [FechaNacimiento], [Contrasena], [Estado])
+    INSERT INTO [dbo].[Usuarios] ([RolId], [Nombre], [Apellido], [Dni], [Email], [Telefono], [Domicilio], [FechaNacimiento], [Contrasena], [Activo])
     SELECT r.[Id], N'Recepcion', N'Demo', N'10000003', N'recepcion@example.com', N'3794000003', N'Av. Siempre Viva 742', CAST(N'2000-02-16T00:00:00' AS datetime2), N'CHANGE_ME', 1
     FROM [dbo].[Roles] r
     WHERE r.[Id] = 2;

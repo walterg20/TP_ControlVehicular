@@ -47,6 +47,7 @@
                             </Style>
                         </TextBox.Resources>
                     </TextBox>
+                    <CheckBox Content="Mostrar inactivos" Margin="16,0,0,0" VerticalAlignment="Center" IsChecked="{Binding MostrarInactivos, Mode=TwoWay}" />
                 </StackPanel>
 
                 <Button Grid.Column="1" Content="➕ Nuevo Rol" Click="BtnNuevo_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeCrear}">
@@ -92,7 +93,7 @@
                     <DataGridTextColumn Header="ID" Binding="{Binding IdRol}" Width="80"/>
                     <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
                     <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*"/>
-                    <DataGridCheckBoxColumn Header="Estado" Binding="{Binding Estado}" Width="100"/>
+                    <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="100"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
@@ -103,6 +104,13 @@
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="♻️ Reactivar" Click="BtnReactivar_Click" Padding="12,8" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
                 <Button Content="🔑 Administrar Permisos" Click="BtnAdministrarPermisos_Click" Padding="12,8" Background="#8E44AD" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -117,7 +125,7 @@
                         </Style>
                     </Button.Resources>
                 </Button>
-                <Button Content="🔄 Cambiar Estado" Click="BtnBaja_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                <Button Content="🔄 Cambiar Activo" Click="BtnBaja_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>

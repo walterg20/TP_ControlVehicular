@@ -101,6 +101,7 @@ namespace TP_ControlVehicular
             services.AddScoped<RegistrarRolHandler>();
             services.AddScoped<ModificarRolHandler>();
             services.AddScoped<ListarRolHandler>();
+            services.AddScoped<ReactivarRolHandler>();
             services.AddScoped<RegistrarUsuarioHandler>();
             services.AddScoped<ModificarUsuarioHandler>();
             services.AddScoped<ListarUsuariosHandler>();

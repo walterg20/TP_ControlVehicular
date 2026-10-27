@@ -88,7 +88,7 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
                     Email = MarcadorE2E.EmailUsuario(marker),
                     Contrasena = "123",
                     RolId = (int)RolesSistema.Mecanico,
-                    Estado = true
+                    Activo = true
                 };
                 await ctx.Usuarios.AddAsync(mecanico);
                 await ctx.SaveChangesAsync();

@@ -90,8 +90,22 @@ namespace TP_ControlVehicular.Presentacion.Rol
                 if (!FrmConfirmacion.Mostrar("¿Cambiar el estado del rol seleccionado?", "Confirmar cambio", Window.GetWindow(this)))
                     return;
 
-                await vmRol.ToggleEstadoAsync();
+                await vmRol.ToggleActivoAsync();
                 await vmRol.LoadAsync();
+            }
+        }
+
+        private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is RolViewModel vmRol)
+            {
+                if (vmRol.RolSeleccionado == null)
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un rol.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+
+                await vmRol.ReactivarAsync(vmRol.RolSeleccionado.IdRol);
             }
         }
     }

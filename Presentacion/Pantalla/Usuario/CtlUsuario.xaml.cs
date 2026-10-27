@@ -70,7 +70,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                 if (!FrmConfirmacion.Mostrar("¿Cambiar el estado del usuario seleccionado?", "Confirmar cambio", Window.GetWindow(this)))
                     return;
 
-                await vmUsuario.ToggleEstadoAsync();
+                await vmUsuario.ToggleActivoAsync();
                 await vmUsuario.LoadAsync();
             }
         }
