@@ -103,5 +103,20 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
                 await ViewModel.DeleteAsync(selected.IdServicio);
             }
         }
+
+        private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = dgServicios.SelectedItem as ServicioDto;
+            if (selected == null)
+            {
+                FrmConfirmacion.MostrarAviso("Por favor, seleccione un servicio de la lista.", "Aviso", Window.GetWindow(this));
+                return;
+            }
+
+            if (ViewModel != null)
+            {
+                await ViewModel.ReactivarAsync(selected.IdServicio);
+            }
+        }
     }
 }

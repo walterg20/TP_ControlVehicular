@@ -107,5 +107,20 @@ namespace TP_ControlVehicular.Presentacion.Cliente
 
         }
 
+        private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
+        {
+            var selected = dgClientes.SelectedItem as ClienteDto;
+            if (selected is null)
+            {
+                FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
+                return;
+            }
+
+            if (this.DataContext is ClienteViewModel vmCliente)
+            {
+                await vmCliente.ReactivarClienteAsync(selected.IdCliente);
+            }
+        }
+
     }
 }

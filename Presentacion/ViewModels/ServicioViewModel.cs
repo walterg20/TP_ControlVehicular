@@ -16,6 +16,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly RegistrarServicioHandler _registrarServicioHandler;
         private readonly ModificarServicioHandler _modificarServicioHandler;
         private readonly EliminarServicioHandler _eliminarServicioHandler;
+        private readonly ReactivarServicioHandler _reactivarServicioHandler;
 
         private int _idServicio;
         public int IdServicio
@@ -43,6 +44,19 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             get => _activo;
             set => SetProperty(ref _activo, value);
+        }
+
+        private bool _mostrarInactivos;
+        public bool MostrarInactivos
+        {
+            get => _mostrarInactivos;
+            set
+            {
+                if (SetProperty(ref _mostrarInactivos, value))
+                {
+                    _ = LoadAsync();
+                }
+            }
         }
 
         private string _textoBusqueda = string.Empty;
@@ -74,12 +88,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ListarServiciosHandler listarServiciosHandler,
             RegistrarServicioHandler registrarServicioHandler,
             ModificarServicioHandler modificarServicioHandler,
-            EliminarServicioHandler eliminarServicioHandler)
+            EliminarServicioHandler eliminarServicioHandler,
+            ReactivarServicioHandler reactivarServicioHandler)
         {
             _listarServiciosHandler = listarServiciosHandler;
             _registrarServicioHandler = registrarServicioHandler;
             _modificarServicioHandler = modificarServicioHandler;
             _eliminarServicioHandler = eliminarServicioHandler;
+            _reactivarServicioHandler = reactivarServicioHandler;
 
             CargarServiciosCommand = new RelayCommand(LoadAsync);
         }
@@ -89,7 +105,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
-                var list = await _listarServiciosHandler.HandleAsync();
+                var list = await _listarServiciosHandler.HandleAsync(MostrarInactivos);
                 _todosLosServicios.Clear();
                 _todosLosServicios.AddRange(list);
                 AplicarFiltro();
@@ -175,6 +191,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public async Task DeleteAsync(int id)
         {
             await _eliminarServicioHandler.HandleAsync(id);
+            await LoadAsync();
+        }
+
+        public async Task ReactivarAsync(int id)
+        {
+            await _reactivarServicioHandler.HandleAsync(id);
             await LoadAsync();
         }
 

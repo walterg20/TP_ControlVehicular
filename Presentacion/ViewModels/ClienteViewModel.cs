@@ -103,6 +103,21 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _activo = value; OnPropertyChanged(); }
         }
 
+        private bool _mostrarInactivos;
+        public bool MostrarInactivos
+        {
+            get => _mostrarInactivos;
+            set
+            {
+                if (_mostrarInactivos != value)
+                {
+                    _mostrarInactivos = value;
+                    OnPropertyChanged(nameof(MostrarInactivos));
+                    _ = LoadAsync();
+                }
+            }
+        }
+
         public ClienteDto? ClienteSeleccionado { get; set; }
         public ICommand RegistrarCommand { get; }
 
@@ -112,7 +127,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IEnumerable<TP_ControlVehicular.Entidad.Cliente> lista;
             try
             {
-                lista = await _clienteRepository.GetActivosAsync();
+                lista = MostrarInactivos
+                    ? await _clienteRepository.GetTodosAsync()
+                    : await _clienteRepository.GetActivosAsync();
             }
             catch
             {
@@ -130,6 +147,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             var entity = await _clienteRepository.GetByIdAsync(id);
             if (entity == null) return;
             entity.Activo = false;
+            await _clienteRepository.UpdateAsync(entity);
+            await LoadAsync();
+        }
+
+        public async Task ReactivarClienteAsync(int id)
+        {
+            var entity = await _clienteRepository.GetByIdAsync(id);
+            if (entity == null) return;
+            entity.Activo = true;
             await _clienteRepository.UpdateAsync(entity);
             await LoadAsync();
         }

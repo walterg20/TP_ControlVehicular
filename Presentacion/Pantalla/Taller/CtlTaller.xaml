@@ -54,6 +54,7 @@
                             </Style>
                         </Button.Resources>
                     </Button>
+                    <CheckBox Content="Mostrar inactivos" Margin="16,0,0,0" VerticalAlignment="Center" IsChecked="{Binding MostrarInactivos, Mode=TwoWay}" />
                 </StackPanel>
 
                 <Button Grid.Column="1" Content="➕ Nuevo Taller" Click="BtnNuevo_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeCrear}">
@@ -111,6 +112,13 @@
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="♻️ Reactivar Seleccionado" Click="BtnReactivar_Click" Padding="12,8" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
                 <Button Content="✏️ Editar Seleccionado" Click="BtnEditar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" IsEnabled="{Binding PuedeEditar}">
                     <Button.Resources>
                         <Style TargetType="Border">

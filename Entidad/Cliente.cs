@@ -11,7 +11,7 @@ namespace TP_ControlVehicular.Entidad
         public string Direccion { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Telefono { get; set; } = string.Empty;
-        public bool Activo { get; set; }
+        public bool Activo { get; set; } = true;
 
         public ICollection<PropietarioVehiculo> Propietarios { get; set; } = new List<PropietarioVehiculo>();
     }

@@ -16,14 +16,16 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ListarTallerHandler _listarTallerHandler;
         private readonly RegistrarTallerHandler _registrarTallerHandler;
         private readonly ModificarTallerHandler _modificarTallerHandler;
+        private readonly ReactivarTallerHandler _reactivarTallerHandler;
         private readonly IMapper _mapper;
         private readonly Dictionary<string, List<string>> _errors = new();
 
-        public TallerViewModel(ListarTallerHandler listarTallerHandler, RegistrarTallerHandler registrarTallerHandler, ModificarTallerHandler modificarTallerHandler, IMapper mapper)
+        public TallerViewModel(ListarTallerHandler listarTallerHandler, RegistrarTallerHandler registrarTallerHandler, ModificarTallerHandler modificarTallerHandler, ReactivarTallerHandler reactivarTallerHandler, IMapper mapper)
         {
             _listarTallerHandler = listarTallerHandler;
             _registrarTallerHandler = registrarTallerHandler;
             _modificarTallerHandler = modificarTallerHandler;
+            _reactivarTallerHandler = reactivarTallerHandler;
             _mapper = mapper;
             Talleres = new ObservableCollection<TallerDto>();
             ((ObservableCollection<TallerDto>)Talleres).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoTalleresFiltered));
@@ -73,6 +75,21 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _activo = value; OnPropertyChanged(); }
         }
 
+        private bool _mostrarInactivos;
+        public bool MostrarInactivos
+        {
+            get => _mostrarInactivos;
+            set
+            {
+                if (_mostrarInactivos != value)
+                {
+                    _mostrarInactivos = value;
+                    OnPropertyChanged(nameof(MostrarInactivos));
+                    _ = LoadAsync();
+                }
+            }
+        }
+
         public ICommand RegistrarCommand { get; }
 
         public async Task LoadAsync()
@@ -80,7 +97,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             Talleres.Clear();
             try
             {
-                var lista = await _listarTallerHandler.HandleAsync();
+                var lista = await _listarTallerHandler.HandleAsync(MostrarInactivos);
                 foreach (var taller in lista)
                 {
                     Talleres.Add(taller);
@@ -227,6 +244,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 RegistrationFailed?.Invoke(this, "Error al actualizar taller: " + ex.Message);
             }
+        }
+        // Reactiva un taller previamente dado de baja (Activo = true)
+        public async Task ReactivarAsync(int id)
+        {
+            await _reactivarTallerHandler.HandleAsync(id);
+            await LoadAsync();
         }
     }
 }

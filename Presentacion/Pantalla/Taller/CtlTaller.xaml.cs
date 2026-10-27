@@ -86,5 +86,19 @@ namespace TP_ControlVehicular.Presentacion.Taller
                 await vmTaller.LoadAsync();
             }
         }
+
+        private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is TallerViewModel vmTaller)
+            {
+                if (vmTaller.TallerSeleccionado == null)
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un taller de la lista.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+
+                await vmTaller.ReactivarAsync(vmTaller.TallerSeleccionado.IdTaller);
+            }
+        }
     }
 }
