@@ -39,7 +39,7 @@ BEGIN
         [Direccion] nvarchar(200) NOT NULL,
         [Email] nvarchar(max) NOT NULL,
         [Telefono] nvarchar(max) NOT NULL,
-        [Activo] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Cliente] PRIMARY KEY ([Id])
     );
 END
@@ -82,7 +82,7 @@ BEGIN
         [Id] int NOT NULL IDENTITY,
         [Nombre] nvarchar(150) NOT NULL,
         [Precio] decimal(18,2) NOT NULL,
-        [Activo] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Servicio] PRIMARY KEY ([Id]),
         CONSTRAINT [CK_Servicio_Precio] CHECK ([Precio] > 0)
     );
@@ -99,7 +99,7 @@ BEGIN
         [Nombre] nvarchar(100) NOT NULL,
         [Direccion] nvarchar(200) NOT NULL,
         [Telefono] nvarchar(20) NOT NULL,
-        [Activo] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Taller] PRIMARY KEY ([Id])
     );
 END

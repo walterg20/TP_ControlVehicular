@@ -18,9 +18,11 @@ namespace TP_ControlVehicular.Negocio.Services
             _mapper = mapper;
         }
 
-        public async Task<List<TallerDto>> HandleAsync()
+        public async Task<List<TallerDto>> HandleAsync(bool incluirInactivos = false)
         {
-            var entities = await _tallerRepository.GetActivosAsync();
+            var entities = incluirInactivos
+                ? await _tallerRepository.GetTodosAsync()
+                : await _tallerRepository.GetActivosAsync();
             return _mapper.Map<List<TallerDto>>(entities);
         }
     }

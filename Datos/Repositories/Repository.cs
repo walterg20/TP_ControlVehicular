@@ -32,6 +32,8 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.AsNoTracking().ToListAsync();
 
+        public async Task<IEnumerable<T>> GetTodosAsync() => await _dbSet.AsNoTracking().ToListAsync();
+
         public async Task AddAsync(T entity)
         {
             _cvDbContext.ChangeTracker.Clear();

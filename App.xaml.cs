@@ -97,6 +97,7 @@ namespace TP_ControlVehicular
             services.AddScoped<ListarTallerHandler>();
             services.AddScoped<RegistrarTallerHandler>();
             services.AddScoped<ModificarTallerHandler>();
+            services.AddScoped<ReactivarTallerHandler>();
             services.AddScoped<RegistrarRolHandler>();
             services.AddScoped<ModificarRolHandler>();
             services.AddScoped<ListarRolHandler>();
@@ -117,6 +118,7 @@ namespace TP_ControlVehicular
             services.AddScoped<RegistrarServicioHandler>();
             services.AddScoped<ModificarServicioHandler>();
             services.AddScoped<EliminarServicioHandler>();
+            services.AddScoped<ReactivarServicioHandler>();
             services.AddScoped<ListarRegistroServiciosHandler>();
             services.AddScoped<RegistrarRegistroServicioHandler>();
             services.AddScoped<ModificarRegistroServicioHandler>();
