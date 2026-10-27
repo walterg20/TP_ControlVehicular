@@ -28,7 +28,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _mapper = mapper;
             Roles = new ObservableCollection<RolDto>();
             ((ObservableCollection<RolDto>)Roles).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoRolesFiltered));
-            Estado = true;
+            Activo = true;
             RegistrarCommand = new RelayCommand(async () => await GuardarRolAsync(), () => !HasErrors);
         }
 
@@ -60,11 +60,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _descripcion = value; OnPropertyChanged(); }
         }
 
-        private bool _estado;
-        public bool Estado
+        private bool _activo;
+        public bool Activo
         {
-            get => _estado;
-            set { _estado = value; OnPropertyChanged(); }
+            get => _activo;
+            set { _activo = value; OnPropertyChanged(); }
         }
 
         public RolDto? RolSeleccionado { get; set; }
@@ -98,7 +98,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Id = rolSeleccionado?.IdRol ?? 0,
                 Nombre = Nombre,
                 Descripcion = Descripcion,
-                Estado = Estado
+                Activo = Activo
             };
 
             try
@@ -137,14 +137,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public async Task ToggleEstadoAsync()
         {
             if (RolSeleccionado == null) return;
-            RolSeleccionado.Estado = !RolSeleccionado.Estado;
+            RolSeleccionado.Activo = !RolSeleccionado.Activo;
 
             var rol = new Entidad.Rol
             {
                 Id = RolSeleccionado.IdRol,
                 Nombre = RolSeleccionado.Nombre,
                 Descripcion = RolSeleccionado.Descripcion,
-                Estado = RolSeleccionado.Estado
+                Activo = RolSeleccionado.Activo
             };
 
             try

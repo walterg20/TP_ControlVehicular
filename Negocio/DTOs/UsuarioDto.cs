@@ -13,6 +13,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string Domicilio { get; set; } = string.Empty;
         public DateTime FechaNacimiento { get; set; }
         public string Contrasena { get; set; } = string.Empty;
-        public bool Estado { get; set; }
+        public bool Activo { get; set; }
     }
 }

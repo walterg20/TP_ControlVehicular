@@ -94,7 +94,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                             
                         vmUsuario.Contrasena = usuario.Contrasena;
                         vmUsuario.IdRol = usuario.IdRol;
-                        vmUsuario.Estado = usuario.Estado;
+                        vmUsuario.Activo = usuario.Activo;
 
                         // En modo edición, ocultar el input por defecto y mostrar el botón "Setear Clave"
                         btnSetearClave.Visibility = Visibility.Visible;
@@ -112,7 +112,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                         vmUsuario.FechaNacimiento = DateTime.Today.AddYears(-18);
                         vmUsuario.Contrasena = string.Empty;
                         vmUsuario.IdRol = 0;
-                        vmUsuario.Estado = true;
+                        vmUsuario.Activo = true;
 
                         // En modo creación, mostrar el input de contraseña directamente
                         btnSetearClave.Visibility = Visibility.Collapsed;

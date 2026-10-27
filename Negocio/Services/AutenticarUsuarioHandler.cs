@@ -46,7 +46,7 @@ namespace TP_ControlVehicular.Negocio.Services
                 }
 
                 // 3. Validación de Baja Lógica / Estado inactivo
-                if (!usuario.Estado)
+                if (!usuario.Activo)
                 {
                     return new AuthResponseDto
                     {

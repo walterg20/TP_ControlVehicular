@@ -70,14 +70,14 @@ namespace TP_ControlVehicular.Presentacion.Rol
                         vmRol.RolSeleccionado = rol;
                         vmRol.Nombre = rol.Nombre;
                         vmRol.Descripcion = rol.Descripcion;
-                        vmRol.Estado = rol.Estado;
+                        vmRol.Activo = rol.Activo;
                     }
                     else
                     {
                         vmRol.RolSeleccionado = null;
                         vmRol.Nombre = string.Empty;
                         vmRol.Descripcion = string.Empty;
-                        vmRol.Estado = true;
+                        vmRol.Activo = true;
                     }
 
                     vmRol.ClearAllErrors();

@@ -12,7 +12,7 @@ namespace TP_ControlVehicular.Entidad
         public string Domicilio { get; set; } = string.Empty;
         public DateTime FechaNacimiento { get; set; }
         public string Contrasena { get; set; } = string.Empty;
-        public bool Estado { get; set; } = true;
+        public bool Activo { get; set; } = true;
         public Rol Rol { get; set; } = null!;
     }
 }
