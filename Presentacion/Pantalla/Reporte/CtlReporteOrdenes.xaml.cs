@@ -1,3 +1,4 @@
+// walterg20
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
@@ -17,10 +18,10 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Reporte
             {
                 if (App.ServiceProvider != null)
                 {
-                    var vm = App.ServiceProvider.GetService(typeof(ReporteOrdenesViewModel)) as ReporteOrdenesViewModel;
-                    if (vm != null)
+                    var vmReporteOrdenes = App.ServiceProvider.GetService(typeof(ReporteOrdenesViewModel)) as ReporteOrdenesViewModel;
+                    if (vmReporteOrdenes != null)
                     {
-                        DataContext = vm;
+                        DataContext = vmReporteOrdenes;
                     }
                 }
             }

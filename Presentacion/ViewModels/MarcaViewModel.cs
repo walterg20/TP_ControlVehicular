@@ -1,3 +1,4 @@
+// walterg20
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using TP_ControlVehicular.Entidad;
@@ -8,6 +9,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 {
     public class MarcaViewModel : BaseViewModel
     {
+        protected override string Modulo => "Vehiculo";
+
         private readonly ListarMarcaHandler _listarMarcaHandler;
         private readonly RegistrarMarcaHandler _registrarMarcaHandler;
         private readonly ModificarMarcaHandler _modificarMarcaHandler;

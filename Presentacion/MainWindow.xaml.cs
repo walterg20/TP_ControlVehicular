@@ -1,3 +1,4 @@
+// walterg20
 using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -15,6 +16,7 @@ using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Handlers.Reportes;
 
 namespace TP_ControlVehicular
 {
@@ -55,10 +57,10 @@ namespace TP_ControlVehicular
 
             if (_ctlLogin == null)
             {
-                var vm = App.ServiceProvider?.GetService(typeof(LoginViewModel)) as LoginViewModel;
-                if (vm != null)
+                var vmMainWindow = App.ServiceProvider?.GetService(typeof(LoginViewModel)) as LoginViewModel;
+                if (vmMainWindow != null)
                 {
-                    _ctlLogin = new CtlLogin(vm);
+                    _ctlLogin = new CtlLogin(vmMainWindow);
                 }
                 else
                 {
@@ -104,6 +106,23 @@ namespace TP_ControlVehicular
             grdContenido.Children.Clear();
             _ctlLogin = null;
 
+            // Refrescar caché de branding de empresa
+            try
+            {
+                if (App.ServiceProvider != null)
+                {
+                    var svc = (TP_ControlVehicular.Negocio.Interfaces.IEmpresaConfiguracionService?)App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Negocio.Interfaces.IEmpresaConfiguracionService));
+                    if (svc != null)
+                    {
+                        _ = svc.RefrescarCacheAsync();
+                    }
+                }
+            }
+            catch
+            {
+                // No bloquear el flujo de login
+            }
+
             // Mostrar el menú lateral y restaurar su ancho
             colMenu.Width = new GridLength(240);
             pnlSidebar.Visibility = Visibility.Visible;
@@ -112,50 +131,44 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlDashboard());
         }
 
+
         private void AplicarRestriccionesPorRol()
         {
-            var currentUser = UserSession.CurrentUser;
-            if (currentUser == null) return;
+            if (UsuarioSesionActual == null || UsuarioSesionActual.Permisos == null) return;
+            var permisos = UsuarioSesionActual.Permisos;
 
-            // Resetear visibilidad (modo Administrador)
-            btnDashboard.Visibility = Visibility.Visible;
-            secOperaciones.Visibility = Visibility.Visible;
-            btnOrdenesTrabajo.Visibility = Visibility.Visible;
-            secAdministracion.Visibility = Visibility.Visible;
-            btnServicio.Visibility = Visibility.Visible;
-            btnCliente.Visibility = Visibility.Visible;
-            btnVehiculo.Visibility = Visibility.Visible;
-            btnModelo.Visibility = Visibility.Collapsed;
-            btnMarca.Visibility = Visibility.Collapsed;
-            btnTaller.Visibility = Visibility.Visible;
-            btnUsuario.Visibility = Visibility.Visible;
-            btnRol.Visibility = Visibility.Visible;
-            secReportes.Visibility = Visibility.Visible;
-            btnReporteOrdenes.Visibility = Visibility.Visible;
-            btnReporteGerencial.Visibility = Visibility.Visible;
+            // Mostrar u ocultar menús según permisos de "Ver"
+            secAdministracion.Visibility = (permisos.Contains("Usuario.Ver") || permisos.Contains("Taller.Ver") || permisos.Contains("Vehiculo.Ver") || permisos.Contains("Configuracion.Empresa.Gestionar") || permisos.Contains("Configuracion.Backup.Gestionar")) ? Visibility.Visible : Visibility.Collapsed;
 
-            int rolId = currentUser.IdRol;
+            btnUsuario.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnRol.Visibility = permisos.Contains("Usuario.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnTaller.Visibility = permisos.Contains("Taller.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnConfiguracionEmpresa.Visibility = permisos.Contains("Configuracion.Empresa.Gestionar") ? Visibility.Visible : Visibility.Collapsed;
 
-            if (rolId == (int)RolesSistema.Recepcionista)
-            {
-                // Recepcionista: No administra usuarios, roles ni talleres
-                btnUsuario.Visibility = Visibility.Collapsed;
-                btnRol.Visibility = Visibility.Collapsed;
-                btnTaller.Visibility = Visibility.Collapsed;
-            }
-            else if (rolId == (int)RolesSistema.Mecanico)
-            {
-                // Mecánico: Oculta sección administración completa
-                secAdministracion.Visibility = Visibility.Collapsed;
-                btnUsuario.Visibility = Visibility.Collapsed;
-                btnRol.Visibility = Visibility.Collapsed;
-                btnTaller.Visibility = Visibility.Collapsed;
-                btnCliente.Visibility = Visibility.Collapsed;
-                btnVehiculo.Visibility = Visibility.Collapsed;
-                btnModelo.Visibility = Visibility.Collapsed;
-                btnMarca.Visibility = Visibility.Collapsed;
-                btnServicio.Visibility = Visibility.Collapsed;
-            }
+            bool gestionaBackup = permisos.Contains("Configuracion.Backup.Gestionar");
+            btnBackup.Visibility = gestionaBackup ? Visibility.Visible : Visibility.Collapsed;
+            btnBackupConfiguracion.Visibility = gestionaBackup ? Visibility.Visible : Visibility.Collapsed;
+
+            btnCliente.Visibility = permisos.Contains("Cliente.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnVehiculo.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnModelo.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnMarca.Visibility = permisos.Contains("Vehiculo.Ver") ? Visibility.Visible : Visibility.Collapsed;
+
+            btnServicio.Visibility = permisos.Contains("Servicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnOrdenesTrabajo.Visibility = permisos.Contains("OrdenServicio.Ver") ? Visibility.Visible : Visibility.Collapsed;
+            btnMisTrabajos.Visibility = permisos.Contains("MisTrabajos.Ver") ? Visibility.Visible : Visibility.Collapsed;
+
+            // Reportes: un permiso por reporte (ver openspec/specs/reportes-rbac)
+            bool verReporteOrdenes = permisos.Contains("Reporte.Ordenes.Ver");
+            bool verReporteOperativo = permisos.Contains("Reporte.Operativo.Ver");
+            bool verReporteGerencial = permisos.Contains("Reporte.Gerencial.Ver");
+            btnReporteOrdenes.Visibility = verReporteOrdenes ? Visibility.Visible : Visibility.Collapsed;
+            btnReporteOperativo.Visibility = verReporteOperativo ? Visibility.Visible : Visibility.Collapsed;
+            btnReporteGerencial.Visibility = verReporteGerencial ? Visibility.Visible : Visibility.Collapsed;
+
+            bool verAlgunReporte = verReporteOrdenes || verReporteOperativo || verReporteGerencial;
+            secReportes.Visibility = verAlgunReporte ? Visibility.Visible : Visibility.Collapsed;
+            sepReportes.Visibility = verAlgunReporte ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void MenuItem_Click_Dashboard(object sender, RoutedEventArgs e)
@@ -167,14 +180,29 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_ReporteGerencial(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            if (App.ServiceProvider?.GetService(typeof(ReporteGerencialView)) is ReporteGerencialView ctl)
+            if (App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteGerencial)) is TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteGerencial ctl)
             {
                 AgregarPagina(ctl);
             }
             else
             {
-                AgregarPagina(new ReporteGerencialView(App.ServiceProvider?.GetService(typeof(ReporteGerencialViewModel)) as ReporteGerencialViewModel));
+                AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteGerencial());
             }
+        }
+
+        private void MenuItem_Click_ReporteOperativo(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            var vm = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<TP_ControlVehicular.Presentacion.ViewModels.ReporteOperativoViewModel>(App.ServiceProvider);
+            var view = new TP_ControlVehicular.Presentacion.Pantalla.Reporte.CtlReporteOperativo { DataContext = vm };
+            AgregarPagina(view);
+            _ = vm.LoadAsync();
+        }
+
+        private void MenuItem_Click_MisTrabajos(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.MisTrabajos.CtlMisTrabajos());
         }
 
         private void MenuItem_Click_ReporteOrdenes(object sender, RoutedEventArgs e)
@@ -234,6 +262,50 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlUsuario());
         }
 
+        private void MenuItem_Click_ConfiguracionEmpresa(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            if (App.ServiceProvider != null)
+            {
+                var viewCfg = (TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion?)App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion));
+                if (viewCfg != null)
+                {
+                    var vmCfg = (TP_ControlVehicular.Presentacion.ViewModels.EmpresaConfiguracionViewModel?)App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Presentacion.ViewModels.EmpresaConfiguracionViewModel));
+                    if (vmCfg == null)
+                        vmCfg = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<TP_ControlVehicular.Presentacion.ViewModels.EmpresaConfiguracionViewModel>(App.ServiceProvider);
+                    viewCfg.DataContext = vmCfg;
+                    AgregarPagina(viewCfg);
+                    _ = vmCfg.LoadAsync();
+                }
+            }
+        }
+
+        private void MenuItem_Click_Backup(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            if (App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup)) is TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup());
+            }
+        }
+
+        private void MenuItem_Click_BackupConfiguracion(object sender, RoutedEventArgs e)
+        {
+            ResaltarBotonActivo(sender as Button);
+            if (App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion)) is TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion());
+            }
+        }
+
         private void MenuItem_Click_Rol(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
@@ -258,6 +330,23 @@ namespace TP_ControlVehicular
             AgregarPagina(new CtlMarca());
         }
 
+        private void MenuItem_Click_ManualUsuario(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var handler = App.ServiceProvider?.GetService(typeof(GenerarManualUsuarioHandler)) as GenerarManualUsuarioHandler
+                    ?? new GenerarManualUsuarioHandler();
+                var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
+                var path = handler.Handle(version);
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+                MostrarToast("Manual de usuario generado.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"No se pudo generar el manual: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
         private void MenuItem_Click_Salir(object sender, RoutedEventArgs e)
         {
             // Al salir/cerrar sesión, volvemos a mostrar el login
@@ -267,6 +356,14 @@ namespace TP_ControlVehicular
         private void BtnCerrarApp_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        public async void MostrarToast(string mensaje)
+        {
+            lblToastMessage.Text = mensaje;
+            bdrToast.Visibility = Visibility.Visible;
+            await System.Threading.Tasks.Task.Delay(3000);
+            bdrToast.Visibility = Visibility.Collapsed;
         }
 
         public void AgregarPagina(UserControl userControl)
@@ -296,6 +393,10 @@ namespace TP_ControlVehicular
             btnRol.Background = transparente; btnRol.FontWeight = normalWeight;
             btnReporteOrdenes.Background = transparente; btnReporteOrdenes.FontWeight = normalWeight;
             btnReporteGerencial.Background = transparente; btnReporteGerencial.FontWeight = normalWeight;
+            btnReporteOperativo.Background = transparente; btnReporteOperativo.FontWeight = normalWeight;
+            btnMisTrabajos.Background = transparente; btnMisTrabajos.FontWeight = normalWeight;
+            btnBackup.Background = transparente; btnBackup.FontWeight = normalWeight;
+            btnBackupConfiguracion.Background = transparente; btnBackupConfiguracion.FontWeight = normalWeight;
 
             var colorAzul = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2980B9");
             botonActivo.Background = new System.Windows.Media.SolidColorBrush(colorAzul);
@@ -303,3 +404,5 @@ namespace TP_ControlVehicular
         }
     }
 }
+
+

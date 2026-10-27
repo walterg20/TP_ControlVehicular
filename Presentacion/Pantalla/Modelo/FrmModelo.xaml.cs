@@ -1,3 +1,4 @@
+// walterg20
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -45,7 +46,7 @@ namespace TP_ControlVehicular.Presentacion.Modelo
         {
             AddHandler(UIElement.LostFocusEvent, new RoutedEventHandler((s, e) =>
             {
-                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vm)
+                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vmModelo)
                 {
                     DependencyProperty? dp = null;
                     if (element is TextBox)
@@ -62,7 +63,7 @@ namespace TP_ControlVehicular.Presentacion.Modelo
                         if (binding != null && binding.Path != null && !string.IsNullOrEmpty(binding.Path.Path))
                         {
                             be?.UpdateSource();
-                            vm.ValidateProperty(binding.Path.Path);
+                            vmModelo.ValidateProperty(binding.Path.Path);
                         }
                     }
                 }

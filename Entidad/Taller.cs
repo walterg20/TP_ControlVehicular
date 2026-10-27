@@ -1,4 +1,5 @@
-﻿namespace TP_ControlVehicular.Entidad
+// walterg20
+namespace TP_ControlVehicular.Entidad
 {
     public class Taller
     {

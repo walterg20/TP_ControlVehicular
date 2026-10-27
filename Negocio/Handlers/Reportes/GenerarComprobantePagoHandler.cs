@@ -1,3 +1,4 @@
+// walterg20
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
@@ -20,11 +21,11 @@ public class GenerarComprobantePagoHandler
         var resultados = await _dbContext.Database
             .SqlQueryRaw<ComprobantePagoRowDto>("EXEC sp_GenerarComprobantePago @OrdenId", parametro)
             .ToListAsync();
-            
+
         if (!resultados.Any()) return null;
 
         var cabecera = resultados.First();
-        
+
         var dto = new ComprobantePagoDto
         {
             OrdenId = cabecera.OrdenId,
@@ -53,15 +54,17 @@ public class GenerarComprobantePagoHandler
                 Subtotal = row.SubtotalDetalle ?? 0
             });
 
-            if (row.Origen == "Taller")
-                dto.TotalManoObra += row.SubtotalDetalle ?? 0;
-            else
-                dto.TotalRepuestos += row.SubtotalDetalle ?? 0;
+            // Forzamos todo a Mano de Obra y Repuestos a 0
+            dto.TotalManoObra += row.SubtotalDetalle ?? 0;
+            dto.TotalRepuestos = 0;
         }
 
         dto.Subtotal = dto.TotalManoObra + dto.TotalRepuestos;
-        dto.Iva = dto.Subtotal * 0.15m; // Usando 15% para coincidir con la imagen (7800 / 52000 = 0.15)
+        dto.Iva = 0; // IVA en 0 según solicitud
         dto.TotalGeneral = dto.Subtotal + dto.Iva;
+
+        var registro = await _dbContext.RegistroServicios.FirstOrDefaultAsync(r => r.Id == ordenId);
+        dto.EstadoOrden = registro?.Estado ?? "";
 
         return dto;
     }

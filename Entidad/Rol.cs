@@ -1,3 +1,4 @@
+// walterg20
 namespace TP_ControlVehicular.Entidad
 {
     public class Rol
@@ -8,5 +9,6 @@ namespace TP_ControlVehicular.Entidad
         public bool Activo { get; set; } = true;
 
         public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+        public ICollection<Permiso> Permisos { get; set; } = new List<Permiso>();
     }
 }

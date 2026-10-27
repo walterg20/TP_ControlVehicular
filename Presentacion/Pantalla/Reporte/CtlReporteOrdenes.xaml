@@ -22,38 +22,8 @@
                 <TextBlock Text="📋 Reporte de Órdenes de Trabajo" FontSize="22" FontWeight="Bold" Foreground="#2C3E50"/>
             </StackPanel>
             
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,45,0">
-                <Button Content="🖨️ Imprimir PDF" 
-                        Command="{Binding ImprimirPdfCommand}" 
-                        Margin="0,0,10,0"
-                        Padding="14,8" 
-                        Background="#E74C3C" 
-                        Foreground="White" 
-                        FontWeight="Bold" 
-                        BorderThickness="0" 
-                        Cursor="Hand">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-                
-                <Button Content="🔄 Actualizar" 
-                        Command="{Binding CargarReporteCommand}" 
-                        Padding="14,8" 
-                        Background="#2980B9" 
-                        Foreground="White" 
-                        FontWeight="Bold" 
-                        BorderThickness="0" 
-                        Cursor="Hand">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="8"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-            </StackPanel>
+            
+
         </Grid>
 
         <!-- BARRA DE FILTROS (rounded-xl & shadow-sm) -->
@@ -62,41 +32,103 @@
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="200"/>
-                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <!-- Búsqueda General y Fechas -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="Desde:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                    <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,15,0"/>
-                    
-                    <TextBlock Text="Hasta:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                    <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,15,0"/>
-                    
-                    <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
-                             Width="200" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1">
-                        <TextBox.Resources>
+                <!-- FILA 0: FILTROS (GRID DE 4 COLUMNAS FLUIDAS) -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="1.1*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="1.1*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="1.2*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 1. BUSCAR -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Buscar" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
+                        <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                                 Height="34" VerticalContentAlignment="Center" Padding="8,6" FontSize="13" 
+                                 BorderBrush="#BDC3C7" BorderThickness="1">
+                            <TextBox.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </TextBox.Resources>
+                        </TextBox>
+                    </StackPanel>
+
+                    <!-- 2. DESDE -->
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Desde" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
+                        <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}" 
+                                    Height="34" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- 3. HASTA -->
+                    <StackPanel Grid.Column="4">
+                        <TextBlock Text="Hasta" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
+                        <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" 
+                                    Height="34" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- 4. ESTADO -->
+                    <StackPanel Grid.Column="6">
+                        <TextBlock Text="Estado" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
+                        <ComboBox SelectedValue="{Binding EstadoFiltro, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                  SelectedValuePath="Content" Height="34" VerticalContentAlignment="Center">
+                            <ComboBoxItem Content="Todos" IsSelected="True"/>
+                            <ComboBoxItem Content="Abierta"/>
+                            <ComboBoxItem Content="En Proceso"/>
+                            <ComboBoxItem Content="Completada"/>
+                            <ComboBoxItem Content="Pagada"/>
+                            <ComboBoxItem Content="Cancelada"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+
+                <!-- FILA 1: SEPARADOR HORIZONTAL SUTIL -->
+                <Border Grid.Row="1" Height="1" Background="#F0F3F4" Margin="0,14,0,14"/>
+
+                <!-- FILA 2: ACCIONES INFERIORES (EXTREMO IZQUIERDO Y DERECHO) -->
+                <Grid Grid.Row="2">
+                    <!-- Acción izquierda: Limpiar -->
+                    <Button HorizontalAlignment="Left" Content="🔄 Limpiar" Command="{Binding LimpiarFiltrosCommand}" 
+                            Padding="12,7" Background="#95A5A6" Foreground="White" FontWeight="Bold" 
+                            BorderThickness="0" Cursor="Hand" ToolTip="Restablecer filtros">
+                        <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="6"/>
                             </Style>
-                        </TextBox.Resources>
-                    </TextBox>
-                </StackPanel>
+                        </Button.Resources>
+                    </Button>
 
-                <!-- Filtro por Estado -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <TextBlock Text="Estado:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,8,0"/>
-                    <ComboBox SelectedValue="{Binding EstadoFiltro, Mode=TwoWay}" SelectedValuePath="Content" Width="130" Padding="8,6">
-                        <ComboBoxItem Content="Todos" IsSelected="True"/>
-                        <ComboBoxItem Content="Pendiente"/>
-                        <ComboBoxItem Content="En Proceso"/>
-                        <ComboBoxItem Content="Completada"/>
-                        <ComboBoxItem Content="Entregada"/>
-                    </ComboBox>
-                </StackPanel>
+                    <!-- Acción derecha: Imprimir PDF -->
+                    <Button HorizontalAlignment="Right" Content="📄 Imprimir PDF" 
+                            Command="{Binding ImprimirPdfCommand}" 
+                            Padding="14,7" 
+                            Background="#E74C3C" 
+                            Foreground="White" 
+                            FontWeight="Bold" 
+                            BorderThickness="0" 
+                            Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </Grid>
+
+                <!-- FILA 3: MENSAJE DE VALIDACIÓN DE FECHAS -->
+                <TextBlock Grid.Row="3" Text="{Binding MensajeValidacionFechas}" Foreground="#E74C3C" FontWeight="SemiBold" Margin="0,6,0,0"/>
             </Grid>
         </Border>
 
@@ -106,39 +138,41 @@
                 <DropShadowEffect BlurRadius="12" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
 
-            <DataGrid x:Name="dgReporte" 
-                      ItemsSource="{Binding ListadoOrdenesFiltered}" 
-                      AutoGenerateColumns="False" 
-                      IsReadOnly="True" 
-                      GridLinesVisibility="Horizontal" 
-                      HeadersVisibility="Column" 
-                      Background="Transparent" 
-                      BorderThickness="0"
-                      RowHeaderWidth="0">
-                <DataGrid.Resources>
-                    <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Background" Value="#2C3E50"/>
-                        <Setter Property="Foreground" Value="White"/>
-                        <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="Padding" Value="10,8"/>
-                    </Style>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="Padding" Value="8,6"/>
-                    </Style>
-                </DataGrid.Resources>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="N° Orden" Binding="{Binding IdOrden}" Width="80"/>
-                    <DataGridTextColumn Header="Fecha" Binding="{Binding FechaIngreso, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="120"/>
-                    <DataGridTextColumn Header="Patente" Binding="{Binding Patente}" Width="90"/>
-                    <DataGridTextColumn Header="Vehículo (Marca-Modelo)" Binding="{Binding MarcaModelo}" Width="160"/>
-                    <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="140"/>
-                    <DataGridTextColumn Header="Km Ingreso" Binding="{Binding KmIngresado, StringFormat={}{0:N0} km}" Width="100"/>
-                    <DataGridTextColumn Header="Servicios Aplicados" Binding="{Binding ServiciosAplicados}" Width="*"/>
-                    <DataGridTextColumn Header="Mecánico" Binding="{Binding MecanicoNombre}" Width="140"/>
-                    <DataGridTextColumn Header="Recepcionista" Binding="{Binding RecepcionistaNombre}" Width="140"/>
-                    <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="100"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <Grid>
+                <DataGrid x:Name="dgReporte" 
+                          ItemsSource="{Binding ListadoOrdenesFiltered}" 
+                          AutoGenerateColumns="False" 
+                          IsReadOnly="True" 
+                          GridLinesVisibility="Horizontal" 
+                          HeadersVisibility="Column" 
+                          Background="Transparent" 
+                          BorderThickness="0"
+                          RowHeaderWidth="0">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#2C3E50"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="Padding" Value="10,8"/>
+                        </Style>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Padding" Value="8,6"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nº Orden" Binding="{Binding IdOrden}" Width="80"/>
+                        <DataGridTextColumn Header="Fecha" Binding="{Binding FechaIngreso, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="120"/>
+                        <DataGridTextColumn Header="Patente" Binding="{Binding Patente}" Width="90"/>
+                        <DataGridTextColumn Header="Vehículo (Marca-Modelo)" Binding="{Binding MarcaModelo}" Width="160"/>
+                        <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="140"/>
+                        <DataGridTextColumn Header="Km Ingreso" Binding="{Binding KmIngresado, StringFormat={}{0:N0} km}" Width="100"/>
+                        <DataGridTextColumn Header="Servicios Aplicados" Binding="{Binding ServiciosAplicados}" Width="*"/>
+                        <DataGridTextColumn Header="Mecánico" Binding="{Binding MecanicoNombre}" Width="140"/>
+                        <DataGridTextColumn Header="Recepcionista" Binding="{Binding RecepcionistaNombre}" Width="140"/>
+                        <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>

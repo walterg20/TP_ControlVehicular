@@ -1,3 +1,4 @@
+// walterg20
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TP_ControlVehicular.Entidad;
@@ -8,7 +9,7 @@ namespace TP_ControlVehicular.Datos.Configuracion
     {
         public void Configure(EntityTypeBuilder<RegistroServicio> builder)
         {
-            builder.ToTable("RegistroServicio");
+            builder.ToTable("RegistroServicio", tb => tb.HasTrigger("TR_RegistroServicio_SincronizarKm"));
             builder.HasKey(r => r.Id);
 
             builder.Property(r => r.Estado)

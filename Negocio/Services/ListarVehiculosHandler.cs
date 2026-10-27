@@ -1,3 +1,4 @@
+// walterg20
 using AutoMapper;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
@@ -17,7 +18,7 @@ namespace TP_ControlVehicular.Negocio.Services
 
         public async Task<List<VehiculoDto>> HandleAsync()
         {
-            var entities = await _vehiculoRepository.GetAllAsync();
+            var entities = await _vehiculoRepository.GetAllWithDetailsAsync();
             return _mapper.Map<List<VehiculoDto>>(entities);
         }
     }

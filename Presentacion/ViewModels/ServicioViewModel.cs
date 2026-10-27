@@ -1,3 +1,4 @@
+// walterg20
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -9,6 +10,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 {
     public class ServicioViewModel : BaseViewModel
     {
+        protected override string Modulo => "Servicio";
+
         private readonly ListarServiciosHandler _listarServiciosHandler;
         private readonly RegistrarServicioHandler _registrarServicioHandler;
         private readonly ModificarServicioHandler _modificarServicioHandler;

@@ -1,3 +1,4 @@
+// walterg20
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,7 +17,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
             InitializeComponent();
             _esModificacion = false;
             this.Title = "Registrar Nuevo Usuario";
-            
+
             // Configurar límites del DatePicker (min: 80 años atrás, max: 18 años atrás)
             dtpFechaNacimiento.DisplayDateStart = DateTime.Today.AddYears(-80);
             dtpFechaNacimiento.DisplayDateEnd = DateTime.Today.AddYears(-18);
@@ -44,7 +45,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
         {
             AddHandler(UIElement.LostFocusEvent, new RoutedEventHandler((s, e) =>
             {
-                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vm)
+                if (e.OriginalSource is FrameworkElement element && DataContext is BaseViewModel vmUsuario)
                 {
                     DependencyProperty? dp = null;
                     if (element is TextBox)
@@ -61,7 +62,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                         if (binding != null && binding.Path != null && !string.IsNullOrEmpty(binding.Path.Path))
                         {
                             be?.UpdateSource();
-                            vm.ValidateProperty(binding.Path.Path);
+                            vmUsuario.ValidateProperty(binding.Path.Path);
                         }
                     }
                 }
@@ -86,12 +87,12 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                         vmUsuario.Email = usuario.Email;
                         vmUsuario.Telefono = usuario.Telefono;
                         vmUsuario.Domicilio = usuario.Domicilio;
-                        
+
                         if (usuario.FechaNacimiento.Year < 1900)
                             vmUsuario.FechaNacimiento = DateTime.Today.AddYears(-18);
                         else
                             vmUsuario.FechaNacimiento = usuario.FechaNacimiento;
-                            
+
                         vmUsuario.Contrasena = usuario.Contrasena;
                         vmUsuario.IdRol = usuario.IdRol;
                         vmUsuario.Activo = usuario.Activo;
@@ -120,7 +121,7 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                     }
 
                     vmUsuario.ClearAllErrors();
-                    
+
                     vmUsuario.RegistrationFailed -= VmUsuario_RegistrationFailed;
                     vmUsuario.RegistrationFailed += VmUsuario_RegistrationFailed;
                 }
@@ -233,9 +234,9 @@ namespace TP_ControlVehicular.Presentacion.Usuario
 
         protected override void OnClosed(EventArgs e)
         {
-            if (DataContext is UsuarioViewModel vm)
+            if (DataContext is UsuarioViewModel vmUsuario)
             {
-                vm.RegistrationFailed -= VmUsuario_RegistrationFailed;
+                vmUsuario.RegistrationFailed -= VmUsuario_RegistrationFailed;
             }
             base.OnClosed(e);
         }

@@ -1,0 +1,29 @@
+# Implementation Tasks: Reporte Gerencial — Explicit Query, Service Breakdown Pie Chart, and Cleanup
+
+- [ ] 1. **OpenSpec artifacts** — proposal, design, tasks and the `reportes` delta spec exist and `openspec validate reporte-gerencial-mejoras` passes.
+- [ ] 2. **A1 — Fix model name (behavior)**
+  - [ ] 2.1 In `Negocio/DTOs/Reportes/ReporteModeloReparadoDto.cs`, change `MarcaModelo => "{Marca} {Modelo}"` to `=> $"{Marca} {Modelo}"`.
+- [ ] 3. **A2 — Explicit query + range validation (UI + VM)**
+  - [ ] 3.1 Remove `_ = LoadAsync()` from the `FechaDesde` and `FechaHasta` setters in `ReporteGerencialViewModel`.
+  - [ ] 3.2 Add a validation message property (e.g. `MensajeValidacion`) and guard in the load path: if `FechaDesde > FechaHasta`, set the message and return without querying.
+  - [ ] 3.3 Add a **Consultar** button to `CtlReporteGerencial.xaml` bound to `CargarReporteCommand`, and show `MensajeValidacion`.
+- [ ] 4. **A3 — Service quantity breakdown (DB + repo + VM + tab)**
+  - [ ] 4.1 Create `bd/18_SP_ReporteServiciosPorRango.sql` with `CREATE OR ALTER PROCEDURE sp_ReporteServiciosPorRango (@FechaDesde, @FechaHasta)` aggregating `SUM(ds.Cantidad)` per service, excluding cancelled orders, aliasing columns to the DTO.
+  - [ ] 4.2 Create `Negocio/DTOs/Reportes/ReporteServicioCantidadDto.cs` (`ServicioId`, `Servicio`, `Cantidad`).
+  - [ ] 4.3 Add `ObtenerServiciosPorRangoAsync` to `IReporteGerencialRepository` and implement it in `Datos/Repositories/ReporteGerencialRepository.cs`.
+  - [ ] 4.4 Add `ObservableCollection<ReporteServicioCantidadDto> ServiciosPorRango` and populate it in `LoadAsync`.
+  - [ ] 4.5 Add a fourth **Servicios** `TabItem` with a `DataGrid` bound to `ServiciosPorRango`.
+  - [ ] 4.6 Apply the stored procedure to the local database and verify it returns rows for a known range.
+- [ ] 5. **A4 — PDF pie chart**
+  - [ ] 5.1 Create `Negocio/Reportes/Documentos/ServiciosPieChartGenerator.cs` rendering the pie (Canvas/SkiaSharp) plus legend.
+  - [ ] 5.2 Add a print command/content method that builds the services PDF with `ComposeEncabezadoTaller` (logo) + `ComposePieDePagina` + the chart, and wire it to the tab's print button.
+- [ ] 6. **A5 — Remove dead view**
+  - [ ] 6.1 Delete `Presentacion/Pantalla/Reporte/ReporteGerencialView.xaml` and `.xaml.cs`.
+  - [ ] 6.2 Remove `services.AddScoped<ReporteGerencialView>();` from `App.xaml.cs`.
+- [ ] 7. **Verification**
+  - [ ] 7.1 `dotnet build "TP_ControlVehicular.slnx"` succeeds.
+  - [ ] 7.2 `dotnet test` (if a test project covers the touched code) succeeds.
+  - [ ] 7.3 `openspec validate reporte-gerencial-mejoras` passes.
+- [ ] 8. **Close-out**
+  - [ ] 8.1 Write `docs/plan/2026-10-10_reporte-gerencial-mejoras.md` (execution log, Spanish).
+  - [ ] 8.2 Update `MEMORY.md` with any new convention/rule and commit it with the spec.

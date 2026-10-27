@@ -1,3 +1,4 @@
+// walterg20
 using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
@@ -52,6 +53,26 @@ namespace TP_ControlVehicular.Presentacion.Rol
                 if (ok == true)
                 {
                     await vmRol.LoadAsync();
+                }
+            }
+        }
+
+
+        private void BtnAdministrarPermisos_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is RolViewModel vmRol)
+            {
+                var rolSeleccionado = vmRol.RolSeleccionado;
+                if (rolSeleccionado == null)
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor seleccione un rol para administrar sus permisos.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+
+                var frm = new TP_ControlVehicular.Presentacion.Pantalla.Rol.FrmRolPermiso(rolSeleccionado);
+                if (frm.ShowDialog() == true)
+                {
+                    _ = vmRol.LoadAsync();
                 }
             }
         }

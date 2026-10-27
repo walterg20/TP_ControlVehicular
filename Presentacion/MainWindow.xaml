@@ -1,4 +1,4 @@
-<Window x:Class="TP_ControlVehicular.MainWindow"
+﻿<Window x:Class="TP_ControlVehicular.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -49,6 +49,14 @@
                     <!-- SECCIÓN 1: OPERACIONES -->
                     <TextBlock x:Name="secOperaciones" Text="OPERACIONES" Foreground="#95A5A6" FontSize="11" FontWeight="Bold" Margin="5,0,0,5"/>
                     <Button x:Name="btnOrdenesTrabajo" Click="MenuItem_Click_OrdenesTrabajo" Content="📋 Órdenes de Trabajo" Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button x:Name="btnMisTrabajos" Content="🔧 Mis Trabajos" Click="MenuItem_Click_MisTrabajos" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="8"/>
@@ -133,6 +141,36 @@
                         </Button.Resources>
                     </Button>
 
+                    <!-- Botón Configuración de Empresa -->
+                    <Button x:Name="btnConfiguracionEmpresa" Content="🏢 Configuración de Empresa" Click="MenuItem_Click_ConfiguracionEmpresa" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" Visibility="Collapsed">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <!-- Botón Respaldos de Base de Datos -->
+                    <Button x:Name="btnBackup" Content="💾 Respaldos" Click="MenuItem_Click_Backup" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" Visibility="Collapsed">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <!-- Botón Configuración de Respaldos -->
+                    <Button x:Name="btnBackupConfiguracion" Content="🗄️ Configuración de Respaldos" Click="MenuItem_Click_BackupConfiguracion" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" Visibility="Collapsed">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
                     <!-- ESPACIADOR -->
                     <Separator x:Name="sepReportes" Background="#34495E" Margin="0,15"/>
 
@@ -154,10 +192,28 @@
                             </Style>
                         </Button.Resources>
                     </Button>
+                    <Button x:Name="btnReporteOperativo" Content="🚙 Reporte Operativo" Click="MenuItem_Click_ReporteOperativo" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0" >
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
 
                     <!-- ESPACIADOR -->
                     <Separator Background="#34495E" Margin="0,15"/>
-                    
+                     
+                    <!-- Botón Ayuda / Manual de Usuario -->
+                    <Button x:Name="btnManualUsuario" Content="❓ Manual de Usuario" Click="MenuItem_Click_ManualUsuario" 
+                            Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left" Background="Transparent" Foreground="White" BorderThickness="0">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
                     <!-- Botón Salir -->
                     <Button x:Name="btnSalir" Content="❌ Cerrar Sesión" Click="MenuItem_Click_Salir"
                             Margin="0,3" Padding="10,8" HorizontalContentAlignment="Left"
@@ -202,5 +258,15 @@
             </Button.Template>
         </Button>
 
+        <!-- TOAST NOTIFICATIONS (Snackbar) -->
+        <Border x:Name="bdrToast" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,30,30" Padding="20,12" Background="#27AE60" CornerRadius="8" Visibility="Collapsed" Panel.ZIndex="1000">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.2"/>
+            </Border.Effect>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="✔️" Foreground="White" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock x:Name="lblToastMessage" Text="Operación exitosa" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

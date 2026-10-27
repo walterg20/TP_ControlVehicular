@@ -1,0 +1,4 @@
+- [ ] Abrir `MainWindow.xaml` y agregar `Visibility="Collapsed"` a los botones `btnModelo` y `btnMarca`.
+- [ ] Abrir `MainWindow.xaml.cs`.
+- [ ] En el método `AplicarRestriccionesPorRol()`, localizar las líneas donde `btnModelo.Visibility` y `btnMarca.Visibility` se reinician a `Visible`, y cambiarlas a `Collapsed` (o directamente eliminarlas).
+- [ ] Ejecutar el proyecto y verificar visualmente que, al loguearse, los botones ya no figuren en la lista de opciones.

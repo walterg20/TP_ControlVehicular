@@ -1,3 +1,4 @@
+// walterg20
 using TP_ControlVehicular.Entidad;
 
 namespace TP_ControlVehicular.Negocio.Interfaces
@@ -6,5 +7,6 @@ namespace TP_ControlVehicular.Negocio.Interfaces
     {
         Task<IEnumerable<Vehiculo>> GetByClienteAsync(int idCliente);
         Task<IEnumerable<Vehiculo>> GetAllWithDetailsAsync(int? mecanicoId = null);
+        Task<Vehiculo?> GetByPatenteAsync(string patente);
     }
 }

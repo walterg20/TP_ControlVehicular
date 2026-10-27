@@ -1,4 +1,5 @@
-﻿using System.Windows.Input;
+// walterg20
+using System.Windows.Input;
 
 namespace TP_ControlVehicular.Presentacion
 {

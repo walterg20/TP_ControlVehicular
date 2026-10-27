@@ -1,3 +1,4 @@
+// walterg20
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -32,6 +33,29 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set => SetProperty(ref _entregadasHoyCount, value);
         }
 
+        private decimal _ingresosMesTotal;
+        public decimal IngresosMesTotal
+        {
+            get => _ingresosMesTotal;
+            set => SetProperty(ref _ingresosMesTotal, value);
+        }
+
+        private bool _mostrarIngresos;
+        public bool MostrarIngresos
+        {
+            get => _mostrarIngresos;
+            set
+            {
+                if (SetProperty(ref _mostrarIngresos, value))
+                {
+                    OnPropertyChanged(nameof(TarjetasResumenVisible));
+                }
+            }
+        }
+
+        // Numero de tarjetas visibles en la fila de resumen (3 o 4 segun el rol).
+        public int TarjetasResumenVisible => MostrarIngresos ? 4 : 3;
+
         private bool _isLoading;
         public bool IsLoading
         {
@@ -46,7 +70,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public DashboardViewModel(ObtenerDashboardHandler obtenerDashboardHandler)
         {
             _obtenerDashboardHandler = obtenerDashboardHandler;
-            
+
             CargarDashboardCommand = new RelayCommand(LoadAsync);
         }
 
@@ -59,6 +83,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 VehiculosActivosCount = result.VehiculosActivosCount;
                 EnProcesoCount = result.EnProcesoCount;
                 EntregadasHoyCount = result.EntregadasHoyCount;
+                IngresosMesTotal = result.IngresosMesTotal;
+                MostrarIngresos = result.MostrarIngresos;
 
                 VehiculosEnTaller.Clear();
                 foreach (var v in result.VehiculosEnTaller)

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Electron" modified="2026-09-22T08:55:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="FlujoLoginArquitectura" name="Flujo de Login y Arquitectura MVVM N-Capas">
+    <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- CONTENEDORES DE CAPAS (SWIMLANES) -->
+        <mxCell id="swimlane_presentacion" value="CAPA DE PRESENTACIÓN (WPF &amp; MVVM)" style="swimlane;startSize=30;horizontal=1;fillColor=#EBF5FB;strokeColor=#2980B9;fontStyle=1;fontSize=14;fontColor=#1B4F72;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="380" height="1180" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="swimlane_negocio" value="CAPA DE NEGOCIO &amp; SERVICIOS" style="swimlane;startSize=30;horizontal=1;fillColor=#E8F8F5;strokeColor=#27AE60;fontStyle=1;fontSize=14;fontColor=#117864;" vertex="1" parent="1">
+          <mxGeometry x="460" y="40" width="400" height="1180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="swimlane_datos" value="CAPA DE DATOS (DAL &amp; REPOSITORIOS)" style="swimlane;startSize=30;horizontal=1;fillColor=#FEF9E7;strokeColor=#F39C12;fontStyle=1;fontSize=14;fontColor=#9A7D0A;" vertex="1" parent="1">
+          <mxGeometry x="900" y="40" width="400" height="1180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="swimlane_entidades_db" value="ENTIDADES &amp; BASE DE DATOS" style="swimlane;startSize=30;horizontal=1;fillColor=#FDEDEC;strokeColor=#C0392B;fontStyle=1;fontSize=14;fontColor=#78281F;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="40" width="380" height="1180" as="geometry" />
+        </mxCell>
+
+        <!-- ETAPA 1: INICIALIZACIÓN Y LOGIN -->
+        
+        <!-- Presentación Nodes -->
+        <mxCell id="node_ctl_login" value="&lt;b&gt;1. CtlLogin.xaml / .cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(UserControl Login)&lt;/i&gt;&lt;br/&gt;• Captura Dni y Contraseña&lt;br/&gt;• Botón 'Iniciar Sesión'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4E6F1;strokeColor=#2980B9;fontSize=12;" vertex="1" parent="swimlane_presentacion">
+          <mxGeometry x="30" y="60" width="320" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_vm_login" value="&lt;b&gt;2. LoginViewModel.cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(BaseViewModel)&lt;/i&gt;&lt;br/&gt;• Executa &lt;i&gt;IniciarSesionCommand&lt;/i&gt;&lt;br/&gt;• Dispara evento &lt;i&gt;OnLoginSuccess&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4E6F1;strokeColor=#2980B9;fontSize=12;" vertex="1" parent="swimlane_presentacion">
+          <mxGeometry x="30" y="170" width="320" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Negocio Nodes -->
+        <mxCell id="node_handler_auth" value="&lt;b&gt;3. AutenticarUsuarioHandler.cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(Handler de Negocio)&lt;/i&gt;&lt;br/&gt;• HandleAsync(dni, contrasena)&lt;br/&gt;• Valida hash/pass y usuario activo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5F5E3;strokeColor=#27AE60;fontSize=12;" vertex="1" parent="swimlane_negocio">
+          <mxGeometry x="30" y="170" width="340" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_dto_auth" value="&lt;b&gt;DTOs de Autenticación&lt;/b&gt;&lt;br/&gt;• AuthResponseDto.cs&lt;br/&gt;• UsuarioDto.cs" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#EAFAF1;strokeColor=#27AE60;fontSize=11;" vertex="1" parent="swimlane_negocio">
+          <mxGeometry x="30" y="280" width="160" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_mapper" value="&lt;b&gt;MappingProfile.cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(AutoMapper Profile)&lt;/i&gt;&lt;br/&gt;• CreateMap&amp;lt;Usuario, UsuarioDto&amp;gt;()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5F5E3;strokeColor=#27AE60;fontSize=12;" vertex="1" parent="swimlane_negocio">
+          <mxGeometry x="210" y="280" width="160" height="65" as="geometry" />
+        </mxCell>
+
+        <!-- Datos Nodes -->
+        <mxCell id="node_repo_usuario_interface" value="&lt;b&gt;IUsuarioRepository.cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(Interfaz de Repositorio)&lt;/i&gt;&lt;br/&gt;• Task&amp;lt;Usuario?&amp;gt; GetByDniAsync(dni)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCF3CF;strokeColor=#F39C12;fontSize=12;" vertex="1" parent="swimlane_datos">
+          <mxGeometry x="30" y="170" width="340" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_repo_usuario_impl" value="&lt;b&gt;4. UsuarioRepository.cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(Repository&amp;lt;Usuario&amp;gt;)&lt;/i&gt;&lt;br/&gt;• GetByDniAsync() con .Include(u =&amp;gt; u.Rol)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCF3CF;strokeColor=#F39C12;fontSize=12;" vertex="1" parent="swimlane_datos">
+          <mxGeometry x="30" y="265" width="340" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_dbcontext" value="&lt;b&gt;CVDbContext.cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(EF Core DbContext)&lt;/i&gt;&lt;br/&gt;• DbSet&amp;lt;Usuario&amp;gt; Usuarios&lt;br/&gt;• DbSet&amp;lt;Rol&amp;gt; Roles" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCF3CF;strokeColor=#F39C12;fontSize=12;" vertex="1" parent="swimlane_datos">
+          <mxGeometry x="30" y="375" width="340" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Entidades & DB Nodes -->
+        <mxCell id="node_entidad_usuario" value="&lt;b&gt;Entidad.Usuario &amp;amp; Entidad.Rol&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(Clases del Dominio)&lt;/i&gt;&lt;br/&gt;• Id, Nombre, Apellido, Dni, Email...&lt;br/&gt;• Propiedad de navegación Rol" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FADBD8;strokeColor=#C0392B;fontSize=12;" vertex="1" parent="swimlane_entidades_db">
+          <mxGeometry x="30" y="265" width="320" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_sql_server" value="&lt;b&gt;SQL Server Database&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(Server=WALTERG20\SQLEXPRESS2019)&lt;/i&gt;&lt;br/&gt;• Tabla: Usuarios&lt;br/&gt;• Tabla: Roles" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FADBD8;strokeColor=#C0392B;fontSize=12;" vertex="1" parent="swimlane_entidades_db">
+          <mxGeometry x="90" y="365" width="200" height="90" as="geometry" />
+        </mxCell>
+
+
+        <!-- ETAPA 2: NAVEGACIÓN Y CARGA DE VISTAS (MODULO USUARIO / CLIENTE) -->
+
+        <mxCell id="node_mainwindow" value="&lt;b&gt;5. MainWindow.xaml / .cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(Ventana Principal)&lt;/i&gt;&lt;br/&gt;• Recibe OnLoginSuccess(usuarioDto)&lt;br/&gt;• Setea App.UsuarioAutenticado&lt;br/&gt;• Aplica RBAC y navega a la Vista elegida" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4E6F1;strokeColor=#2980B9;fontSize=12;" vertex="1" parent="swimlane_presentacion">
+          <mxGeometry x="30" y="520" width="320" height="85" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_ctl_target" value="&lt;b&gt;6. CtlUsuario.xaml / CtlCliente.xaml&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(UserControl de Módulo)&lt;/i&gt;&lt;br/&gt;• Evento Loaded invoca ViewModel.LoadAsync()&lt;br/&gt;• Muestra DataGrid con DataBinding" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4E6F1;strokeColor=#2980B9;fontSize=12;" vertex="1" parent="swimlane_presentacion">
+          <mxGeometry x="30" y="650" width="320" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_vm_target" value="&lt;b&gt;7. UsuarioViewModel.cs / ClienteViewModel.cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(BaseViewModel / INotifyPropertyChanged)&lt;/i&gt;&lt;br/&gt;• LoadAsync() llama al Handler&lt;br/&gt;• Carga ObservableCollection&amp;lt;Dto&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4E6F1;strokeColor=#2980B9;fontSize=12;" vertex="1" parent="swimlane_presentacion">
+          <mxGeometry x="30" y="770" width="320" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_handler_list" value="&lt;b&gt;8. ListarUsuariosHandler.cs / ListarClientesHandler.cs&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(Handler de Negocio)&lt;/i&gt;&lt;br/&gt;• Invoca _repository.GetWithRolAsync()&lt;br/&gt;• Retorna _mapper.Map&amp;lt;List&amp;lt;Dto&amp;gt;&amp;gt;(entities)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5F5E3;strokeColor=#27AE60;fontSize=12;" vertex="1" parent="swimlane_negocio">
+          <mxGeometry x="30" y="770" width="340" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_repo_list" value="&lt;b&gt;9. Repository (UsuarioRepository / ClienteRepository)&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(Capa de Datos)&lt;/i&gt;&lt;br/&gt;• AsNoTracking().Include().ToListAsync()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCF3CF;strokeColor=#F39C12;fontSize=12;" vertex="1" parent="swimlane_datos">
+          <mxGeometry x="30" y="770" width="340" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="node_view_render" value="&lt;b&gt;10. Renderizado en Vista (WPF DataGrid)&lt;/b&gt;&lt;br/&gt;&lt;i&gt;(DataBinding en Ctl*.xaml)&lt;/i&gt;&lt;br/&gt;• DataGrid ItemsSource={Binding ListadoUsuariosFiltered}&lt;br/&gt;• UI completamente actualizada al usuario final" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D4E6F1;strokeColor=#2980B9;fontSize=12;fontStyle=1;" vertex="1" parent="swimlane_presentacion">
+          <mxGeometry x="30" y="910" width="320" height="80" as="geometry" />
+        </mxCell>
+
+
+        <!-- CONEXIONES Y FLUJO DE LLAMADAS (EDGES) -->
+        
+        <!-- 1. CtlLogin -> LoginViewModel -->
+        <mxCell id="edge1" value="1. Clic 'Iniciar Sesión'" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980B9;strokeWidth=2;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_ctl_login" target="node_vm_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. LoginViewModel -> AutenticarUsuarioHandler -->
+        <mxCell id="edge2" value="2. HandleAsync(dni, pass)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#27AE60;strokeWidth=2;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_vm_login" target="node_handler_auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3. AutenticarUsuarioHandler -> IUsuarioRepository -->
+        <mxCell id="edge3" value="3. GetByDniAsync(dni)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F39C12;strokeWidth=2;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_handler_auth" target="node_repo_usuario_interface">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 4. IUsuarioRepository -> UsuarioRepository -->
+        <mxCell id="edge4" value="4. Implementación Repository" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F39C12;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="node_repo_usuario_interface" target="node_repo_usuario_impl">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 5. UsuarioRepository -> CVDbContext & DB -->
+        <mxCell id="edge5" value="5. EF Core Query (.Include)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C0392B;strokeWidth=2;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_repo_usuario_impl" target="node_entidad_usuario">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge6" value="6. SQL Query" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#C0392B;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="node_dbcontext" target="node_sql_server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 7. Entity -> AutoMapper -->
+        <mxCell id="edge7" value="7. Entidad Usuario + Rol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#27AE60;strokeWidth=2;dashed=1;fontSize=11;" edge="1" parent="1" source="node_entidad_usuario" target="node_mapper">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1500" y="380" />
+              <mxPoint x="750" y="380" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 8. AutoMapper -> AuthResponseDto -->
+        <mxCell id="edge8" value="8. Map &lt;Usuario, UsuarioDto&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#27AE60;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="node_mapper" target="node_dto_auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 9. AuthResponseDto -> LoginViewModel -->
+        <mxCell id="edge9" value="9. Retorna AuthResponseDto" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980B9;strokeWidth=2;dashed=1;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_handler_auth" target="node_vm_login">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="660" y="270" />
+              <mxPoint x="230" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 10. LoginViewModel -> MainWindow (OnLoginSuccess) -->
+        <mxCell id="edge10" value="10. OnLoginSuccess.Invoke(usuarioDto)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980B9;strokeWidth=2;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_vm_login" target="node_mainwindow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 11. MainWindow -> CtlUsuario -->
+        <mxCell id="edge11" value="11. Carga CtlUsuario en grdContenido" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980B9;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="node_mainwindow" target="node_ctl_target">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 12. CtlUsuario -> UsuarioViewModel -->
+        <mxCell id="edge12" value="12. Loaded -&gt; LoadAsync()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980B9;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="node_ctl_target" target="node_vm_target">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 13. UsuarioViewModel -> ListarUsuariosHandler -->
+        <mxCell id="edge13" value="13. HandleAsync()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#27AE60;strokeWidth=2;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_vm_target" target="node_handler_list">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 14. ListarUsuariosHandler -> Repository -->
+        <mxCell id="edge14" value="14. GetWithRolAsync()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F39C12;strokeWidth=2;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_handler_list" target="node_repo_list">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 15. Repository -> AutoMapper -> ViewModel -->
+        <mxCell id="edge15" value="15. Entities -&gt; DTOs -&gt; ObservableCollection" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#27AE60;strokeWidth=2;dashed=1;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_repo_list" target="node_vm_target">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1100" y="870" />
+              <mxPoint x="230" y="870" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 16. ViewModel -> DataGrid -->
+        <mxCell id="edge16" value="16. DataBinding refresca DataGrid" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2980B9;strokeWidth=2;fontSize=11;fontStyle=1;" edge="1" parent="1" source="node_vm_target" target="node_view_render">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

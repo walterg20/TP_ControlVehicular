@@ -1,16 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+// walterg20
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
+using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Cliente
 {
@@ -25,7 +18,7 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             // Asignar ViewModel desde DI para que la vista tenga DataContext y podamos cargar datos
             try
             {
-                var vmCliente = App.ServiceProvider.GetService(typeof(TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel)) as TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel;
+                var vmCliente = App.ServiceProvider.GetService(typeof(ClienteViewModel)) as ClienteViewModel;
                 if (vmCliente is not null)
                 {
                     this.DataContext = vmCliente;
@@ -60,36 +53,24 @@ namespace TP_ControlVehicular.Presentacion.Cliente
 
         private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Creamos la ventana modal
-            FrmCliente modal = new FrmCliente();
-
-            // 2. Opcional: Centrar el modal respecto a la ventana principal de la app
-            modal.Owner = Window.GetWindow(this);
-
-            // 3. Abrimos el modal. El código se "detiene" aquí hasta que el usuario guarde o cierre
-            bool? resultado = modal.ShowDialog();
-
-            // 4. Si guardó correctamente (DialogResult = true), refrescamos
-            if (resultado == true)
+            var frm = new FrmCliente();
+            frm.Owner = Window.GetWindow(this);
+            var resultado = frm.ShowDialog();
+            if (resultado == true && this.DataContext is ClienteViewModel clienteViewModel)
             {
                 // Intentar recargar usando el DataContext (si es ClienteViewModel)
-                if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
+                if (this.DataContext is ClienteViewModel vmCliente)
                 {
                     await vmCliente.LoadAsync();
                 }
-                else if (this.DataContext is null && this.Parent is FrameworkElement parent)
-                {
-                    // Buscar en el control padre
-                    if (parent.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmClientePadre)
-                        await vmClientePadre.LoadAsync();
-                }
+
             }
         }
 
         private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
         {
             // Eliminación lógica: marcar Activo = false
-            var selected = dgClientes.SelectedItem as TP_ControlVehicular.Negocio.DTOs.ClienteDto;
+            var selected = dgClientes.SelectedItem as ClienteDto;
             if (selected is null)
             {
                 FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
@@ -99,52 +80,32 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             if (!FrmConfirmacion.Mostrar($"¿Seguro que querés marcar como inactivo al cliente {selected.Nombre} {selected.Apellido}?", "Confirmar baja", Window.GetWindow(this)))
                 return;
 
-            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
+            if (this.DataContext is ClienteViewModel vmCliente)
             {
                 await vmCliente.DeleteClienteAsync(selected.IdCliente);
             }
         }
         private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
-            var selected = dgClientes.SelectedItem as TP_ControlVehicular.Negocio.DTOs.ClienteDto;
-            if (selected is null)
+            if (this.DataContext is ClienteViewModel vmCliente)
             {
-                FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
-                return;
-            }
 
-            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
-            {
-                // cargar datos en el mismo ViewModel usado por el formulario
-                vmCliente.IdCliente = selected.IdCliente;
-                vmCliente.Nombre = selected.Nombre;
-                vmCliente.Apellido = selected.Apellido;
-                vmCliente.Dni = selected.Dni;
-                vmCliente.FechaNacimiento = selected.FechaNac;
-                vmCliente.Direccion = selected.Direccion;
-                vmCliente.Email = selected.Email;
-                vmCliente.Telefono = selected.Telefono;
-                vmCliente.Activo = selected.Activo;
-
-                // Abrir modal (usa el mismo VM desde DI en FrmCliente)
-                var modal = new FrmCliente();
-                modal.Owner = Window.GetWindow(this);
-                var ok = modal.ShowDialog();
+                if (vmCliente.ClienteSeleccionado is null)
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+                var frm = new FrmCliente(vmCliente.ClienteSeleccionado);
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
                 if (ok == true)
                 {
                     await vmCliente.LoadAsync();
                 }
-                else
-                {
-                    // limpiar IdCliente si canceló
-                    vmCliente.IdCliente = 0;
-                }
             }
-        }
 
-        private void dgClientes_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
 
         }
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+// walterg20
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TP_ControlVehicular.Entidad;
 
@@ -17,9 +18,6 @@ namespace TP_ControlVehicular.Datos.Configuracion
             builder.Property(c => c.Direccion).IsRequired().HasMaxLength(200);
             builder.Property(c => c.FechaNacimiento).IsRequired();
             builder.Property(c => c.Activo).IsRequired();
-            builder.HasMany(c => c.Vehiculos)
-                  .WithOne(v => v.Cliente)
-                  .HasForeignKey(v => v.Id);
         }
     }
 }
