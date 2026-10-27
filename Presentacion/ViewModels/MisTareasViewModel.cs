@@ -1,3 +1,4 @@
+// walterg20
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public DetalleServicioDto? TareaSeleccionada
         {
             get => _tareaSeleccionada;
-            set 
+            set
             {
                 SetProperty(ref _tareaSeleccionada, value);
                 // Trigger CanExecute change on the command
@@ -60,7 +61,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public bool IsBusy
         {
             get => _isBusy;
-            set 
+            set
             {
                 SetProperty(ref _isBusy, value);
                 CommandManager.InvalidateRequerySuggested();
@@ -86,7 +87,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 int mecanicoId = UserSession.CurrentUser.IdUsuario;
                 var tareas = await _listarHandler.HandleAsync(mecanicoId);
-                
+
                 TareasAsignadas.Clear();
                 foreach (var tarea in tareas)
                 {
@@ -124,9 +125,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 await _avanzarHandler.HandleAsync(TareaSeleccionada.Id, UserSession.CurrentUser.IdUsuario);
-                
+
                 MensajeExito = $"Tarea {TareaSeleccionada.Id} finalizada exitosamente. La orden puede haber avanzado al siguiente estado.";
-                
+
                 // Recargar lista para reflejar el estado actual
                 await CargarTareasAsync();
             }

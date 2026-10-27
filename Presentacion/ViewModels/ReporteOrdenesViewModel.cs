@@ -1,3 +1,4 @@
+// walterg20
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -39,7 +40,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        private DateTime? _fechaDesde;
+        private DateTime? _fechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         public DateTime? FechaDesde
         {
             get => _fechaDesde;
@@ -52,7 +53,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        private DateTime? _fechaHasta;
+        private DateTime? _fechaHasta = DateTime.Today;
         public DateTime? FechaHasta
         {
             get => _fechaHasta;
@@ -63,6 +64,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     AplicarFiltros();
                 }
             }
+        }
+
+        private string _mensajeValidacionFechas = string.Empty;
+        public string MensajeValidacionFechas
+        {
+            get => _mensajeValidacionFechas;
+            set => SetProperty(ref _mensajeValidacionFechas, value);
         }
 
         private bool _isLoading;
@@ -77,6 +85,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public ICommand CargarReporteCommand { get; }
         public ICommand ImprimirPdfCommand { get; }
+        private ICommand? _limpiarFiltrosCommand;
+        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(() =>
+        {
+            TextoBusqueda = string.Empty;
+            EstadoFiltro = "Todos";
+            FechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            FechaHasta = DateTime.Today;
+            return Task.CompletedTask;
+        });
 
         public ReporteOrdenesViewModel(ObtenerReporteOrdenesHandler obtenerReporteOrdenesHandler)
         {
@@ -104,6 +121,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private void AplicarFiltros()
         {
             ListadoOrdenesFiltered.Clear();
+
+            if (FechaDesde.HasValue && FechaHasta.HasValue && FechaDesde.Value.Date > FechaHasta.Value.Date)
+            {
+                MensajeValidacionFechas = "La fecha 'Desde' no puede ser posterior a 'Hasta'.";
+                return;
+            }
+            MensajeValidacionFechas = string.Empty;
 
             var query = _todosLosRegistros.AsEnumerable();
 
@@ -187,7 +211,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         private void ComposeContent(QuestPDF.Infrastructure.IContainer container)
         {
-            container.PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(column => 
+            container.PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(column =>
             {
                 column.Item().PaddingBottom(10).Text($"Filtros aplicados: {ObtenerTextoFiltros()}").FontSize(11).FontColor(QuestPDF.Helpers.Colors.Grey.Darken2);
 

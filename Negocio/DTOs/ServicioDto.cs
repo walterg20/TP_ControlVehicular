@@ -1,3 +1,4 @@
+// walterg20
 namespace TP_ControlVehicular.Negocio.DTOs
 {
     public class ServicioDto
@@ -6,5 +7,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string Nombre { get; set; } = string.Empty;
         public decimal Precio { get; set; }
         public bool Activo { get; set; } = true;
+        public override string ToString() => Nombre;
     }
 }

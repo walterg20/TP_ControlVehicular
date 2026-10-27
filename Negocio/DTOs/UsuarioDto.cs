@@ -1,3 +1,4 @@
+// walterg20
 namespace TP_ControlVehicular.Negocio.DTOs
 {
     public class UsuarioDto
@@ -16,5 +17,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public bool Estado { get; set; }
         public System.Collections.Generic.List<string> Permisos { get; set; } = new();
         public string NombreCompletoYDni => $"{Nombre} {Apellido} [{Dni}]";
+        public override string ToString() => NombreCompletoYDni;
     }
 }

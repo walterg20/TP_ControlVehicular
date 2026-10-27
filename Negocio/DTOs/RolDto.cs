@@ -1,3 +1,4 @@
+// walterg20
 namespace TP_ControlVehicular.Negocio.DTOs
 {
     public class RolDto
@@ -7,5 +8,6 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public string Descripcion { get; set; } = string.Empty;
         public bool Estado { get; set; }
         public System.Collections.Generic.List<string> Permisos { get; set; } = new();
+        public override string ToString() => Nombre;
     }
 }

@@ -23,4 +23,13 @@
     <ProjectReference Include="..\TP_ControlVehicular.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Copiar scripts SQL canónicos al output para provisionamiento idempotente de BD de pruebas -->
+    <None Include="..\bd\01_estructura.sql" Link="bd\01_estructura.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\bd\02_procedimientos.sql" Link="bd\02_procedimientos.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\bd\03_triggers.sql" Link="bd\03_triggers.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\bd\04_datos.sql" Link="bd\04_datos.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\bd\05_utilidades_test.sql" Link="bd\05_utilidades_test.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

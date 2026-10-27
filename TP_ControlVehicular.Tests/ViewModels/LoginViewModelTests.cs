@@ -1,3 +1,4 @@
+// walterg20
 using Moq;
 using System.Threading.Tasks;
 using TP_ControlVehicular.Negocio.DTOs;
@@ -26,7 +27,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             viewModel.IniciarSesionCommand.Execute(null);
             await Task.Delay(50);
 
-            Assert.Contains("Por favor, ingrese DNI y contraseña.", viewModel.ErrorMessage);
+            Assert.Contains("Por favor, ingrese DNI y contraseÃ±a.", viewModel.ErrorMessage);
         }
 
         [Fact]

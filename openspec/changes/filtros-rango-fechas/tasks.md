@@ -1,0 +1,23 @@
+# Tasks: Implementación de Filtros por Rango de Fechas
+
+- [x] 1. Modificar `OrdenServicioViewModel.cs`:
+  - [x] 1.1 Agregar propiedades `FechaDesde`, `FechaHasta`, `EstadoFiltro`, `MensajeValidacionFechas`.
+  - [x] 1.2 Inicializar fechas por defecto con el mes en curso.
+  - [x] 1.3 Actualizar `ListadoOrdenesFiltered` para contemplar rango de fechas y estado.
+  - [x] 1.4 Implementar `LimpiarFiltrosCommand` e `ImprimirListadoFiltradoCommand` (QuestPDF).
+- [x] 2. Modificar `CtlOrdenServicio.xaml` y `CtlOrdenServicio.xaml.cs`:
+  - [x] 2.1 Rediseñar la barra superior para incluir los DatePickers, ComboBox de Estado, botones Limpiar e Imprimir Listado.
+  - [x] 2.2 Enlazar comandos y eventos de UI.
+- [x] 3. Modificar `MisTrabajosViewModel.cs`:
+  - [x] 3.1 Agregar `FechaDesde` y `FechaHasta` (inicializados al mes actual).
+  - [x] 3.2 Aplicar filtro de fecha en `OrdenesFilter`.
+  - [x] 3.3 Sincronizar fecha en `GenerarHojaTrabajoPdfAsync` y `GenerarHistorialPdfAsync`.
+- [x] 4. Modificar `CtlMisTrabajos.xaml`:
+  - [x] 4.1 Añadir selectores de fecha en la barra superior de filtros.
+- [x] 5. Modificar `ReporteOrdenesViewModel.cs` y `CtlReporteOrdenes.xaml`:
+  - [x] 5.1 Inicializar fechas por defecto al mes en curso.
+  - [x] 5.2 Agregar comando `LimpiarFiltrosCommand` y botón en XAML.
+  - [x] 5.3 Mostrar mensaje de validación si `FechaDesde > FechaHasta`.
+- [x] 6. Pruebas y verificación:
+  - [x] 6.1 Crear pruebas unitarias para filtrado por fecha en `OrdenServicioViewModel`.
+  - [x] 6.2 Compilar solución (`dotnet build`) y ejecutar tests (`dotnet test`).

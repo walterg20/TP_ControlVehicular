@@ -1,3 +1,4 @@
+// walterg20
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,9 +24,9 @@ namespace TP_ControlVehicular.Negocio.Services
                     .ThenInclude(r => r.Detalles)
                 .FirstOrDefaultAsync(d => d.Id == detalleId);
 
-            if (tarea == null) 
+            if (tarea == null)
                 throw new Exception("Tarea no encontrada.");
-            
+
             // 1. Filtro de Seguridad
             if (tarea.UsuarioId != usuarioAutenticadoId)
                 throw new UnauthorizedAccessException("No tienes permisos para modificar esta tarea.");
@@ -56,7 +57,7 @@ namespace TP_ControlVehicular.Negocio.Services
                 {
                     siguienteTarea.Estado = DetalleServicio.EstadoEnCurso;
                 }
-                
+
                 // Asegurarse de que la orden esté "En Proceso"
                 if (orden.Estado == RegistroServicio.EstadoAbierta)
                 {
