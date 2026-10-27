@@ -95,7 +95,7 @@
                     <DataGridTextColumn Header="DNI" Binding="{Binding Dni}" Width="100"/>
                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
                     <DataGridTextColumn Header="Rol" Binding="{Binding RolNombre}" Width="120"/>
-                    <DataGridCheckBoxColumn Header="Estado" Binding="{Binding Estado}" Width="80"/>
+                    <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="80"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
@@ -113,7 +113,7 @@
                         </Style>
                     </Button.Resources>
                 </Button>
-                <Button Content="🔄 Cambiar Estado" Click="BtnBaja_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                <Button Content="🔄 Cambiar Activo" Click="BtnBaja_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>

@@ -18,7 +18,7 @@ namespace TP_ControlVehicular.Datos.Repositories
         public async Task<List<Usuario>> GetActivosAsync() =>
             await _cvDbContext.Usuarios.AsNoTracking()
                 .Include(u => u.Rol).ThenInclude(r => r.Permisos)
-                .Where(u => u.Estado)
+                .Where(u => u.Activo)
                 .ToListAsync();
 
         public async Task<Usuario?> GetByNombreAsync(string nombre) =>

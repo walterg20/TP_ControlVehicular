@@ -67,7 +67,7 @@ BEGIN
         [Id] int NOT NULL IDENTITY,
         [Nombre] nvarchar(max) NOT NULL,
         [Descripcion] nvarchar(max) NOT NULL,
-        [Estado] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Roles] PRIMARY KEY ([Id])
     );
 END
@@ -162,7 +162,7 @@ BEGIN
         [Domicilio] nvarchar(200) NOT NULL,
         [FechaNacimiento] datetime2 NOT NULL,
         [Contrasena] nvarchar(max) NOT NULL,
-        [Estado] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Usuarios] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Usuarios_Roles_RolId] FOREIGN KEY ([RolId]) REFERENCES [dbo].[Roles] ([Id]) ON DELETE NO ACTION
     );

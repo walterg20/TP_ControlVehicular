@@ -51,9 +51,9 @@
                                Visibility="{Binding (Validation.HasError), ElementName=txtDescripcion, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
                 </StackPanel>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Estado:" FontWeight="Bold" Margin="0,5,5,2"/>
-                <CheckBox x:Name="chkEstado" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,16"
-                          IsChecked="{Binding Estado, Mode=TwoWay}"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Activo:" FontWeight="Bold" Margin="0,5,5,2"/>
+                <CheckBox x:Name="chkActivo" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,0,16"
+                          IsChecked="{Binding Activo, Mode=TwoWay}"/>
             </Grid>
         </ScrollViewer>
 
