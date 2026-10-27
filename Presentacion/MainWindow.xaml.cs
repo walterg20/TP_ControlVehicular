@@ -16,6 +16,7 @@ using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Handlers.Reportes;
 
 namespace TP_ControlVehicular
 {
@@ -333,8 +334,8 @@ namespace TP_ControlVehicular
         {
             try
             {
-                var handler = App.ServiceProvider?.GetService(typeof(TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler)) as TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler
-                    ?? new TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler();
+                var handler = App.ServiceProvider?.GetService(typeof(GenerarManualUsuarioHandler)) as GenerarManualUsuarioHandler
+                    ?? new GenerarManualUsuarioHandler();
                 var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0";
                 var path = handler.Handle(version);
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
