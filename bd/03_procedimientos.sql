@@ -2,7 +2,7 @@
 -- 03_procedimientos.sql — Procedimientos almacenados (reportes y comprobantes).
 -- ----------------------------------------------------------------------------
 -- Autor: consolidación de scripts históricos (2026-10-12).
--- Contenido: 14 procedimientos almacenados, cada uno con CREATE OR ALTER
+-- Contenido: 16 procedimientos almacenados, cada uno con CREATE OR ALTER
 --            (idempotente: puede re-ejecutarse sobre una base existente).
 -- Requiere: esquema creado por 01_estructura.sql y datos de 02_datos.sql.
 -- Compatible con SQL Server 2019 Express. Codificación UTF-8.
@@ -68,6 +68,68 @@ BEGIN
       AND (@FechaHasta IS NULL OR CAST(f.Fecha AS DATE) <= @FechaHasta)
     GROUP BY CAST(f.Fecha AS DATE)
     ORDER BY CAST(f.Fecha AS DATE) DESC;
+END;
+GO
+
+-- ----------------------------------------------------------------------------
+-- sp_ReporteIngresosAdminPaginado — ingresos por fecha con paginación a nivel de BD.
+-- Consumido por ReporteGerencialRepository.ObtenerIngresosPorFechaPaginadoAsync.
+-- ----------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_ReporteIngresosAdminPaginado
+    @FechaDesde DATE = NULL,
+    @FechaHasta DATE = NULL,
+    @Pagina INT = 1,
+    @TamanoPagina INT = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @Pagina < 1 SET @Pagina = 1;
+    IF @TamanoPagina < 1 SET @TamanoPagina = 10;
+
+    WITH Base AS (
+        SELECT
+            CAST(f.Fecha AS DATE) AS Fecha,
+            COUNT(f.Id) AS CantidadFacturas,
+            SUM(f.Total) AS IngresosTotales
+        FROM Factura f
+        WHERE (@FechaDesde IS NULL OR CAST(f.Fecha AS DATE) >= @FechaDesde)
+          AND (@FechaHasta IS NULL OR CAST(f.Fecha AS DATE) <= @FechaHasta)
+        GROUP BY CAST(f.Fecha AS DATE)
+    )
+    SELECT
+        Fecha,
+        CantidadFacturas,
+        IngresosTotales,
+        COUNT(*) OVER() AS TotalRegistros
+    FROM Base
+    ORDER BY Fecha DESC
+    OFFSET (@Pagina - 1) * @TamanoPagina ROWS
+    FETCH NEXT @TamanoPagina ROWS ONLY;
+END;
+GO
+
+-- ----------------------------------------------------------------------------
+-- sp_ReporteIngresosMensualesAdmin — ingresos agrupados por mes calendario.
+-- Consumido por ReporteGerencialRepository.ObtenerIngresosMensualesAsync.
+-- ----------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_ReporteIngresosMensualesAdmin
+    @FechaDesde DATE = NULL,
+    @FechaHasta DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        FORMAT(CAST(f.Fecha AS DATE), 'yyyy-MM') AS PeriodoMes,
+        DATEFROMPARTS(YEAR(f.Fecha), MONTH(f.Fecha), 1) AS FechaMes,
+        COUNT(f.Id) AS CantidadFacturas,
+        SUM(f.Total) AS IngresosTotales
+    FROM Factura f
+    WHERE (@FechaDesde IS NULL OR CAST(f.Fecha AS DATE) >= @FechaDesde)
+      AND (@FechaHasta IS NULL OR CAST(f.Fecha AS DATE) <= @FechaHasta)
+    GROUP BY FORMAT(CAST(f.Fecha AS DATE), 'yyyy-MM'), DATEFROMPARTS(YEAR(f.Fecha), MONTH(f.Fecha), 1)
+    ORDER BY FechaMes ASC;
 END;
 GO
 

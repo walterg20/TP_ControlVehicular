@@ -34,6 +34,38 @@ namespace TP_ControlVehicular.Datos.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+        public async Task<(IEnumerable<ReporteIngresoDto> Items, int TotalRegistros)> ObtenerIngresosPorFechaPaginadoAsync(
+            DateTime? fechaDesde, DateTime? fechaHasta, int pagina, int tamanoPagina)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@FechaDesde", fechaDesde, DbType.Date);
+            parameters.Add("@FechaHasta", fechaHasta, DbType.Date);
+            parameters.Add("@Pagina", pagina, DbType.Int32);
+            parameters.Add("@TamanoPagina", tamanoPagina, DbType.Int32);
+
+            var rows = (await connection.QueryAsync<ReporteIngresoPaginadoDto>(
+                "sp_ReporteIngresosAdminPaginado",
+                parameters,
+                commandType: CommandType.StoredProcedure)).ToList();
+
+            int totalRegistros = rows.FirstOrDefault()?.TotalRegistros ?? 0;
+            return (rows, totalRegistros);
+        }
+
+        public async Task<IEnumerable<ReporteIngresoMensualDto>> ObtenerIngresosMensualesAsync(DateTime? fechaDesde, DateTime? fechaHasta)
+        {
+            using var connection = new SqlConnection(_connectionString);
+            var parameters = new DynamicParameters();
+            parameters.Add("@FechaDesde", fechaDesde, DbType.Date);
+            parameters.Add("@FechaHasta", fechaHasta, DbType.Date);
+
+            return await connection.QueryAsync<ReporteIngresoMensualDto>(
+                "sp_ReporteIngresosMensualesAdmin",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
+
         public async Task<IEnumerable<ReporteTopClienteDto>> ObtenerTopClientesAsync(DateTime? fechaDesde, DateTime? fechaHasta, int topN = 10)
         {
             using var connection = new SqlConnection(_connectionString);
