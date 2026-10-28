@@ -132,6 +132,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 var total = Ingresos.Sum(i => i.IngresosTotales);
                 column.Item().PaddingBottom(10).Text($"Total Recaudado en el periodo: {total:C}").FontSize(14).Bold();
 
+                if (Ingresos.Count > 0)
+                {
+                    column.Item().PaddingBottom(15).Svg(IngresosBarChartGenerator.BuildSvg(Ingresos.ToList()));
+                }
+
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
@@ -241,6 +246,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
+                var total = ModelosReparados.Sum(m => m.CantidadReparaciones);
+                column.Item().PaddingBottom(10).Text($"Total de Reparaciones en el periodo: {total}").FontSize(14).Bold();
+
+                if (ModelosReparados.Count > 0)
+                {
+                    column.Item().PaddingBottom(15).Svg(ModelosBarChartGenerator.BuildSvg(ModelosReparados.ToList()));
+                }
+
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
