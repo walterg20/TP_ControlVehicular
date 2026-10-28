@@ -370,5 +370,108 @@ namespace TP_ControlVehicular.Tests.Unit
             repo.Verify(r => r.UpdateAsync(usuario), Times.Once);
             repo.Verify(r => r.GetByNombreAsync("Mod"), Times.Once);
         }
+
+        // ---------------------------------------------------------------------
+        // ListarModelosHandler & Modelo Handlers
+        // ---------------------------------------------------------------------
+
+        [Fact]
+        public async Task ListarModelosHandler_RetornaModelosConMarcaNombrePoblado()
+        {
+            // Arrange
+            var modelos = new List<Modelo>
+            {
+                new Modelo
+                {
+                    Id = 1,
+                    NombreModelo = "Corolla",
+                    MarcaId = 10,
+                    Marca = new Marca { Id = 10, NombreMarca = "Toyota" }
+                },
+                new Modelo
+                {
+                    Id = 2,
+                    NombreModelo = "Hilux",
+                    MarcaId = 10,
+                    Marca = new Marca { Id = 10, NombreMarca = "Toyota" }
+                }
+            };
+
+            var repo = new Mock<IModeloRepository>();
+            repo.Setup(r => r.GetAllAsync()).ReturnsAsync(modelos);
+            var handler = new ListarModelosHandler(repo.Object, CrearMapper());
+
+            // Act
+            var resultado = await handler.HandleAsync();
+
+            // Assert
+            Assert.NotNull(resultado);
+            Assert.Equal(2, resultado.Count);
+            Assert.Equal("Toyota", resultado[0].MarcaNombre);
+            Assert.Equal("Corolla", resultado[0].NombreModelo);
+            Assert.Equal("Toyota", resultado[1].MarcaNombre);
+            Assert.Equal("Hilux", resultado[1].NombreModelo);
+            repo.Verify(r => r.GetAllAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task RegistrarModeloHandler_GuardaYRetornaDtoConMarcaNombre()
+        {
+            // Arrange
+            var input = new Modelo { Id = 0, NombreModelo = "Focus", MarcaId = 20 };
+            var recargado = new Modelo
+            {
+                Id = 3,
+                NombreModelo = "Focus",
+                MarcaId = 20,
+                Marca = new Marca { Id = 20, NombreMarca = "Ford" }
+            };
+
+            var repo = new Mock<IModeloRepository>();
+            repo.Setup(r => r.AddAsync(input)).Returns(Task.CompletedTask);
+            repo.Setup(r => r.GetByIdAsync(input.Id)).ReturnsAsync(recargado);
+            var handler = new RegistrarModeloHandler(repo.Object, CrearMapper());
+
+            // Act
+            var dto = await handler.HandleAsync(input);
+
+            // Assert
+            Assert.NotNull(dto);
+            Assert.Equal(3, dto.Id);
+            Assert.Equal("Focus", dto.NombreModelo);
+            Assert.Equal("Ford", dto.MarcaNombre);
+            repo.Verify(r => r.AddAsync(input), Times.Once);
+            repo.Verify(r => r.GetByIdAsync(input.Id), Times.Once);
+        }
+
+        [Fact]
+        public async Task ModificarModeloHandler_ActualizaYRetornaDtoConMarcaNombre()
+        {
+            // Arrange
+            var input = new Modelo { Id = 4, NombreModelo = "Cruze", MarcaId = 30 };
+            var recargado = new Modelo
+            {
+                Id = 4,
+                NombreModelo = "Cruze",
+                MarcaId = 30,
+                Marca = new Marca { Id = 30, NombreMarca = "Chevrolet" }
+            };
+
+            var repo = new Mock<IModeloRepository>();
+            repo.Setup(r => r.UpdateAsync(input)).Returns(Task.CompletedTask);
+            repo.Setup(r => r.GetByIdAsync(input.Id)).ReturnsAsync(recargado);
+            var handler = new ModificarModeloHandler(repo.Object, CrearMapper());
+
+            // Act
+            var dto = await handler.HandleAsync(input);
+
+            // Assert
+            Assert.NotNull(dto);
+            Assert.Equal(4, dto.Id);
+            Assert.Equal("Cruze", dto.NombreModelo);
+            Assert.Equal("Chevrolet", dto.MarcaNombre);
+            repo.Verify(r => r.UpdateAsync(input), Times.Once);
+            repo.Verify(r => r.GetByIdAsync(input.Id), Times.Once);
+        }
     }
 }
