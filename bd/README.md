@@ -11,17 +11,13 @@ una cadena de scripts numerados donde unos pisan a otros.
 
 | Orden | Archivo | Contenido |
 |---|---|---|
-| 1 | `01_estructura.sql` | Secuencia de facturación, 18 tablas, índices, PK/FK y constraints CHECK. |
-| 2 | `02_procedimientos.sql` | 14 procedimientos almacenados (reportes y comprobantes). |
-| 3 | `03_triggers.sql` | 3 triggers de integridad del workflow. |
-| 4 | `04_datos.sql` | Datos semilla (seed): roles, permisos, rol-permisos, taller, configuración de empresa/respaldo, bootstrap del Admin y catálogo de marcas/modelos. |
+| 1 | `01_estructura.sql` | Secuencia de facturación, 18 tablas, índices, PK/FK, constraints CHECK y sincronización de columnas `Activo`. |
+| 2 | `02_datos.sql` | Datos semilla canónicos (seed): 3 roles, 38 permisos, matriz RolPermisos, taller base, configuraciones, usuario Admin y catálogo completo de marcas/modelos (45 marcas, 203 modelos) y servicios. |
+| 3 | `03_procedimientos.sql` | 14 procedimientos almacenados oficiales (reportes y comprobantes). |
+| 4 | `04_triggers.sql` | 3 triggers de integridad del workflow. |
+| 5 | `05_utilidades_test.sql` | Utilidades de desarrollo/pruebas (purga de artefactos E2E y verificaciones). |
 
-Aplicar **siempre** en el orden `01 → 02 → 03 → 04` (las tablas deben existir antes de
-los SP/triggers, y las FK de los datos requieren el esquema y las filas padre).
-
-Además existe `05_utilidades_test.sql`, que **no** forma parte del alta del esquema:
-es una utilidad de desarrollo/pruebas (purga de artefactos E2E) y se ejecuta solo
-cuando se necesita.
+Aplicar **siempre** en el orden `01_estructura → 02_datos → 03_procedimientos → 04_triggers` (las tablas y datos base deben existir antes de los SP/triggers).
 
 ## Idempotencia
 

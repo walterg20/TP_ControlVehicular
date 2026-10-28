@@ -77,6 +77,21 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
             }
 
             var recepcionista = await ctx.Usuarios.FirstOrDefaultAsync(u => u.RolId == (int)RolesSistema.Recepcionista);
+            if (recepcionista == null)
+            {
+                recepcionista = new Usuario
+                {
+                    Dni = "99" + MarcadorE2E.DniUsuario(marker).Substring(2),
+                    Nombre = "Recep",
+                    Apellido = MarcadorE2E.ApellidoUsuario(marker),
+                    Email = "recep_" + MarcadorE2E.EmailUsuario(marker),
+                    Contrasena = "123",
+                    RolId = (int)RolesSistema.Recepcionista,
+                    Activo = true
+                };
+                await ctx.Usuarios.AddAsync(recepcionista);
+                await ctx.SaveChangesAsync();
+            }
             var mecanico = await ctx.Usuarios.FirstOrDefaultAsync(u => u.RolId == (int)RolesSistema.Mecanico);
             if (mecanico == null)
             {

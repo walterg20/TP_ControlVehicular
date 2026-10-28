@@ -6,9 +6,26 @@
 -- Idempotente: cada objeto se crea solo si no existe (puede re-ejecutarse).
 -- Requiere: base de datos [ControlVehicular] ya creada.
 -- Compatible con SQL Server 2019 Express. Codificación UTF-8.
--- Orden de aplicación: 01 -> 02 -> 03 -> 04.
+-- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades.
 -- ============================================================================
 USE [ControlVehicular];
+GO
+
+-- ----------------------------------------------------------------------------
+-- Sincronización de nomenclatura (Estado -> Activo) si las tablas ya existían
+-- ----------------------------------------------------------------------------
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Roles]') AND name = 'Estado')
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Roles]') AND name = 'Activo')
+BEGIN
+    EXEC sp_rename '[dbo].[Roles].[Estado]', 'Activo', 'COLUMN';
+END
+GO
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Usuarios]') AND name = 'Estado')
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Usuarios]') AND name = 'Activo')
+BEGIN
+    EXEC sp_rename '[dbo].[Usuarios].[Estado]', 'Activo', 'COLUMN';
+END
 GO
 
 -- ----------------------------------------------------------------------------

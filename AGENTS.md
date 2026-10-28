@@ -33,7 +33,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - `Migracion/` — migraciones EF Core y `CVDbContextModelSnapshot.cs`
 - `Negocio/` — handlers (`RegistrarClienteHandler`, `RegistrarVehiculoHandler`, `ListarVehiculosPorClienteHandler`), `MappingProfile.cs` (Entity→DTO), DTOs, reportes QuestPDF
 - `Presentacion/` — `ViewModels/` (`BaseViewModel`, `ClienteViewModel`, `ModeloViewModel`, `MarcaViewModel`, `VehiculoViewModel`), `Pantalla/*/Ctl*.xaml.cs` (UserControls), `MainWindow`
-- `bd/` — scripts SQL canónicos idempotentes, consolidados por tipo (`01_estructura.sql`, `02_procedimientos.sql`, `03_triggers.sql`, `04_datos.sql`, `05_utilidades_test.sql`) · `docs/` — documentación · `openspec/` — specs
+- `bd/` — scripts SQL canónicos idempotentes, consolidados por tipo (`01_estructura.sql`, `02_datos.sql`, `03_procedimientos.sql`, `04_triggers.sql`, `05_utilidades_test.sql`) · `docs/` — documentación · `openspec/` — specs
 
 ## Convenciones de código
 - **DI en `App.xaml.cs`**: repositorios `AddScoped`, handlers `AddScoped`, VMs `AddScoped`/`AddTransient`, `MainWindow` singleton.
@@ -85,7 +85,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - **OpenSpec** (`openspec/`) — SDD obligatorio antes de modificar código. Skills/workflows `openspec-*` y comandos `opsx-*` en `.opencode/` y `.agents/`.
 - **Subagentes SDD** (`.opencode/agents/`): `coordinator`, `planner`, `implementer`, `reviewer`.
 - **MCP servers** (`mcp.json`): `codegraph`, `github`, `sqlite`.
-- **Base de datos**: SQL Server `<SERVIDOR>\<INSTANCIA>` vía EF Core 10; migraciones en `Migracion/`; scripts idempotentes en `bd/`, consolidados por tipo (`01_estructura.sql`, `02_procedimientos.sql`, `03_triggers.sql`, `04_datos.sql`, `05_utilidades_test.sql`). Un objeto nuevo se agrega al script canónico de su tipo; no se crean scripts numerados nuevos.
+- **Base de datos**: SQL Server `<SERVIDOR>\<INSTANCIA>` vía EF Core 10; migraciones en `Migracion/`; scripts idempotentes en `bd/`, consolidados por tipo (`01_estructura.sql`, `02_datos.sql`, `03_procedimientos.sql`, `04_triggers.sql`, `05_utilidades_test.sql`). Un objeto nuevo se agrega al script canónico de su tipo; no se crean scripts numerados nuevos.
 - **Tests**: `TP_ControlVehicular.Tests` (xUnit + Moq), `dotnet test` · **Scripts temporales**: `docs/script/` (.py/.ps1).
 
 ## No hagas

@@ -1,12 +1,12 @@
 -- ============================================================================
--- 03_triggers.sql — Disparadores (triggers) de integridad del workflow.
+-- 04_triggers.sql — Disparadores (triggers) de integridad del workflow.
 -- ----------------------------------------------------------------------------
 -- Autor: consolidación de scripts históricos (2026-10-12).
 -- Contenido: 3 triggers, cada uno con CREATE OR ALTER
 --            (idempotente: puede re-ejecutarse sobre una base existente).
 -- Requiere: esquema creado por 01_estructura.sql.
 -- Compatible con SQL Server 2019 Express. Codificación UTF-8.
--- Orden de aplicación: 01 -> 02 -> 03 -> 04.
+-- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades.
 -- ----------------------------------------------------------------------------
 -- NOTA: las restricciones CHECK definidas junto a estos triggers en
 -- 06_Migraciones_Manuales.sql (CK_Servicio_Precio, CK_DetalleServicio_Precio,

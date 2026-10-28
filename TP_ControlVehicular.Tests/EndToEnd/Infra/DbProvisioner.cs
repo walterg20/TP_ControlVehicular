@@ -28,9 +28,9 @@ END", conn);
             string[] scripts = new[]
             {
                 "01_estructura.sql",
-                "02_procedimientos.sql",
-                "03_triggers.sql",
-                "04_datos.sql"
+                "02_datos.sql",
+                "03_procedimientos.sql",
+                "04_triggers.sql"
             };
 
             foreach (var script in scripts)
