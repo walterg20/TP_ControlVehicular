@@ -20,7 +20,7 @@ namespace TP_ControlVehicular.Datos.Repositories
             _cvDbContext = cvDbContext;
             _dbSet = _cvDbContext.Set<T>();
         }
-        public async Task<T?> GetByIdAsync(int id)
+        public virtual async Task<T?> GetByIdAsync(int id)
         {
             var keyName = _cvDbContext.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.Select(x => x.Name).SingleOrDefault();
             if (keyName != null)
@@ -30,9 +30,9 @@ namespace TP_ControlVehicular.Datos.Repositories
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.AsNoTracking().ToListAsync();
+        public virtual async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.AsNoTracking().ToListAsync();
 
-        public async Task<IEnumerable<T>> GetTodosAsync() => await _dbSet.AsNoTracking().ToListAsync();
+        public virtual async Task<IEnumerable<T>> GetTodosAsync() => await _dbSet.AsNoTracking().ToListAsync();
 
         public async Task AddAsync(T entity)
         {

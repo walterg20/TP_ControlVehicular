@@ -16,7 +16,28 @@ namespace TP_ControlVehicular.Datos.Repositories
             _cvDbContext = cvDbContext;
         }
 
+        public override async Task<IEnumerable<Modelo>> GetAllAsync() =>
+            await _cvDbContext.Modelos
+                .Include(m => m.Marca)
+                .AsNoTracking()
+                .ToListAsync();
+
+        public override async Task<IEnumerable<Modelo>> GetTodosAsync() =>
+            await _cvDbContext.Modelos
+                .Include(m => m.Marca)
+                .AsNoTracking()
+                .ToListAsync();
+
+        public override async Task<Modelo?> GetByIdAsync(int id) =>
+            await _cvDbContext.Modelos
+                .Include(m => m.Marca)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Id == id);
+
         public async Task<IEnumerable<Modelo>> GetByMarcaAsync(int idMarca) =>
-            await _cvDbContext.Modelos.Where(m => m.Id == idMarca).ToListAsync();
+            await _cvDbContext.Modelos
+                .Include(m => m.Marca)
+                .Where(m => m.MarcaId == idMarca)
+                .ToListAsync();
     }
 }
