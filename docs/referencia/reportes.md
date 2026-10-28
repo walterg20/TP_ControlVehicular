@@ -38,8 +38,9 @@ Los handlers/repositorios de reportes NO deben inventar filas de demostración c
 - `sp_ReporteIngresosAdmin` (2 params `@FechaDesde, @FechaHasta`; columnas `Fecha`/`CantidadFacturas`/`IngresosTotales` → DTO `ReporteIngresoDto`) alimenta el reporte gerencial vía `ReporteGerencialRepository.ObtenerIngresosPorFechaAsync`.
 - Compartir nombre rompe al consumidor pisado (ambos SP viven en `bd/02_procedimientos.sql`).
 
-## Reporte Gerencial — cantidad de servicios por rango
-- `sp_ReporteServiciosPorRango` (en `bd/02_procedimientos.sql`; 2 params `@FechaDesde, @FechaHasta`) agrega a nivel **tarea** (`DetalleServicio`): `SUM(Cantidad)` por servicio (`ServicioId`/`Servicio`/`Cantidad` → DTO `ReporteServicioCantidadDto`), excluye órdenes canceladas (`rs.Estado <> 'Cancelada'`); vía `ReporteGerencialRepository.ObtenerServiciosPorRangoAsync`.
-- Alimenta el 4.º tab "Servicios por Rango" y el PDF homónimo.
-- El **gráfico de torta va solo en el PDF** (nunca en la vista WPF): `ServiciosPieChartGenerator` (`Negocio/Reportes/Documentos/`) produce un **SVG** (`Paleta`, `Normalizar` top-N + "Otros", `BuildSvg`) y la leyenda se compone con elementos nativos QuestPDF — QuestPDF no expone `Canvas`; usar `QuestPDF.Fluent.SvgExtensions.Svg(IContainer, string)`.
+## Reporte Gerencial — gráficos en PDFs
+- Los **gráficos van solo en el PDF** (nunca en la vista WPF) usando generación SVG y `QuestPDF.Fluent.SvgExtensions.Svg(IContainer, string)`:
+  - `IngresosBarChartGenerator`: barras verticales (columnas) para la evolución cronológica de ingresos diarios por fecha.
+  - `ModelosBarChartGenerator`: barras horizontales para el ranking de los modelos de vehículos más reparados.
+  - `ServiciosPieChartGenerator`: gráfico de torta para la cantidad de servicios dentro de un rango de fechas (`sp_ReporteServiciosPorRango`).
 - `ReporteModeloReparadoDto` expone `MarcaModelo` compuesto (no `Marca`/`Modelo` por separado). La vista muerta `ReporteGerencialView` fue eliminada; el reporte vive en `CtlReporteGerencial`.
