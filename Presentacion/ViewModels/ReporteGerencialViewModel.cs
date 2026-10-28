@@ -47,12 +47,89 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set => SetProperty(ref _mensajeValidacion, value);
         }
 
+        // Paginación de Ingresos
+        private int _paginaActual = 1;
+        public int PaginaActual
+        {
+            get => _paginaActual;
+            set
+            {
+                if (SetProperty(ref _paginaActual, value))
+                {
+                    NotificarComandosPaginacion();
+                    ActualizarTextoPaginacion();
+                }
+            }
+        }
+
+        private int _totalPaginas = 1;
+        public int TotalPaginas
+        {
+            get => _totalPaginas;
+            private set
+            {
+                if (SetProperty(ref _totalPaginas, value))
+                {
+                    NotificarComandosPaginacion();
+                    ActualizarTextoPaginacion();
+                }
+            }
+        }
+
+        private int _totalRegistros;
+        public int TotalRegistros
+        {
+            get => _totalRegistros;
+            private set
+            {
+                if (SetProperty(ref _totalRegistros, value))
+                {
+                    ActualizarTextoPaginacion();
+                }
+            }
+        }
+
+        private int _tamanoPagina = 10;
+        public int TamanoPagina
+        {
+            get => _tamanoPagina;
+            set
+            {
+                if (SetProperty(ref _tamanoPagina, value))
+                {
+                    if (!IsLoading)
+                    {
+                        PaginaActual = 1;
+                        _ = CargarIngresosPaginadosAsync();
+                    }
+                }
+            }
+        }
+
+        public ObservableCollection<int> OpcionesTamanoPagina { get; } = new() { 5, 10, 20, 50 };
+
+        private string _textoPaginacion = "Página 1 de 1 (0 registros)";
+        public string TextoPaginacion
+        {
+            get => _textoPaginacion;
+            private set => SetProperty(ref _textoPaginacion, value);
+        }
+
+        public bool PuedeIrAnterior => PaginaActual > 1 && !IsLoading;
+        public bool PuedeIrSiguiente => PaginaActual < TotalPaginas && !IsLoading;
+
         public ObservableCollection<ReporteIngresoDto> Ingresos { get; } = new();
+        public ObservableCollection<ReporteIngresoMensualDto> IngresosMensuales { get; } = new();
         public ObservableCollection<ReporteTopClienteDto> TopClientes { get; } = new();
         public ObservableCollection<ReporteModeloReparadoDto> ModelosReparados { get; } = new();
         public ObservableCollection<ReporteServicioCantidadDto> ServiciosPorRango { get; } = new();
 
         public ICommand CargarReporteCommand { get; }
+        public RelayCommand IrPrimeraPaginaCommand { get; }
+        public RelayCommand PaginaAnteriorCommand { get; }
+        public RelayCommand PaginaSiguienteCommand { get; }
+        public RelayCommand IrUltimaPaginaCommand { get; }
+
         public ICommand ImprimirPdfIngresosCommand { get; }
         public ICommand ImprimirPdfTopClientesCommand { get; }
         public ICommand ImprimirPdfModelosCommand { get; }
@@ -62,10 +139,68 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             _repository = repository;
             CargarReporteCommand = new RelayCommand(LoadAsync);
+
+            IrPrimeraPaginaCommand = new RelayCommand(async () => await CambiarPaginaAsync(1), () => PuedeIrAnterior);
+            PaginaAnteriorCommand = new RelayCommand(async () => await CambiarPaginaAsync(PaginaActual - 1), () => PuedeIrAnterior);
+            PaginaSiguienteCommand = new RelayCommand(async () => await CambiarPaginaAsync(PaginaActual + 1), () => PuedeIrSiguiente);
+            IrUltimaPaginaCommand = new RelayCommand(async () => await CambiarPaginaAsync(TotalPaginas), () => PuedeIrSiguiente);
+
             ImprimirPdfIngresosCommand = new RelayCommand(ImprimirPdfIngresosAsync);
             ImprimirPdfTopClientesCommand = new RelayCommand(ImprimirPdfTopClientesAsync);
             ImprimirPdfModelosCommand = new RelayCommand(ImprimirPdfModelosAsync);
             ImprimirPdfServiciosCommand = new RelayCommand(ImprimirPdfServiciosAsync);
+        }
+
+        public async Task CambiarPaginaAsync(int nuevaPagina)
+        {
+            if (nuevaPagina < 1) nuevaPagina = 1;
+            if (nuevaPagina > TotalPaginas && TotalPaginas > 0) nuevaPagina = TotalPaginas;
+            if (nuevaPagina == PaginaActual && Ingresos.Count > 0) return;
+
+            PaginaActual = nuevaPagina;
+            await CargarIngresosPaginadosAsync();
+        }
+
+        public async Task CargarIngresosPaginadosAsync()
+        {
+            try
+            {
+                var (items, total) = await _repository.ObtenerIngresosPorFechaPaginadoAsync(FechaDesde, FechaHasta, PaginaActual, TamanoPagina);
+                TotalRegistros = total;
+                TotalPaginas = total > 0 ? (int)Math.Ceiling((double)total / TamanoPagina) : 1;
+
+                if (PaginaActual > TotalPaginas && TotalPaginas > 0)
+                {
+                    _paginaActual = TotalPaginas;
+                    OnPropertyChanged(nameof(PaginaActual));
+                }
+
+                Ingresos.Clear();
+                foreach (var item in items)
+                {
+                    Ingresos.Add(item);
+                }
+            }
+            finally
+            {
+                NotificarComandosPaginacion();
+                ActualizarTextoPaginacion();
+            }
+        }
+
+        private void NotificarComandosPaginacion()
+        {
+            OnPropertyChanged(nameof(PuedeIrAnterior));
+            OnPropertyChanged(nameof(PuedeIrSiguiente));
+            IrPrimeraPaginaCommand?.RaiseCanExecuteChanged();
+            PaginaAnteriorCommand?.RaiseCanExecuteChanged();
+            PaginaSiguienteCommand?.RaiseCanExecuteChanged();
+            IrUltimaPaginaCommand?.RaiseCanExecuteChanged();
+        }
+
+        private void ActualizarTextoPaginacion()
+        {
+            TextoPaginacion = $"Página {PaginaActual} de {TotalPaginas} ({TotalRegistros} {(TotalRegistros == 1 ? "registro" : "registros")})";
         }
 
         public async Task LoadAsync()
@@ -80,9 +215,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
-                var ingresos = await _repository.ObtenerIngresosPorFechaAsync(FechaDesde, FechaHasta);
-                Ingresos.Clear();
-                foreach (var i in ingresos) Ingresos.Add(i);
+                PaginaActual = 1;
+                await CargarIngresosPaginadosAsync();
+
+                var mensuales = await _repository.ObtenerIngresosMensualesAsync(FechaDesde, FechaHasta);
+                IngresosMensuales.Clear();
+                foreach (var m in mensuales) IngresosMensuales.Add(m);
 
                 var clientes = await _repository.ObtenerTopClientesAsync(FechaDesde, FechaHasta, 10);
                 TopClientes.Clear();
@@ -99,12 +237,20 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             finally
             {
                 IsLoading = false;
+                NotificarComandosPaginacion();
             }
         }
 
         private async Task ImprimirPdfIngresosAsync()
         {
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ReporteIngresos_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+
+            var ingresosCompletos = (await _repository.ObtenerIngresosPorFechaAsync(FechaDesde, FechaHasta)).ToList();
+            var mensuales = IngresosMensuales.ToList();
+            if (mensuales.Count == 0 && ingresosCompletos.Count > 0)
+            {
+                mensuales = (await _repository.ObtenerIngresosMensualesAsync(FechaDesde, FechaHasta)).ToList();
+            }
 
             var document = Document.Create(container =>
             {
@@ -115,8 +261,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(10));
 
-                    page.Header().Element(c => c.ComposeEncabezadoTaller("Ingresos Totales por Fecha"));
-                    page.Content().Element(ComposeIngresosContent);
+                    page.Header().Element(c => c.ComposeEncabezadoTaller("Ingresos Totales por Fecha y Mes"));
+                    page.Content().Element(c => ComposeIngresosContent(c, ingresosCompletos, mensuales));
                     page.Footer().Element(c => c.ComposePieDePagina());
                 });
             });
@@ -125,18 +271,54 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             AbrirPdf(filePath);
         }
 
-        private void ComposeIngresosContent(IContainer container)
+        private void ComposeIngresosContent(IContainer container, List<ReporteIngresoDto> listaIngresos, List<ReporteIngresoMensualDto> listaMensuales)
         {
             container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
-                var total = Ingresos.Sum(i => i.IngresosTotales);
+                var total = listaMensuales.Sum(i => i.IngresosTotales);
+                if (total == 0 && listaIngresos.Count > 0)
+                {
+                    total = listaIngresos.Sum(i => i.IngresosTotales);
+                }
                 column.Item().PaddingBottom(10).Text($"Total Recaudado en el periodo: {total:C}").FontSize(14).Bold();
 
-                if (Ingresos.Count > 0)
+                // 1. Gráfico de evolución de ingresos
+                if (listaIngresos.Count > 0)
                 {
-                    column.Item().PaddingBottom(15).Svg(IngresosBarChartGenerator.BuildSvg(Ingresos.ToList()));
+                    column.Item().PaddingBottom(15).Svg(IngresosBarChartGenerator.BuildSvg(listaIngresos));
                 }
 
+                // 2. Resumen Agrupado por Mes
+                if (listaMensuales.Count > 0)
+                {
+                    column.Item().PaddingBottom(6).Text("Resumen de Ingresos por Mes").FontSize(12).Bold().FontColor("#2C3E50");
+                    column.Item().PaddingBottom(15).Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn(2);
+                            columns.RelativeColumn(2);
+                            columns.RelativeColumn(2);
+                        });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Element(c => c.CeldaCabecera()).Text("Mes / Período").Bold();
+                            header.Cell().Element(c => c.CeldaCabecera()).Text("Facturas Emitidas").Bold();
+                            header.Cell().Element(c => c.CeldaCabecera()).Text("Total Mensual").Bold();
+                        });
+
+                        foreach (var mes in listaMensuales)
+                        {
+                            table.Cell().Element(c => c.CeldaDato()).Text(mes.PeriodoMes);
+                            table.Cell().Element(c => c.CeldaDato()).Text(mes.CantidadFacturas.ToString());
+                            table.Cell().Element(c => c.CeldaDato()).Text(mes.IngresosTotales.ToString("C"));
+                        }
+                    });
+                }
+
+                // 3. Detalle por Fechas
+                column.Item().PaddingBottom(6).Text("Detalle Diario de Ingresos").FontSize(12).Bold().FontColor("#2C3E50");
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
@@ -153,7 +335,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         header.Cell().Element(c => c.CeldaCabecera()).Text("Ingresos").Bold();
                     });
 
-                    foreach (var ingreso in Ingresos)
+                    foreach (var ingreso in listaIngresos)
                     {
                         table.Cell().Element(c => c.CeldaDato()).Text(ingreso.Fecha.ToString("dd/MM/yyyy"));
                         table.Cell().Element(c => c.CeldaDato()).Text(ingreso.CantidadFacturas.ToString());

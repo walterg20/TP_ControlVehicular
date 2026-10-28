@@ -24,6 +24,7 @@
 -- Compatible con SQL Server 2019 Express. Codificación UTF-8.
 -- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades.
 -- ============================================================================
+
 USE [ControlVehicular];
 GO
 
@@ -578,7 +579,7 @@ INSERT INTO #VehiculosSeed ([Marca], [Modelo], [Anio], [Patente], [KmActual])
 VALUES    (N'Toyota', N'Corolla', 2019, N'AD123AA', 54000),
     (N'Toyota', N'Hilux', 2021, N'AE456BB', 78000),
     (N'Toyota', N'Yaris', 2020, N'AD789CC', 41000),
-    (N'Toyota', N'Etios', 2018, N'AC321DD', 68000),
+    (N'Toyota', N'Etios', 2018, N'AC321DD', 75000),
     (N'Toyota', N'Corolla Cross', 2022, N'AF654EE', 32000),
     (N'Volkswagen', N'Gol', 2017, N'AB987FF', 89000),
     (N'Volkswagen', N'Amarok', 2020, N'AD159GG', 92000),
@@ -903,7 +904,7 @@ IF @VehiculoId IS NOT NULL AND NOT EXISTS (
 BEGIN
     -- 1. Insertar RegistroServicio
     INSERT INTO [dbo].[RegistroServicio] ([VehiculoId], [TallerId], [UsuarioId], [Fecha], [KmIngreso], [Estado])
-    VALUES (@VehiculoId, @TallerId, @UsuarioRecepId, CAST(N'2026-06-09 11:20:00' AS DATETIME2), 68000, N'Pagada');
+    VALUES (@VehiculoId, @TallerId, @UsuarioRecepId, CAST(N'2026-06-09 11:20:00' AS DATETIME2), 75000, N'Pagada');
 
     SET @RegistroId = SCOPE_IDENTITY();
 
@@ -946,7 +947,7 @@ IF @VehiculoId IS NOT NULL AND NOT EXISTS (
 BEGIN
     -- 1. Insertar RegistroServicio
     INSERT INTO [dbo].[RegistroServicio] ([VehiculoId], [TallerId], [UsuarioId], [Fecha], [KmIngreso], [Estado])
-    VALUES (@VehiculoId, @TallerId, @UsuarioRecepId, CAST(N'2026-06-12 14:00:00' AS DATETIME2), 32000, N'Pagada');
+    VALUES (@VehiculoId, @TallerId, @UsuarioRecepId, CAST(N'2026-06-12 14:00:00' AS DATETIME2), 69000, N'Pagada');
 
     SET @RegistroId = SCOPE_IDENTITY();
 
@@ -2380,7 +2381,7 @@ IF @VehiculoId IS NOT NULL AND NOT EXISTS (
 BEGIN
     -- 1. Insertar RegistroServicio
     INSERT INTO [dbo].[RegistroServicio] ([VehiculoId], [TallerId], [UsuarioId], [Fecha], [KmIngreso], [Estado])
-    VALUES (@VehiculoId, @TallerId, @UsuarioRecepId, CAST(N'2026-09-13 11:45:00' AS DATETIME2), 22000, N'Pagada');
+    VALUES (@VehiculoId, @TallerId, @UsuarioRecepId, CAST(N'2026-09-13 11:45:00' AS DATETIME2), 39000, N'Pagada');
 
     SET @RegistroId = SCOPE_IDENTITY();
 
@@ -3061,7 +3062,7 @@ IF @VehiculoId IS NOT NULL AND NOT EXISTS (
 BEGIN
     -- 1. Insertar RegistroServicio
     INSERT INTO [dbo].[RegistroServicio] ([VehiculoId], [TallerId], [UsuarioId], [Fecha], [KmIngreso], [Estado])
-    VALUES (@VehiculoId, @TallerId, @UsuarioRecepId, CAST(N'2026-10-26 09:10:00' AS DATETIME2), 32800, N'Abierta');
+    VALUES (@VehiculoId, @TallerId, @UsuarioRecepId, CAST(N'2026-10-26 09:10:00' AS DATETIME2), 69300, N'Abierta');
 
     SET @RegistroId = SCOPE_IDENTITY();
 

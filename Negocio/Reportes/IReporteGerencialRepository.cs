@@ -9,6 +9,8 @@ namespace TP_ControlVehicular.Negocio.Reportes
     public interface IReporteGerencialRepository
     {
         Task<IEnumerable<ReporteIngresoDto>> ObtenerIngresosPorFechaAsync(DateTime? fechaDesde, DateTime? fechaHasta);
+        Task<(IEnumerable<ReporteIngresoDto> Items, int TotalRegistros)> ObtenerIngresosPorFechaPaginadoAsync(DateTime? fechaDesde, DateTime? fechaHasta, int pagina, int tamanoPagina);
+        Task<IEnumerable<ReporteIngresoMensualDto>> ObtenerIngresosMensualesAsync(DateTime? fechaDesde, DateTime? fechaHasta);
         Task<IEnumerable<ReporteTopClienteDto>> ObtenerTopClientesAsync(DateTime? fechaDesde, DateTime? fechaHasta, int topN = 10);
         Task<IEnumerable<ReporteModeloReparadoDto>> ObtenerModelosMasReparadosAsync(DateTime? fechaDesde, DateTime? fechaHasta, int topN = 10);
         Task<IEnumerable<ProductividadMecanicoDto>> ObtenerProductividadMecanicosAsync(DateTime? fechaDesde, DateTime? fechaHasta);
