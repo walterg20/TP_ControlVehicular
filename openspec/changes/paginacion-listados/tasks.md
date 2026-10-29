@@ -30,20 +30,20 @@
 
 ## Phase 3 — Transactional listings and reports (high risk: new SQL)
 
-- [ ] 3.1 Add `sp_ReporteOrdenesPaginado` to `bd/03_procedimientos.sql` (CTE + `CROSS JOIN` of `COUNT(*)`, `STRING_AGG` for `ServiciosAplicados`, filters for text, status, date range and mechanic).
-- [ ] 3.2 Add `sp_HistorialVehiculoPaginado` and `sp_VehiculosPorClientePaginado` to `bd/03_procedimientos.sql`.
-- [ ] 3.3 Add the paginated methods to `IReporteRepository` / `ReporteRepository` and to `IRegistroServicioRepository` / `RegistroServicioRepository`.
-- [ ] 3.4 Migrate `ReporteOrdenesViewModel` and `CtlReporteOrdenes.xaml` to database pagination, keeping the PDF export on a complete un-paginated query.
-- [ ] 3.5 Migrate `ReportesViewModel` and `CtlReportesRecepcion.xaml` (both grids: vehicle history and vehicles per client) to database pagination.
-- [ ] 3.6 Migrate `OrdenServicioViewModel` and `CtlOrdenServicio.xaml`: paginated `RegistroServicio` query with `Include(r => r.Taller)`, server-side filters for date range, status and text.
-- [ ] 3.7 Migrate the `MisTrabajos` master grid (`MisTrabajosViewModel` / `CtlMisTrabajos.xaml`) to database pagination, keeping the task detail grid scoped to the selected order.
-- [ ] 3.8 Verify that the OrdenServicio "Imprimir Listado" PDF still exports the complete filtered set.
-- [ ] 3.9 Add unit tests for the migrated listings and the report repository pagination.
-- [ ] 3.10 Run `dotnet build "TP_ControlVehicular.slnx"` and `dotnet test "TP_ControlVehicular.slnx"`.
+- [x] 3.1 Add `sp_ReporteOrdenesPaginado` to `bd/03_procedimientos.sql` (CTE + `CROSS JOIN` of `COUNT(*)`, `STRING_AGG` for `ServiciosAplicados`, filters for text, status, date range and mechanic).
+- [x] 3.2 Add `sp_HistorialVehiculoPaginado` and `sp_VehiculosPorClientePaginado` to `bd/03_procedimientos.sql`.
+- [x] 3.3 Add the paginated methods to `IReporteRepository` / `ReporteRepository` and to `IRegistroServicioRepository` / `RegistroServicioRepository`.
+- [x] 3.4 Migrate `ReporteOrdenesViewModel` and `CtlReporteOrdenes.xaml` to database pagination, keeping the PDF export on a complete un-paginated query.
+- [x] 3.5 Migrate `ReportesViewModel` and `CtlReportesRecepcion.xaml` (both grids: vehicle history and vehicles per client) to database pagination.
+- [x] 3.6 Migrate `OrdenServicioViewModel` and `CtlOrdenServicio.xaml`: paginated `RegistroServicio` query with `Include(r => r.Taller)`, server-side filters for date range, status and text.
+- [x] 3.7 Migrate the `MisTrabajos` master grid (`MisTrabajosViewModel` / `CtlMisTrabajos.xaml`) to database pagination, keeping the task detail grid scoped to the selected order.
+- [x] 3.8 Verify that the OrdenServicio "Imprimir Listado" PDF still exports the complete filtered set.
+- [x] 3.9 Add unit tests for the migrated listings and the report repository pagination.
+- [x] 3.10 Run `dotnet build "TP_ControlVehicular.slnx"` and `dotnet test "TP_ControlVehicular.slnx"`.
 
 ## Closure
 
-- [ ] C.1 Write the execution plan/log to `docs/plan/2026-10-29_paginacion-listados.md`.
-- [ ] C.2 Update `MEMORY.md` with the new pagination conventions, the new stored procedures and the new files.
-- [ ] C.3 Update `AGENTS.md` with the pagination conventions and correct the stale `VehiculoViewModel` inheritance note.
+- [x] C.1 Write the execution plan/log to `docs/plan/2026-10-29_paginacion-listados.md`.
+- [x] C.2 Update `MEMORY.md` with the new pagination conventions, the new stored procedures and the new files.
+- [x] C.3 Update `AGENTS.md` with the pagination conventions and correct the stale `VehiculoViewModel` inheritance note.
 - [ ] C.4 Merge `feature/paginacion-listados` into `develop` and archive the change under `openspec/changes/archive/`.

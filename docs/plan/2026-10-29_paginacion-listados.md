@@ -127,6 +127,74 @@ Mismo patrón de la Fase 1, un commit por pantalla: Marca, Modelo, Vehículo, Ro
 
 ---
 
+## Fase 3 — Transaccionales y reportes (COMPLETADA)
+
+Fase de mayor riesgo: los listados transaccionales}y los reportes exponen proyecciones aplanadas que EF Core no puede traducir.
+
+### 1. Qué se construyó
+
+**SQL (`bd/03_procedimientos.sql`)** — tres procedimientos nuevos, validados contra la base real (`WALTERG20\SQLEXPRESS2019\ControlVehicular`):
+
+| SP | Qué hace |
+|---|---|
+| `sp_ReporteOrdenesPaginado` | Reporte de órdenes aplanado. Usa `STRING_AGG` para *Servicios Aplicados* (el `string.Join` sobre colección del código C# no es traducible a SQL) y `OUTER APPLY` para el propietario actual, el mecánico y los servicios. |
+| `sp_HistorialVehiculoPaginado` | Historial de un vehículo paginado. |
+| `sp_VehiculosPorClientePaginado` | Vehículos de un cliente con conteo de servicios, paginado. |
+
+Los tres usan **variables de tabla** en lugar de CTE: el conjunto filtrado se materializa una vez, el total se cuenta sobre esa tabla y la paginación se aplica con `OFFSET ... FETCH NEXT`. Con `@TamanoPagina = 0` devuelven el conjunto completo, que es lo que usa la exportación a PDF.
+
+**Capa de datos**
+- `IReporteRepository` / `ReporteRepository`: `ObtenerHistorialVehiculoPaginadoAsync`, `ObtenerVehiculosPorClientePaginadoAsync` y `ObtenerReporteOrdenesPaginadoAsync` (consumidos con `SqlQueryRaw("EXEC sp_...")`).
+- `IRegistroServicioRepository` / `RegistroServicioRepository`: `GetPaginadoAsync` (para *Órdenes de Trabajo*) y `GetPaginadoPorMecanicoAsync` (para *Mis Trabajos*), ambas con EF Core y `AsSplitQuery`. Además `GetFiltradoAsync`, que devuelve el conjunto filtrado sin paginar para el PDF.
+- `ListarRegistroServiciosHandler`: `HandlePaginadoAsync`, `HandlePaginadoPorMecanicoAsync` y `HandleCompletoAsync` (para el PDF).
+- `ObtenerReporteOrdenesHandler`: `HandlePaginadoAsync` y `HandleCompletoAsync`; la proyección pasa a hacerse en SQL.
+
+**ViewModels**
+- `ReporteOrdenesViewModel`: paginado, la grilla se enlaza a `Ordenes` y el PDF exporta el conjunto completo filtrado.
+- `ReportesViewModel`: **dos grillas con paginación independiente**. La del historial usa el estado de la propia clase; la de vehículos por cliente usa `PaginacionVehiculos`, una instancia de la nueva `PaginacionViewModel` (clase concreta que reutiliza `BasePaginableViewModel` con un delegado de carga).
+- `OrdenServicioViewModel`: paginado con filtros de texto, estado y rango de fechas aplicados en SQL.
+- `MisTrabajosViewModel`: el maestro pasa a la base de datos. Se elimina el `ICollectionView` con su filtro en memoria (`OrdenesFilter`); los filtros de estado, fechas y búsqueda se aplican en la consulta.
+
+**Vistas** — cada pantalla suma la barra `CtlPaginacion`, el botón **Buscar** y los eventos de búsqueda (texto, `Enter`, `DatePicker`, `ComboBox`).
+
+### 2. Bugs reales encontrados por las pruebas E2E
+
+Las pruebas end-to-end contra la base real|elevationaron dos defectos **preexistentes** que impedían que el reporte de recepción funcionara:
+
+1. **`sp_VehiculosPorCliente` devolvía `CantidadServicio` y el DTO espera `CantidadServicios`.** EF Core lanza `The required column 'CantidadServicios' was not present in the results of a 'FromSql' operation`. La pantalla estaba rota desde antes y no se notó porque nunca se abrió desde el menú.
+2. **`sp_HistorialVehiculo` no devolvía la columna `Diagnostico`** que el DTO declara: mismo error de EF Core.
+
+Ambos se corrigieron en los SP originales y en los nuevos paginados. La columna `Diagnostico` ahora devuelve las observaciones de la primera tarea de la orden.
+
+**Tercer defecto (infraestructura de tests):** `DbProvisioner.Provision()` no recreaba la base `ControlVehicular_Test`. En la segunda corrida el seed (`02_datos.sql`) se re-aplicaba sobre una base que ya tenía los triggers activos y `TR_RegistroServicio_SincronizarKm` abortaba la siembra con *"El kilometraje de ingreso (69000) no puede ser menor al actual del vehículo (75000)"*. Ahora la base de pruebas se tira y se recrea en cada corrida. La infraestructura E2E existía pero nunca se había ejercido: no había ninguna clase de test E2E en el repositorio.
+
+### 3. Verificación
+
+- `dotnet build "TP_ControlVehicular.slnx"` → compilación correcta, 0 errores.
+- `dotnet test "TP_ControlVehicular.slnx"` → **78 / 78 tests en verde** (67 previos + 11 E2E nuevos).
+- `TP_ControlVehicular.Tests/EndToEnd/PaginacionBaseDeDatosTests.cs` (11) — valida contra la base real: paginación y total, páginas disjuntas, filtro por estado, búsqueda por patente, filtro por tareas del mecánico, los tres SP paginados y el modo sin paginar.
+- Los tres SP se aplicaron y probaron también contra la base de desarrollo `ControlVehicular`.
+
+### 4. Pendiente de validación manual
+
+- [ ] *Órdenes de Trabajo*: la grilla trae una página; la columna **Recepción** ahora muestra el taller (antes salía vacía porque faltaba el `Include`); *Imprimir Listado* exporta el conjunto filtrado completo.
+- [ ] *Reporte Órdenes*: el botón **Buscar** consulta con los filtros; *Imprimir PDF* exporta todo el conjunto filtrado, no solo la página.
+- [ ] *Mis Trabajos*: la grilla maestra pagina; el filtro *Pendientes / Finalizados / Todos* y el rango de fechas se aplican en la base de datos; el detalle de tareas sigue funcionando y *Guardar Cambios* refresca la página actual.
+- [ ] *Reportes de Recepción*: **la pantalla no está enlazada a ningún ítem del menú** (ver más abajo). Con el DataContext resuelto por DI debería funcionar si se agrega el acceso.
+
+---
+
+## Observaciones de la Fase 3
+
+| Observación | Detalle |
+|---|---|
+| Pantallas huérfanas | `CtlReportesRecepcion` y `Pantalla/Taller/CtlMisTrabajos` (`grdTrabajos`) no están enlazadas a ningún ítem del menú de `MainWindow` ni registradas en el DI. La primera se migró igual porque estaba en el alcance de la spec; se le agregó la resolución del `DataContext` por DI para que funcione si se la expone. |
+| Filtro por número de orden | `r.Id.ToString().Contains(...)` no es traducible a SQL. En *Mis Trabajos* el término numérico se compara como entero (`r.Id == n`); el resto de los términos buscan por texto en las columnas. |
+| Busqueda por servicio | *Órdenes de Trabajo* filtra por patente, modelo, marca, recepcionista, taller, estado y datos del propietario. No incluye el nombre de los servicios (en *Reporte Órdenes* sí, vía `EXISTS` sobre `DetalleServicio`). |
+| `TallerNombre` en *Órdenes de Trabajo* | Ahora se puebla: el `Include(r => r.Taller)` que faltaba en `GetReporteCompletoAsync` era también un defecto previo. |
+
+---
+
 ## Fases 2 y 3 (pendientes)
 
 ### Fase 2 — CRUD restantes

@@ -55,6 +55,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - Code-behind (`Ctl*.xaml.cs`): registrar el evento `Loaded` una sola vez en el constructor principal para evitar ejecuciones concurrentes de `LoadAsync()` sobre el DbContext.
 - **Nomenclatura**: al declarar, recuperar del DI o castear el DataContext a un ViewModel en el code-behind, nombrar la variable con el prefijo `vm` + el nombre de la entidad (ej: `vmOrdenServicio`, `vmCliente`). **Nunca** usar simplemente `vm`.
 - **Listados paginados**: las pantallas de listado agregan una fila extra con `<compartido:CtlPaginacion Model="{Binding}"/>` (namespace `xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"`), ubicada entre la grilla y el pie de acciones.
+- **Pantallas con dos grillas paginadas**: cada grilla tiene su propio estado. Se usa `PaginacionViewModel` (`Presentacion/ViewModels/`) — una instancia concreta de `BasePaginableViewModel` que recibe un delegado de carga — y la vista la enlaza con `<compartido:CtlPaginacion Model="{Binding MiPaginacion}"/>`.
 
 ## UI — Paginación (`CtlPaginacion`)
 - Todo listado con grilla usa el control compartido `Presentacion/Pantalla/Compartido/CtlPaginacion.xaml`; **no** reimplementar la barra ni el estado de paginación en cada pantalla.
@@ -62,8 +63,12 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - La subclase implementa `protected override Task CargarPaginaAsync()` y llama a `ActualizarTotales(total)` con la cantidad de registros que devuelve la consulta paginada.
 - **La paginación es en base de datos**: los repositorios exponen métodos paginados (`Repository<T>.GetPaginadoAsync(...)` en EF Core → `OFFSET ... FETCH NEXT ... ROWS ONLY`; SP en `bd/03_procedimientos.sql` cuando la proyección lo exige). No cargar la colección completa para filtrar en memoria.
 - **La búsqueda también es server-side**: el término se aplica en la consulta, no sobre una colección en memoria. Los setters de filtro sólo actualizan estado y reinician la página a 1; la recarga se dispara desde la acción `Buscar`, la tecla `Enter` y un debounce de 500 ms (`Presentacion/Helpers/Debouncer.cs`).
-- Los PDFs de reportes siguen exportando el **conjunto completo** de registros filtrados, no sólo la página visible.
+- **Los filtros que dependen de joins se expresan por columna**, no sobre el DTO aplanado: `r.Id.ToString().Contains(...)` no es traducible a SQL (comparar `r.Id == n` si el término es numérico) y `string.Join` sobre una colección tampoco (usar `STRING_AGG` en el SP).
+- Las altas/ediciones/bajas de un listado paginado **recargan la página** en lugar de manipular la colección en memoria.
+- Los PDFs de reportes siguen exportando el **conjunto completo** de registros filtrados, no sólo la página visible (en los SP, `@TamanoPagina = 0` devuelve todo).
 - `BaseViewModel.IsLoading` es `virtual` para que las subclases paginadas puedan notificar el estado de los comandos de navegación.
+- **EF Core y `Include` de colecciones**: usar `AsSplitQuery()` cuando la consulta pagina y trae colecciones (propietarios, permisos, detalles), para que el JOIN 1:N no altere el `Skip`/`Take`.
+- **EF Core y `SqlQueryRaw`**: el tipo de resultado debe tener **todas** las columnas que devuelve la consulta; si falta una, EF Core lanza `The required column 'X' was not present in the results of a 'FromSql' operation`.
 
 ## UI — Formularios modales (`Frm*.xaml`)
 - `Grid` principal con `Margin="24"`.
