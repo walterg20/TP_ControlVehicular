@@ -5,10 +5,11 @@ using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class VehiculoViewModel : BaseViewModel
+    public class VehiculoViewModel : BasePaginableViewModel
     {
         private readonly ListarVehiculosHandler _listarVehiculosHandler;
         private readonly RegistrarVehiculoHandler _registrarVehiculoHandler;
@@ -18,6 +19,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ListarModelosHandler _listarModelosHandler;
         private readonly ListarMarcaHandler _listarMarcaHandler;
         private readonly IMapper _mapper;
+        private readonly Debouncer _debouncer;
 
         public VehiculoViewModel(
             ListarVehiculosHandler listarVehiculosHandler,
@@ -37,6 +39,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _listarModelosHandler = listarModelosHandler;
             _listarMarcaHandler = listarMarcaHandler;
             _mapper = mapper;
+            _debouncer = new Debouncer();
 
             Vehiculos = new ObservableCollection<VehiculoDto>();
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
@@ -44,7 +47,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ModelosDisponibles = new ObservableCollection<ModeloDto>();
             ((ObservableCollection<VehiculoDto>)Vehiculos).CollectionChanged += (s, e) =>
             {
-                OnPropertyChanged(nameof(ListadoVehiculosFiltered));
+                OnPropertyChanged(nameof(Vehiculos));
                 OnPropertyChanged(nameof(IsListEmpty));
             };
         }
@@ -63,19 +66,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 _textoBusqueda = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ListadoVehiculosFiltered));
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
             }
         }
 
-        public IEnumerable<VehiculoDto> ListadoVehiculosFiltered =>
-            string.IsNullOrWhiteSpace(TextoBusqueda)
-                ? Vehiculos
-                : Vehiculos.Where(vehiculo => (vehiculo.Patente ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                    || (vehiculo.ClienteNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                    || (vehiculo.MarcaNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                    || (vehiculo.ModeloNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
-
-        public bool IsListEmpty => !ListadoVehiculosFiltered.Any();
+        public bool IsListEmpty => !Vehiculos.Any();
 
         private int _idCliente;
         public int IdCliente
@@ -300,22 +296,61 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
         {
-            Vehiculos.Clear();
             await CargarCombosAsync();
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
 
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
+        {
+            IsLoading = true;
             try
             {
-                var lista = await _listarVehiculosHandler.HandleAsync();
-                foreach (var vehiculo in lista)
+                var (items, total) = await _listarVehiculosHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    PaginaActual,
+                    TamanoPagina);
+
+                Vehiculos.Clear();
+                foreach (var vehiculo in items)
                 {
                     Vehiculos.Add(vehiculo);
                 }
+
+                ActualizarTotales(total);
             }
             catch
             {
                 // Silenciar error en carga inicial
+                Vehiculos.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -347,26 +382,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (vehiculo.Id == 0)
                 {
-                    var dto = await _registrarVehiculoHandler.HandleAsync(vehiculo);
-                    Vehiculos.Add(dto);
+                    await _registrarVehiculoHandler.HandleAsync(vehiculo);
                 }
                 else
                 {
-                    var dto = await _modificarVehiculoHandler.HandleAsync(vehiculo);
-                    var exist = Vehiculos.FirstOrDefault(vehiculo => vehiculo.Id == dto.Id);
-                    if (exist != null)
-                    {
-                        exist.Patente = dto.Patente;
-                        exist.Anio = dto.Anio;
-                        exist.KmActual = dto.KmActual;
-                        exist.IdCliente = dto.IdCliente;
-                        exist.ClienteNombre = dto.ClienteNombre;
-                        exist.IdModelo = dto.IdModelo;
-                        exist.ModeloNombre = dto.ModeloNombre;
-                        exist.MarcaNombre = dto.MarcaNombre;
-                        OnPropertyChanged(nameof(ListadoVehiculosFiltered));
-                    }
+                    await _modificarVehiculoHandler.HandleAsync(vehiculo);
                 }
+
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
                 return true;
             }
             catch
@@ -380,11 +404,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 await _eliminarVehiculoHandler.HandleAsync(id);
-                var exist = Vehiculos.FirstOrDefault(vehiculo => vehiculo.Id == id);
-                if (exist != null)
-                {
-                    Vehiculos.Remove(exist);
-                }
+                await CargarPaginaAsync();
                 return true;
             }
             catch
