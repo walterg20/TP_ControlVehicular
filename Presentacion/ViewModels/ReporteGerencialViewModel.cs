@@ -15,7 +15,7 @@ using System.Diagnostics;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class ReporteGerencialViewModel : BaseViewModel
+    public class ReporteGerencialViewModel : BasePaginableViewModel
     {
         private readonly IReporteGerencialRepository _repository;
 
@@ -47,76 +47,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set => SetProperty(ref _mensajeValidacion, value);
         }
 
-        // Paginación de Ingresos
-        private int _paginaActual = 1;
-        public int PaginaActual
-        {
-            get => _paginaActual;
-            set
-            {
-                if (SetProperty(ref _paginaActual, value))
-                {
-                    NotificarComandosPaginacion();
-                    ActualizarTextoPaginacion();
-                }
-            }
-        }
-
-        private int _totalPaginas = 1;
-        public int TotalPaginas
-        {
-            get => _totalPaginas;
-            private set
-            {
-                if (SetProperty(ref _totalPaginas, value))
-                {
-                    NotificarComandosPaginacion();
-                    ActualizarTextoPaginacion();
-                }
-            }
-        }
-
-        private int _totalRegistros;
-        public int TotalRegistros
-        {
-            get => _totalRegistros;
-            private set
-            {
-                if (SetProperty(ref _totalRegistros, value))
-                {
-                    ActualizarTextoPaginacion();
-                }
-            }
-        }
-
-        private int _tamanoPagina = 10;
-        public int TamanoPagina
-        {
-            get => _tamanoPagina;
-            set
-            {
-                if (SetProperty(ref _tamanoPagina, value))
-                {
-                    if (!IsLoading)
-                    {
-                        PaginaActual = 1;
-                        _ = CargarIngresosPaginadosAsync();
-                    }
-                }
-            }
-        }
-
-        public ObservableCollection<int> OpcionesTamanoPagina { get; } = new() { 5, 10, 20, 50 };
-
-        private string _textoPaginacion = "Página 1 de 1 (0 registros)";
-        public string TextoPaginacion
-        {
-            get => _textoPaginacion;
-            private set => SetProperty(ref _textoPaginacion, value);
-        }
-
-        public bool PuedeIrAnterior => PaginaActual > 1 && !IsLoading;
-        public bool PuedeIrSiguiente => PaginaActual < TotalPaginas && !IsLoading;
+        // La paginación (estado, comandos y barra) vive en BasePaginableViewModel / CtlPaginacion.
 
         public ObservableCollection<ReporteIngresoDto> Ingresos { get; } = new();
         public ObservableCollection<ReporteIngresoMensualDto> IngresosMensuales { get; } = new();
@@ -125,10 +56,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public ObservableCollection<ReporteServicioCantidadDto> ServiciosPorRango { get; } = new();
 
         public ICommand CargarReporteCommand { get; }
-        public RelayCommand IrPrimeraPaginaCommand { get; }
-        public RelayCommand PaginaAnteriorCommand { get; }
-        public RelayCommand PaginaSiguienteCommand { get; }
-        public RelayCommand IrUltimaPaginaCommand { get; }
 
         public ICommand ImprimirPdfIngresosCommand { get; }
         public ICommand ImprimirPdfTopClientesCommand { get; }
@@ -140,40 +67,21 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _repository = repository;
             CargarReporteCommand = new RelayCommand(LoadAsync);
 
-            IrPrimeraPaginaCommand = new RelayCommand(async () => await CambiarPaginaAsync(1), () => PuedeIrAnterior);
-            PaginaAnteriorCommand = new RelayCommand(async () => await CambiarPaginaAsync(PaginaActual - 1), () => PuedeIrAnterior);
-            PaginaSiguienteCommand = new RelayCommand(async () => await CambiarPaginaAsync(PaginaActual + 1), () => PuedeIrSiguiente);
-            IrUltimaPaginaCommand = new RelayCommand(async () => await CambiarPaginaAsync(TotalPaginas), () => PuedeIrSiguiente);
-
             ImprimirPdfIngresosCommand = new RelayCommand(ImprimirPdfIngresosAsync);
             ImprimirPdfTopClientesCommand = new RelayCommand(ImprimirPdfTopClientesAsync);
             ImprimirPdfModelosCommand = new RelayCommand(ImprimirPdfModelosAsync);
             ImprimirPdfServiciosCommand = new RelayCommand(ImprimirPdfServiciosAsync);
         }
 
-        public async Task CambiarPaginaAsync(int nuevaPagina)
-        {
-            if (nuevaPagina < 1) nuevaPagina = 1;
-            if (nuevaPagina > TotalPaginas && TotalPaginas > 0) nuevaPagina = TotalPaginas;
-            if (nuevaPagina == PaginaActual && Ingresos.Count > 0) return;
-
-            PaginaActual = nuevaPagina;
-            await CargarIngresosPaginadosAsync();
-        }
-
-        public async Task CargarIngresosPaginadosAsync()
+        /// <summary>
+        /// Carga la página de ingresos correspondiente a la paginación actual.
+        /// </summary>
+        protected override async Task CargarPaginaAsync()
         {
             try
             {
                 var (items, total) = await _repository.ObtenerIngresosPorFechaPaginadoAsync(FechaDesde, FechaHasta, PaginaActual, TamanoPagina);
-                TotalRegistros = total;
-                TotalPaginas = total > 0 ? (int)Math.Ceiling((double)total / TamanoPagina) : 1;
-
-                if (PaginaActual > TotalPaginas && TotalPaginas > 0)
-                {
-                    _paginaActual = TotalPaginas;
-                    OnPropertyChanged(nameof(PaginaActual));
-                }
+                ActualizarTotales(total);
 
                 Ingresos.Clear();
                 foreach (var item in items)
@@ -184,23 +92,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             finally
             {
                 NotificarComandosPaginacion();
-                ActualizarTextoPaginacion();
             }
-        }
-
-        private void NotificarComandosPaginacion()
-        {
-            OnPropertyChanged(nameof(PuedeIrAnterior));
-            OnPropertyChanged(nameof(PuedeIrSiguiente));
-            IrPrimeraPaginaCommand?.RaiseCanExecuteChanged();
-            PaginaAnteriorCommand?.RaiseCanExecuteChanged();
-            PaginaSiguienteCommand?.RaiseCanExecuteChanged();
-            IrUltimaPaginaCommand?.RaiseCanExecuteChanged();
-        }
-
-        private void ActualizarTextoPaginacion()
-        {
-            TextoPaginacion = $"Página {PaginaActual} de {TotalPaginas} ({TotalRegistros} {(TotalRegistros == 1 ? "registro" : "registros")})";
         }
 
         public async Task LoadAsync()
@@ -216,7 +108,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 PaginaActual = 1;
-                await CargarIngresosPaginadosAsync();
+                await CargarPaginaAsync();
 
                 var mensuales = await _repository.ObtenerIngresosMensualesAsync(FechaDesde, FechaHasta);
                 IngresosMensuales.Clear();
