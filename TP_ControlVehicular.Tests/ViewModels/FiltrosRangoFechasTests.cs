@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Services;
@@ -13,12 +14,34 @@ using Xunit;
 
 namespace TP_ControlVehicular.Tests.ViewModels
 {
+    /// <summary>
+    /// Pruebas de los filtros por rango de fechas del listado de ordenes.
+    /// Desde la Fase 3 de la spec paginacion-listados el filtrado se ejecuta en la base de
+    /// datos, asi que el ViewModel se ocupa de reenviar los filtros y de validar el rango.
+    /// </summary>
     public class FiltrosRangoFechasTests
     {
-        private OrdenServicioViewModel CrearOrdenServicioViewModel()
+        private (OrdenServicioViewModel Vm, Mock<IRegistroServicioRepository> Repo) CrearOrdenServicioViewModel()
         {
             var mockRepoReg = new Mock<IRegistroServicioRepository>();
             var mockMapper = new Mock<IMapper>();
+
+            mockRepoReg.Setup(r => r.GetPaginadoAsync(
+                    It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<DateTime?>(),
+                    It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? e, DateTime? fd, DateTime? fh, int p, int t) =>
+                    (Enumerable.Empty<RegistroServicio>(), 0));
+
+            mockMapper.Setup(m => m.Map<IEnumerable<RegistroServicioDto>>(It.IsAny<object>()))
+                .Returns((object src) => ((IEnumerable<RegistroServicio>)src)
+                    .Select(o => new RegistroServicioDto
+                    {
+                        Id = o.Id,
+                        Fecha = o.Fecha,
+                        Estado = o.Estado
+                    })
+                    .ToList());
+
             var mockListar = new Mock<ListarRegistroServiciosHandler>(mockRepoReg.Object, mockMapper.Object);
             var mockRegistrar = new Mock<RegistrarRegistroServicioHandler>(mockRepoReg.Object, mockMapper.Object);
             var mockModificar = new Mock<ModificarRegistroServicioHandler>(mockRepoReg.Object, mockMapper.Object);
@@ -27,7 +50,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
             var mockServicioRepo = new Mock<IServicioRepository>();
             var mockUsuarioRepo = new Mock<IUsuarioRepository>();
             var mockClienteRepo = new Mock<IClienteRepository>();
-            return new OrdenServicioViewModel(
+
+            var vm = new OrdenServicioViewModel(
                 mockListar.Object,
                 mockRegistrar.Object,
                 mockModificar.Object,
@@ -41,12 +65,14 @@ namespace TP_ControlVehicular.Tests.ViewModels
                 null!,
                 mockMapper.Object
             );
+
+            return (vm, mockRepoReg);
         }
 
         [Fact]
         public void OrdenServicio_InicializaConFechasDelMesActual()
         {
-            var vm = CrearOrdenServicioViewModel();
+            var (vm, _) = CrearOrdenServicioViewModel();
 
             var primerDiaEsperado = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             Assert.Equal(primerDiaEsperado, vm.FechaDesde);
@@ -55,72 +81,58 @@ namespace TP_ControlVehicular.Tests.ViewModels
         }
 
         [Fact]
-        public void OrdenServicio_FiltrarPorRangoFechas_ExcluyeOrdenesFueraDelPeriodo()
+        public async Task OrdenServicio_FiltrarPorRangoFechas_ReenviaElRangoAlRepositorio()
         {
-            var vm = CrearOrdenServicioViewModel();
+            var (vm, repo) = CrearOrdenServicioViewModel();
 
-            var orden1 = new RegistroServicioDto { Id = 1, Fecha = new DateTime(2026, 5, 10), VehiculoPatente = "AAA111", Estado = "Abierta" };
-            var orden2 = new RegistroServicioDto { Id = 2, Fecha = new DateTime(2026, 5, 20), VehiculoPatente = "BBB222", Estado = "En Proceso" };
-            var orden3 = new RegistroServicioDto { Id = 3, Fecha = new DateTime(2026, 6, 5), VehiculoPatente = "CCC333", Estado = "Completada" };
-
-            vm.Ordenes.Add(orden1);
-            vm.Ordenes.Add(orden2);
-            vm.Ordenes.Add(orden3);
-
-            // Filtrar solo mayo 2026
             vm.FechaDesde = new DateTime(2026, 5, 1);
             vm.FechaHasta = new DateTime(2026, 5, 31);
 
-            var resultado = vm.ListadoOrdenesFiltered.ToList();
+            await vm.BuscarAsync();
 
-            Assert.Equal(2, resultado.Count);
-            Assert.Contains(resultado, o => o.Id == 1);
-            Assert.Contains(resultado, o => o.Id == 2);
-            Assert.DoesNotContain(resultado, o => o.Id == 3);
+            repo.Verify(r => r.GetPaginadoAsync(
+                It.IsAny<string?>(), It.IsAny<string?>(),
+                new DateTime(2026, 5, 1), new DateTime(2026, 5, 31),
+                1, 10), Times.Once);
         }
 
         [Fact]
-        public void OrdenServicio_FiltrarPorEstadoYRangoFechas_CombinaAmbosCriterios()
+        public async Task OrdenServicio_FiltrarPorEstadoYRangoFechas_ReenviaAmbosCriterios()
         {
-            var vm = CrearOrdenServicioViewModel();
-
-            var orden1 = new RegistroServicioDto { Id = 1, Fecha = new DateTime(2026, 5, 10), VehiculoPatente = "AAA111", Estado = "Abierta" };
-            var orden2 = new RegistroServicioDto { Id = 2, Fecha = new DateTime(2026, 5, 20), VehiculoPatente = "BBB222", Estado = "Completada" };
-            var orden3 = new RegistroServicioDto { Id = 3, Fecha = new DateTime(2026, 5, 25), VehiculoPatente = "CCC333", Estado = "Abierta" };
-
-            vm.Ordenes.Add(orden1);
-            vm.Ordenes.Add(orden2);
-            vm.Ordenes.Add(orden3);
+            var (vm, repo) = CrearOrdenServicioViewModel();
 
             vm.FechaDesde = new DateTime(2026, 5, 1);
             vm.FechaHasta = new DateTime(2026, 5, 31);
             vm.EstadoFiltro = "Completada";
 
-            var resultado = vm.ListadoOrdenesFiltered.ToList();
+            await vm.BuscarAsync();
 
-            Assert.Single(resultado);
-            Assert.Equal(2, resultado.First().Id);
+            repo.Verify(r => r.GetPaginadoAsync(
+                It.IsAny<string?>(), "Completada",
+                new DateTime(2026, 5, 1), new DateTime(2026, 5, 31),
+                1, 10), Times.Once);
         }
 
         [Fact]
-        public void OrdenServicio_FechaDesdeMayorAFechaHasta_MuestraMensajeYRetornaVacio()
+        public async Task OrdenServicio_FechaDesdeMayorAFechaHasta_MuestraMensajeYNoConsulta()
         {
-            var vm = CrearOrdenServicioViewModel();
-            vm.Ordenes.Add(new RegistroServicioDto { Id = 1, Fecha = DateTime.Today });
+            var (vm, repo) = CrearOrdenServicioViewModel();
 
             vm.FechaDesde = new DateTime(2026, 6, 1);
             vm.FechaHasta = new DateTime(2026, 5, 1);
 
-            var resultado = vm.ListadoOrdenesFiltered.ToList();
+            await vm.BuscarAsync();
 
-            Assert.Empty(resultado);
             Assert.Contains("La fecha 'Desde' no puede ser posterior a 'Hasta'", vm.MensajeValidacionFechas);
+            repo.Verify(r => r.GetPaginadoAsync(
+                It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<DateTime?>(),
+                It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
         public void OrdenServicio_LimpiarFiltros_RestableceValoresPorDefecto()
         {
-            var vm = CrearOrdenServicioViewModel();
+            var (vm, _) = CrearOrdenServicioViewModel();
 
             vm.FechaDesde = new DateTime(2020, 1, 1);
             vm.FechaHasta = new DateTime(2020, 1, 31);

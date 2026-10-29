@@ -1,6 +1,7 @@
 // walterg20
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
@@ -153,6 +154,52 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 
                 vmOrdenServicio.GenerarComprobantePagoCommand.Execute(null);
             }
+        }
+
+        /// <summary>Ejecuta la consulta con los filtros aplicados.</summary>
+        private async void BtnBuscar_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+            {
+                vmOrdenServicio.CancelarBusquedaProgramada();
+                await vmOrdenServicio.BuscarAsync();
+            }
+        }
+
+        /// <summary>Busca con retardo mientras el usuario escribe.</summary>
+        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!IsLoaded || DataContext is not OrdenServicioViewModel vmOrdenServicio) return;
+            vmOrdenServicio.ProgramarBusqueda();
+        }
+
+        /// <summary>La tecla Enter ejecuta la busqueda de inmediato.</summary>
+        private async void TxtBusqueda_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter || DataContext is not OrdenServicioViewModel vmOrdenServicio) return;
+            vmOrdenServicio.CancelarBusquedaProgramada();
+            await vmOrdenServicio.BuscarAsync();
+        }
+
+        /// <summary>Recarga el listado al cambiar el rango de fechas.</summary>
+        private void DtpFechaDesde_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded || DataContext is not OrdenServicioViewModel vmOrdenServicio) return;
+            vmOrdenServicio.ProgramarBusqueda();
+        }
+
+        /// <summary>Recarga el listado al cambiar el rango de fechas.</summary>
+        private void DtpFechaHasta_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded || DataContext is not OrdenServicioViewModel vmOrdenServicio) return;
+            vmOrdenServicio.ProgramarBusqueda();
+        }
+
+        /// <summary>Recarga el listado al cambiar el filtro de estado.</summary>
+        private void CboEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded || DataContext is not OrdenServicioViewModel vmOrdenServicio) return;
+            vmOrdenServicio.ProgramarBusqueda();
         }
     }
 }

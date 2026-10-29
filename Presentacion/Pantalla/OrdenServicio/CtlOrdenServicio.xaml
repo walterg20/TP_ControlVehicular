@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
@@ -12,8 +13,10 @@
             <!-- Encabezado -->
             <RowDefinition Height="Auto"/>
             <!-- Barra de Búsqueda y Acción Superior -->
-            <RowDefinition Height="*"/>
             <!-- Tabla de Órdenes -->
+            <RowDefinition Height="*"/>
+            <!-- Barra de Paginación -->
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <!-- Pie de Acciones -->
         </Grid.RowDefinitions>
@@ -54,7 +57,9 @@
                     <!-- 1. BUSCAR -->
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Buscar" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
-                        <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                        <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+                                 TextChanged="TxtBusqueda_TextChanged"
+                                 KeyDown="TxtBusqueda_KeyDown"
                                  Height="34" VerticalContentAlignment="Center" Padding="8,6" FontSize="13" 
                                  BorderBrush="#BDC3C7" BorderThickness="1">
                             <TextBox.Resources>
@@ -68,21 +73,24 @@
                     <!-- 2. DESDE -->
                     <StackPanel Grid.Column="2">
                         <TextBlock Text="Desde" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
-                        <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}" 
+                        <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}"
+                                    SelectedDateChanged="DtpFechaDesde_SelectedDateChanged"
                                     Height="34" VerticalContentAlignment="Center"/>
                     </StackPanel>
 
                     <!-- 3. HASTA -->
                     <StackPanel Grid.Column="4">
                         <TextBlock Text="Hasta" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
-                        <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" 
+                        <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}"
+                                    SelectedDateChanged="DtpFechaHasta_SelectedDateChanged"
                                     Height="34" VerticalContentAlignment="Center"/>
                     </StackPanel>
 
                     <!-- 4. ESTADO -->
                     <StackPanel Grid.Column="6">
                         <TextBlock Text="Estado" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
-                        <ComboBox SelectedValue="{Binding EstadoFiltro, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                        <ComboBox SelectedValue="{Binding EstadoFiltro, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  SelectionChanged="CboEstado_SelectionChanged"
                                   SelectedValuePath="Content" Height="34" VerticalContentAlignment="Center">
                             <ComboBoxItem Content="Todos" IsSelected="True"/>
                             <ComboBoxItem Content="Abierta"/>
@@ -112,6 +120,15 @@
 
                     <!-- Acciones derecha: Imprimir Listado y Nueva Orden -->
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <Button Content="Buscar" Click="BtnBuscar_Click"
+                                Padding="12,8" Margin="0,0,8,0" Background="#2980B9" Foreground="White" FontWeight="Bold"
+                                BorderThickness="0" Cursor="Hand" ToolTip="Consultar con los filtros aplicados">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
                         <Button Content="📄 Imprimir Listado" Command="{Binding ImprimirListadoFiltradoCommand}" 
                                 Padding="12,7" Margin="0,0,10,0" Background="#8E44AD" Foreground="White" 
                                 FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Exportar órdenes filtradas a PDF">
@@ -152,7 +169,7 @@
                     <TextBlock Text="Crea una nueva o intentá con otra búsqueda." FontSize="13" Foreground="#95A5A6" HorizontalAlignment="Center" Margin="0,5,0,0"/>
                 </StackPanel>
             <DataGrid x:Name="dgOrdenes"
-                      ItemsSource="{Binding ListadoOrdenesFiltered}"
+                      ItemsSource="{Binding Ordenes}"
                       SelectedItem="{Binding OrdenSeleccionada}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
@@ -188,8 +205,11 @@
             </Grid>
         </Border>
 
+        <!-- BARRA DE PAGINACIÓN -->
+        <compartido:CtlPaginacion Grid.Row="3" Model="{Binding}"/>
+
         <!-- PIE DE ACCIONES -->
-        <Border Grid.Row="3" Background="White" CornerRadius="12" Padding="16" Margin="0,16,0,0">
+        <Border Grid.Row="4" Background="White" CornerRadius="12" Padding="16" Margin="0,16,0,0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>

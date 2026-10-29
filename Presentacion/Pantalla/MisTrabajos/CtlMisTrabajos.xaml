@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"
              xmlns:local="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.MisTrabajos"
              mc:Ignorable="d" 
              d:DesignHeight="768" d:DesignWidth="1024" Background="#F4F6F7">
@@ -35,20 +36,26 @@
             </Border.Effect>
             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="Desde:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,12,0"/>
+                <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}"
+                         SelectedDateChanged="DtpFechaDesde_SelectedDateChanged"
+                         Width="110" Margin="0,0,12,0"/>
 
                 <TextBlock Text="Hasta:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" Width="110" Margin="0,0,12,0"/>
+                <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}"
+                         SelectedDateChanged="DtpFechaHasta_SelectedDateChanged"
+                         Width="110" Margin="0,0,12,0"/>
 
                 <TextBlock Text="Mostrar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                <ComboBox Width="130" Height="30" SelectedValue="{Binding FiltroEstado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Content" Margin="0,0,12,0">
+                <ComboBox Width="130" Height="30" SelectedValue="{Binding FiltroEstado, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Content" SelectionChanged="CboFiltroEstado_SelectionChanged" Margin="0,0,12,0">
                     <ComboBoxItem Content="Pendientes" IsSelected="True"/>
                     <ComboBoxItem Content="Finalizados"/>
                     <ComboBoxItem Content="Todos"/>
                 </ComboBox>
 
                 <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,5,0"/>
-                <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+                         TextChanged="TxtBusqueda_TextChanged"
+                         KeyDown="TxtBusqueda_KeyDown"
                          Width="180" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1" Margin="0,0,8,0"
                          ToolTip="Nº de orden, patente o cliente">
                     <TextBox.Resources>
@@ -83,13 +90,17 @@
                 <TextBlock Grid.Row="0" Text="🧾 Órdenes asignadas (doble clic para abrir)" FontSize="14" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,10"/>
 
                 <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding IsListEmpty, Converter={StaticResource BoolToVis}}" Panel.ZIndex="10" Margin="0,30,0,0">
                         <TextBlock Text="📭" FontSize="48" HorizontalAlignment="Center" Foreground="#BDC3C7"/>
                         <TextBlock Text="No hay órdenes para mostrar" FontSize="16" FontWeight="SemiBold" Foreground="#7F8C8D" Margin="0,10,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
 
-                    <DataGrid x:Name="dgOrdenes"
-                              ItemsSource="{Binding OrdenesView}"
+                    <DataGrid x:Name="dgOrdenes" Grid.Row="0"
+                              ItemsSource="{Binding Ordenes}"
                               AutoGenerateColumns="False"
                               CanUserAddRows="False"
                               SelectionMode="Single"
@@ -120,6 +131,7 @@
                             <DataGridTextColumn Header="Progreso" Binding="{Binding Progreso}" Width="90" IsReadOnly="True"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                <compartido:CtlPaginacion Grid.Row="1" Model="{Binding}"/>
                 </Grid>
             </Grid>
         </Border>
