@@ -32,7 +32,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - `Entidad/` — entidades `Marca`, `Cliente`, `Modelo`, `Vehiculo` (convenciones: `string.Empty`, `new List<T>()`, `null!` en navs)
 - `Migracion/` — migraciones EF Core y `CVDbContextModelSnapshot.cs`
 - `Negocio/` — handlers (`RegistrarClienteHandler`, `RegistrarVehiculoHandler`, `ListarVehiculosPorClienteHandler`), `MappingProfile.cs` (Entity→DTO), DTOs, reportes QuestPDF
-- `Presentacion/` — `ViewModels/` (`BaseViewModel`, `ClienteViewModel`, `ModeloViewModel`, `MarcaViewModel`, `VehiculoViewModel`), `Pantalla/*/Ctl*.xaml.cs` (UserControls), `MainWindow`
+- `Presentacion/` — `ViewModels/` (`BaseViewModel`, `BasePaginableViewModel`, `IPaginacion`, `ClienteViewModel`, `ModeloViewModel`, `MarcaViewModel`, `VehiculoViewModel`), `Pantalla/*/Ctl*.xaml.cs` (UserControls), `Pantalla/Compartido/` (`CtlPaginacion`, `FrmConfirmacion`), `Helpers/` (`Debouncer`), `MainWindow`
 - `bd/` — scripts SQL canónicos idempotentes, consolidados por tipo (`01_estructura.sql`, `02_datos.sql`, `03_procedimientos.sql`, `04_triggers.sql`, `05_utilidades_test.sql`) · `docs/` — documentación · `openspec/` — specs
 
 ## Convenciones de código
@@ -41,7 +41,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - **Handlers**: inyectan interfaz de repositorio + `IMapper`; `HandleAsync` retorna `_mapper.Map<Dto>(entidad)`.
 - **AutoMapper**: perfil unidireccional Entity→DTO con nombres compuestos (`ClienteDto`, `VehiculoDto`, etc.).
 - **ViewModels**: heredan `BaseViewModel` (`INotifyPropertyChanged`, `SetProperty<T>`), `RelayCommand` con `async () =>`, `ObservableCollection<Dto>` en ctor, campos `private readonly` inyectados (repo + opcional `IMapper`).
-  - **Excepción `VehiculoViewModel`**: clase plana, no hereda `BaseViewModel`, construye `Entidad.Vehiculo` directo.
+  - **Excepción `VehiculoViewModel`**: es plano en el sentido de que no usa handlers — inyecta `IVehiculoRepository` directo y construye `Entidad.Vehiculo` directo. **Sí** hereda de `BaseViewModel` (la nota anterior que decía lo contrario estaba desactualizada; el código es la evidencia).
   - `ClienteViewModel` usa `OnPropertyChanged()` en setters de propiedades.
 - **Inyección de dependencias**: ambos patrones son válidos — handlers usan inyección basada en handler para escritura/validación; `VehiculoViewModel` usa inyección directa de repositorio (patrón aceptado).
 
@@ -54,6 +54,16 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - Paleta de colores de botones: `➕ Nuevo` (`#27AE60` Verde), `✏️ Editar` (`#F39C12` Naranja), `🗑️ Eliminar` (`#C0392B` Rojo), `🔄 Actualizar / Buscar` (`#2980B9` Azul).
 - Code-behind (`Ctl*.xaml.cs`): registrar el evento `Loaded` una sola vez en el constructor principal para evitar ejecuciones concurrentes de `LoadAsync()` sobre el DbContext.
 - **Nomenclatura**: al declarar, recuperar del DI o castear el DataContext a un ViewModel en el code-behind, nombrar la variable con el prefijo `vm` + el nombre de la entidad (ej: `vmOrdenServicio`, `vmCliente`). **Nunca** usar simplemente `vm`.
+- **Listados paginados**: las pantallas de listado agregan una fila extra con `<compartido:CtlPaginacion Model="{Binding}"/>` (namespace `xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"`), ubicada entre la grilla y el pie de acciones.
+
+## UI — Paginación (`CtlPaginacion`)
+- Todo listado con grilla usa el control compartido `Presentacion/Pantalla/Compartido/CtlPaginacion.xaml`; **no** reimplementar la barra ni el estado de paginación en cada pantalla.
+- El ViewModel del listado hereda `BasePaginableViewModel` (`Presentacion/ViewModels/`), que implementa `IPaginacion` y centraliza `PaginaActual`, `TotalPaginas`, `TotalRegistros`, `TamanoPagina`, `TextoPaginacion`, `PuedeIrAnterior/PuedeIrSiguiente` y los comandos `IrPrimeraPaginaCommand` / `PaginaAnteriorCommand` / `PaginaSiguienteCommand` / `IrUltimaPaginaCommand`.
+- La subclase implementa `protected override Task CargarPaginaAsync()` y llama a `ActualizarTotales(total)` con la cantidad de registros que devuelve la consulta paginada.
+- **La paginación es en base de datos**: los repositorios exponen métodos paginados (`Repository<T>.GetPaginadoAsync(...)` en EF Core → `OFFSET ... FETCH NEXT ... ROWS ONLY`; SP en `bd/03_procedimientos.sql` cuando la proyección lo exige). No cargar la colección completa para filtrar en memoria.
+- **La búsqueda también es server-side**: el término se aplica en la consulta, no sobre una colección en memoria. Los setters de filtro sólo actualizan estado y reinician la página a 1; la recarga se dispara desde la acción `Buscar`, la tecla `Enter` y un debounce de 500 ms (`Presentacion/Helpers/Debouncer.cs`).
+- Los PDFs de reportes siguen exportando el **conjunto completo** de registros filtrados, no sólo la página visible.
+- `BaseViewModel.IsLoading` es `virtual` para que las subclases paginadas puedan notificar el estado de los comandos de navegación.
 
 ## UI — Formularios modales (`Frm*.xaml`)
 - `Grid` principal con `Margin="24"`.
