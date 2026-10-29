@@ -18,15 +18,15 @@
 
 ## Phase 2 — Remaining CRUD listings (low risk, same proven pattern)
 
-- [ ] 2.1 Marca listing: `IMarcaRepository.GetPaginadoAsync`, `MarcaViewModel` and `CtlMarca.xaml`.
-- [ ] 2.2 Modelo listing: `IModeloRepository.GetPaginadoAsync`, `ModeloViewModel` and `CtlModelo.xaml`.
-- [ ] 2.3 Vehículo listing: `IVehiculoRepository.GetPaginadoAsync`, `VehiculoViewModel` and `CtlVehiculo.xaml`.
-- [ ] 2.4 Rol listing: `IRolRepository.GetPaginadoAsync`, `RolViewModel` and `CtlRol.xaml`.
-- [ ] 2.5 Usuario listing: `IUsuarioRepository.GetPaginadoAsync`, `UsuarioViewModel` and `CtlUsuario.xaml`.
-- [ ] 2.6 Servicio listing: `IServicioRepository.GetPaginadoAsync`, `ServicioViewModel` and `CtlServicio.xaml`.
-- [ ] 2.7 Taller listing: `ITallerRepository.GetPaginadoAsync`, `TallerViewModel` and `CtlTaller.xaml`.
-- [ ] 2.8 Add unit tests covering the paginated search predicate and page reset for each migrated listing.
-- [ ] 2.9 Run `dotnet build "TP_ControlVehicular.slnx"` and `dotnet test "TP_ControlVehicular.slnx"`.
+- [x] 2.1 Marca listing: `IMarcaRepository.GetPaginadoAsync`, `MarcaViewModel` and `CtlMarca.xaml`.
+- [x] 2.2 Modelo listing: `IModeloRepository.GetPaginadoAsync`, `ModeloViewModel` and `CtlModelo.xaml`.
+- [x] 2.3 Vehículo listing: `IVehiculoRepository.GetPaginadoAsync`, `VehiculoViewModel` and `CtlVehiculo.xaml`.
+- [x] 2.4 Rol listing: `IRolRepository.GetPaginadoAsync`, `RolViewModel` and `CtlRol.xaml`.
+- [x] 2.5 Usuario listing: `IUsuarioRepository.GetPaginadoAsync`, `UsuarioViewModel` and `CtlUsuario.xaml`.
+- [x] 2.6 Servicio listing: `IServicioRepository.GetPaginadoAsync`, `ServicioViewModel` and `CtlServicio.xaml`.
+- [x] 2.7 Taller listing: `ITallerRepository.GetPaginadoAsync`, `TallerViewModel` and `CtlTaller.xaml`.
+- [x] 2.8 Add unit tests covering the paginated search predicate and page reset for each migrated listing.
+- [x] 2.9 Run `dotnet build "TP_ControlVehicular.slnx"` and `dotnet test "TP_ControlVehicular.slnx"`.
 
 ## Phase 3 — Transactional listings and reports (high risk: new SQL)
 

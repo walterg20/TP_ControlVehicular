@@ -75,6 +75,58 @@ Eliminar el filtrado en memoria de los listados: la paginación y la búsqueda p
 
 ---
 
+## Fase 2 — CRUD restantes (COMPLETADA)
+
+Mismo patrón de la Fase 1, un commit por pantalla: Marca, Modelo, Vehículo, Rol, Usuario, Servicio y Taller.
+
+### 1. Qué se construyó
+
+**Capa de datos** — cada repositorio expone un método paginado con búsqueda server-side, y su `Listar*Handler` agrega `HandlePaginadoAsync(...)` que mapea la página a DTOs:
+
+| Listado | Método del repositorio | Columnas de la búsqueda |
+|---|---|---|
+| Marca | `IMarcaRepository.GetPaginadoAsync(busqueda, pagina, tamanoPagina)` | `NombreMarca` |
+| Modelo | `IModeloRepository.GetPaginadoAsync(busqueda, pagina, tamanoPagina)` | `NombreModelo`, `Marca.NombreMarca` |
+| Vehículo | `IVehiculoRepository.GetPaginadoAsync(busqueda, pagina, tamanoPagina)` | `Patente`, `Modelo.NombreModelo`, `Modelo.Marca.NombreMarca`, nombre/apellido/DNI del propietario actual |
+| Rol | `IRolRepository.GetPaginadoAsync(busqueda, incluirInactivos, pagina, tamanoPagina)` | `Nombre` |
+| Usuario | `IUsuarioRepository.GetPaginadoAsync(busqueda, pagina, tamanoPagina)` | `Nombre`, `Apellido`, `Dni`, `Rol.Nombre` |
+| Servicio | `IServicioRepository.GetPaginadoAsync(busqueda, incluirInactivos, pagina, tamanoPagina)` | `Nombre` |
+| Taller | `ITallerRepository.GetPaginadoAsync(busqueda, incluirInactivos, pagina, tamanoPagina)` | `Nombre` |
+
+**ViewModels** — los siete pasan a `BasePaginableViewModel` y eliminan su `ListadoXFiltered`. La búsqueda se ejecuta en la base de datos y se dispara con el botón **Buscar**, con **Enter** y con el debounce de 500 ms. Los setters de filtro (`TextoBusqueda`, `MostrarInactivos`) sólo actualizan estado y reinician la página a 1.
+
+**Vistas** — cada `Ctl*.xaml` gana la fila de la barra `<compartido:CtlPaginacion Model="{Binding}"/>` entre la grilla y el pie de acciones, y la grilla se enlaza a la colección paginada en lugar del listado filtrado.
+
+**Code-behind** — se agregan `BtnBuscar_Click`, `TxtBusqueda_TextChanged`, `TxtBusqueda_KeyDown` y `ChkMostrarInactivos_Click` (este último solo en las pantallas con check de inactivos).
+
+### 2. Decisiones tomadas durante la implementación
+
+| Decisión | Motivo |
+|---|---|
+| `RolRepository.GetPaginadoAsync` incluye `Permisos` | `FrmRolPermiso` (botón *Administrar Permisos*) lee `RolDto.Permisos` del rol seleccionado. Antes, con *Mostrar inactivos* activado el listado usaba `GetTodosAsync()` y los permisos venían vacíos. |
+| `AsSplitQuery()` en Vehículo, Rol y Usuario | Los `Include` de colecciones (propietarios, permisos) generaban un JOIN 1:N que puede alterar el `Skip`/`Take`. Con split query se pagina primero y las colecciones se cargan después para los registros de la página. |
+| El filtro de `Activo` va en el `configurador` de la consulta base, no en el `filtro` | La clase base aplica `configurador` → `filtro` → `CountAsync` → `orden`. El filtro de estado tiene que quedar dentro de la misma consulta que el conteo para que `TotalRegistros` sea consistente. |
+| `ServicioViewModel` elimina su `IsLoading` propio | Ocultaba (`new`) el `IsLoading` virtual de `BaseViewModel`, con lo que `PuedeIrAnterior`/`PuedeIrSiguiente` nunca se refrescaban. |
+| Se agrega el botón **Buscar** a las pantallas que no lo tenían | El requisito de la spec es que la búsqueda se dispare por una acción explícita, con Enter y con debounce. |
+| Las altas/ediciones recargan la página en lugar de manipular la colección | Con paginación en BD, agregar el registro a la colección en memoria lo mostraría aunque no corresponda a la página ni al filtro activo. |
+
+### 3. Verificación
+
+- `dotnet build "TP_ControlVehicular.slnx"` → compilación correcta, 0 errores.
+- `dotnet test "TP_ControlVehicular.slnx"` → **67 / 67 tests en verde** (57 previos + 10 nuevos):
+  - `TP_ControlVehicular.Tests/ViewModels/ListadosCrudPaginacionTests.cs` — carga de la primera página y propagación del total en los siete listados, envío del término de búsqueda recortado, reinicio a página 1 al cambiar el filtro y propagación del flag de inactivos.
+
+### 4. Pendiente de validación manual
+
+- [ ] Abrir cada una de las 7 pantallas: la grilla trae una sola página y la barra informa `Página 1 de N (M registros)`.
+- [ ] Buscar con el botón, con Enter y escribiendo (debounce).
+- [ ] Cambiar el tamaño de página y navegar con ⏮ ◀ ▶ ⏭.
+- [ ] Marcar *Mostrar inactivos* en Roles, Servicios y Talleres.
+- [ ] En Roles: abrir *Administrar Permisos* sobre un rol y verificar que los permisos figuran marcados.
+- [ ] En Vehículos: verificar que la columna de cliente, marca y modelo se sigue mostrando (el `Include` con `AsSplitQuery` cambia la forma de la consulta).
+
+---
+
 ## Fases 2 y 3 (pendientes)
 
 ### Fase 2 — CRUD restantes
