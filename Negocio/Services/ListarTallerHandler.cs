@@ -25,5 +25,18 @@ namespace TP_ControlVehicular.Negocio.Services
                 : await _tallerRepository.GetActivosAsync();
             return _mapper.Map<List<TallerDto>>(entities);
         }
+
+        /// <summary>
+        /// Recupera una pagina de talleres con la busqueda aplicada en la base de datos.
+        /// </summary>
+        public async Task<(IEnumerable<TallerDto> Items, int TotalRegistros)> HandlePaginadoAsync(
+            string? busqueda,
+            bool incluirInactivos,
+            int pagina,
+            int tamanoPagina)
+        {
+            var (entities, total) = await _tallerRepository.GetPaginadoAsync(busqueda, incluirInactivos, pagina, tamanoPagina);
+            return (_mapper.Map<List<TallerDto>>(entities), total);
+        }
     }
 }
