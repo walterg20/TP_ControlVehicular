@@ -149,7 +149,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         /// Actualiza el total de registros y recalcula el total de paginas,
         /// ajustando la pagina actual si quedo fuera de rango.
         /// </summary>
-        protected void ActualizarTotales(int totalRegistros)
+        public void ActualizarTotales(int totalRegistros)
         {
             TotalRegistros = totalRegistros;
             TotalPaginas = totalRegistros > 0
@@ -167,7 +167,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
 
         /// <summary>Reinicia el listado en la primera pagina.</summary>
-        protected void ReiniciarPagina() => PaginaActual = 1;
+        public void ReiniciarPagina() => PaginaActual = 1;
 
         /// <summary>Notifica el cambio de estado de los comandos de navegacion.</summary>
         protected void NotificarComandosPaginacion()

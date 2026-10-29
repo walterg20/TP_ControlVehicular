@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TP_ControlVehicular.Datos.Data;
+using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.DTOs.Reportes;
 using TP_ControlVehicular.Negocio.Interfaces;
 
@@ -100,6 +101,64 @@ namespace TP_ControlVehicular.Datos.Repositories
                     "EXEC sp_ReporteHojaTrabajoDiaria @MecanicoId, @Fecha",
                     mecanicoIdParam, fechaParam)
                 .ToListAsync();
+        }
+
+        public async Task<(List<HistorialVehiculoDto> Items, int TotalRegistros)> ObtenerHistorialVehiculoPaginadoAsync(
+            int? vehiculoId, string? patente, int pagina, int tamanoPagina)
+        {
+            var vehiculoIdParam = new SqlParameter("@VehiculoId", (object?)vehiculoId ?? DBNull.Value);
+            var patenteParam = new SqlParameter("@Patente", string.IsNullOrEmpty(patente) ? DBNull.Value : patente);
+            var paginaParam = new SqlParameter("@Pagina", pagina);
+            var tamanoParam = new SqlParameter("@TamanoPagina", tamanoPagina);
+
+            var rows = (await _dbContext.Database
+                .SqlQueryRaw<HistorialVehiculoPaginadoDto>(
+                    "EXEC sp_HistorialVehiculoPaginado @VehiculoId, @Patente, @Pagina, @TamanoPagina",
+                    vehiculoIdParam, patenteParam, paginaParam, tamanoParam)
+                .ToListAsync());
+
+            int totalRegistros = rows.FirstOrDefault()?.TotalRegistros ?? 0;
+            return (rows.Cast<HistorialVehiculoDto>().ToList(), totalRegistros);
+        }
+
+        public async Task<(List<VehiculoClienteDto> Items, int TotalRegistros)> ObtenerVehiculosPorClientePaginadoAsync(
+            int? clienteId, string? dni, int pagina, int tamanoPagina)
+        {
+            var clienteIdParam = new SqlParameter("@ClienteId", (object?)clienteId ?? DBNull.Value);
+            var dniParam = new SqlParameter("@DNI", string.IsNullOrEmpty(dni) ? DBNull.Value : dni);
+            var paginaParam = new SqlParameter("@Pagina", pagina);
+            var tamanoParam = new SqlParameter("@TamanoPagina", tamanoPagina);
+
+            var rows = (await _dbContext.Database
+                .SqlQueryRaw<VehiculoClientePaginadoDto>(
+                    "EXEC sp_VehiculosPorClientePaginado @ClienteId, @DNI, @Pagina, @TamanoPagina",
+                    clienteIdParam, dniParam, paginaParam, tamanoParam)
+                .ToListAsync());
+
+            int totalRegistros = rows.FirstOrDefault()?.TotalRegistros ?? 0;
+            return (rows.Cast<VehiculoClienteDto>().ToList(), totalRegistros);
+        }
+
+        public async Task<(List<OrdenTrabajoReporteDto> Items, int TotalRegistros)> ObtenerReporteOrdenesPaginadoAsync(
+            string? textoBusqueda, string? estado, DateTime? fechaDesde, DateTime? fechaHasta,
+            int? mecanicoId, int pagina, int tamanoPagina)
+        {
+            var textoParam = new SqlParameter("@TextoBusqueda", string.IsNullOrWhiteSpace(textoBusqueda) ? DBNull.Value : textoBusqueda.Trim());
+            var estadoParam = new SqlParameter("@Estado", string.IsNullOrWhiteSpace(estado) ? DBNull.Value : estado);
+            var desdeParam = new SqlParameter("@FechaDesde", (object?)fechaDesde?.ToString("yyyy-MM-dd") ?? DBNull.Value);
+            var hastaParam = new SqlParameter("@FechaHasta", (object?)fechaHasta?.ToString("yyyy-MM-dd") ?? DBNull.Value);
+            var mecanicoParam = new SqlParameter("@MecanicoId", (object?)mecanicoId ?? DBNull.Value);
+            var paginaParam = new SqlParameter("@Pagina", pagina);
+            var tamanoParam = new SqlParameter("@TamanoPagina", tamanoPagina);
+
+            var rows = (await _dbContext.Database
+                .SqlQueryRaw<OrdenTrabajoReportePaginadoDto>(
+                    "EXEC sp_ReporteOrdenesPaginado @TextoBusqueda, @Estado, @FechaDesde, @FechaHasta, @MecanicoId, @Pagina, @TamanoPagina",
+                    textoParam, estadoParam, desdeParam, hastaParam, mecanicoParam, paginaParam, tamanoParam)
+                .ToListAsync());
+
+            int totalRegistros = rows.FirstOrDefault()?.TotalRegistros ?? 0;
+            return (rows.Cast<OrdenTrabajoReporteDto>().ToList(), totalRegistros);
         }
 
     }
