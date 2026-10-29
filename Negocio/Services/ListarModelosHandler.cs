@@ -21,5 +21,17 @@ namespace TP_ControlVehicular.Negocio.Services
             var entities = await _modeloRepository.GetAllAsync();
             return _mapper.Map<List<ModeloDto>>(entities);
         }
+
+        /// <summary>
+        /// Recupera una pagina de modelos con la busqueda aplicada en la base de datos.
+        /// </summary>
+        public async Task<(IEnumerable<ModeloDto> Items, int TotalRegistros)> HandlePaginadoAsync(
+            string? busqueda,
+            int pagina,
+            int tamanoPagina)
+        {
+            var (entities, total) = await _modeloRepository.GetPaginadoAsync(busqueda, pagina, tamanoPagina);
+            return (_mapper.Map<List<ModeloDto>>(entities), total);
+        }
     }
 }

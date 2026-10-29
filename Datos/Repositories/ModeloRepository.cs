@@ -1,9 +1,12 @@
 // walterg20
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.Interfaces;
-
 
 namespace TP_ControlVehicular.Datos.Repositories
 {
@@ -39,5 +42,27 @@ namespace TP_ControlVehicular.Datos.Repositories
                 .Include(m => m.Marca)
                 .Where(m => m.MarcaId == idMarca)
                 .ToListAsync();
+
+        public async Task<(IEnumerable<Modelo> Items, int TotalRegistros)> GetPaginadoAsync(
+            string? busqueda,
+            int pagina,
+            int tamanoPagina)
+        {
+            Expression<Func<Modelo, bool>>? filtro = null;
+
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                var patron = CrearPatronLike(busqueda.Trim());
+                filtro = m => EF.Functions.Like(m.NombreModelo, patron)
+                          || EF.Functions.Like(m.Marca.NombreMarca, patron);
+            }
+
+            return await GetPaginadoAsync(
+                pagina,
+                tamanoPagina,
+                filtro,
+                q => q.Include(m => m.Marca),
+                q => q.OrderBy(m => m.Id));
+        }
     }
 }

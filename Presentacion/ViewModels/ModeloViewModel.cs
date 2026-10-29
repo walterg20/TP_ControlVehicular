@@ -4,10 +4,14 @@ using System.Runtime.CompilerServices;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class ModeloViewModel : BaseViewModel
+    /// <summary>
+    /// Listado de modelos con paginacion y busqueda en la base de datos.
+    /// </summary>
+    public class ModeloViewModel : BasePaginableViewModel
     {
         protected override string Modulo => "Vehiculo";
 
@@ -16,6 +20,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ModificarModeloHandler _modificarModeloHandler;
         private readonly EliminarModeloHandler _eliminarModeloHandler;
         private readonly ListarMarcaHandler _listarMarcaHandler;
+        private readonly Debouncer _debouncer;
 
         public ModeloViewModel(
             ListarModelosHandler listarModelosHandler,
@@ -29,10 +34,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _modificarModeloHandler = modificarModeloHandler;
             _eliminarModeloHandler = eliminarModeloHandler;
             _listarMarcaHandler = listarMarcaHandler;
+            _debouncer = new Debouncer();
 
             Modelos = new ObservableCollection<ModeloDto>();
             MarcasDisponibles = new ObservableCollection<MarcaDto>();
-            ((ObservableCollection<ModeloDto>)Modelos).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoModelosFiltered));
         }
 
         public ObservableCollection<ModeloDto> Modelos { get; set; }
@@ -46,15 +51,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 _textoBusqueda = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ListadoModelosFiltered));
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
             }
         }
-
-        public IEnumerable<ModeloDto> ListadoModelosFiltered =>
-            string.IsNullOrWhiteSpace(TextoBusqueda)
-                ? Modelos
-                : Modelos.Where(modelo => (modelo.NombreModelo ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                  || (modelo.MarcaNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
 
         private string _nombreModelo = string.Empty;
         public string NombreModelo
@@ -131,21 +131,61 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
         {
-            Modelos.Clear();
             await CargarMarcasAsync();
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
+        {
+            IsLoading = true;
             try
             {
-                var lista = await _listarModelosHandler.HandleAsync();
-                foreach (var modelo in lista)
+                var (items, total) = await _listarModelosHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    PaginaActual,
+                    TamanoPagina);
+
+                Modelos.Clear();
+                foreach (var modelo in items)
                 {
                     Modelos.Add(modelo);
                 }
+
+                ActualizarTotales(total);
             }
             catch
             {
                 // Silenciar error en carga inicial
+                Modelos.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -165,21 +205,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (modelo.Id == 0)
                 {
-                    var dto = await _registrarModeloHandler.HandleAsync(modelo);
-                    Modelos.Add(dto);
+                    await _registrarModeloHandler.HandleAsync(modelo);
                 }
                 else
                 {
-                    var dto = await _modificarModeloHandler.HandleAsync(modelo);
-                    var exist = Modelos.FirstOrDefault(modelo => modelo.Id == dto.Id);
-                    if (exist != null)
-                    {
-                        exist.NombreModelo = dto.NombreModelo;
-                        exist.IdMarca = dto.IdMarca;
-                        exist.MarcaNombre = dto.MarcaNombre;
-                        OnPropertyChanged(nameof(ListadoModelosFiltered));
-                    }
+                    await _modificarModeloHandler.HandleAsync(modelo);
                 }
+
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
                 return true;
             }
             catch
@@ -193,11 +227,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 await _eliminarModeloHandler.HandleAsync(id);
-                var exist = Modelos.FirstOrDefault(modelo => modelo.Id == id);
-                if (exist != null)
-                {
-                    Modelos.Remove(exist);
-                }
+                await CargarPaginaAsync();
                 return true;
             }
             catch
