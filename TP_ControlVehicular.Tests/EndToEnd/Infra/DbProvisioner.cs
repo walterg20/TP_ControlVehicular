@@ -17,6 +17,17 @@ namespace TP_ControlVehicular.Tests.EndToEnd.Infra
             using (var conn = new SqlConnection(masterConn))
             {
                 conn.Open();
+                // La base de pruebas se recrea desde cero en cada corrida. Si no se hiciera,
+                // el seed (02_datos.sql) volvería a correr sobre una base que ya tiene los
+                // triggers activos y el trigger de kilometraje abortaría la siembra.
+                var cmdDrop = new SqlCommand($@"
+IF EXISTS (SELECT name FROM sys.databases WHERE name = N'{dbName}')
+BEGIN
+    ALTER DATABASE [{dbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [{dbName}];
+END", conn);
+                cmdDrop.ExecuteNonQuery();
+
                 var cmdCheck = new SqlCommand($@"
 IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{dbName}')
 BEGIN
