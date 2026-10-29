@@ -8,19 +8,21 @@ using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 using TP_ControlVehicular.Presentacion.Validaciones;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
     using Usuario = TP_ControlVehicular.Entidad.Usuario;
 
-    public class UsuarioViewModel : BaseViewModel, INotifyDataErrorInfo
+    public class UsuarioViewModel : BasePaginableViewModel, INotifyDataErrorInfo
     {
         private readonly ListarUsuariosHandler _listarUsuariosHandler;
         private readonly RegistrarUsuarioHandler _registrarUsuarioHandler;
         private readonly ModificarUsuarioHandler _modificarUsuarioHandler;
         private readonly IRolRepository _rolRepository;
         private readonly IMapper _mapper;
+        private readonly Debouncer _debouncer;
 
         public UsuarioViewModel(
             ListarUsuariosHandler listarUsuariosHandler,
@@ -34,11 +36,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _modificarUsuarioHandler = modificarUsuarioHandler;
             _rolRepository = rolRepository;
             _mapper = mapper;
+            _debouncer = new Debouncer();
 
             Usuarios = new ObservableCollection<UsuarioDto>();
             RolesDisponibles = new ObservableCollection<RolDto>();
 
-            ((ObservableCollection<UsuarioDto>)Usuarios).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoUsuariosFiltered));
+            ((ObservableCollection<UsuarioDto>)Usuarios).CollectionChanged += (s, e) => OnPropertyChanged(nameof(Usuarios));
             Activo = true;
             FechaNacimiento = DateTime.Today.AddYears(-20);
             RegistrarCommand = new RelayCommand(async () => await GuardarUsuarioAsync(), () => !HasErrors);
@@ -51,16 +54,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public string TextoBusqueda
         {
             get => _textoBusqueda;
-            set { _textoBusqueda = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoUsuariosFiltered)); }
+            set
+            {
+                _textoBusqueda = value;
+                OnPropertyChanged();
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
+            }
         }
-
-        public IEnumerable<UsuarioDto> ListadoUsuariosFiltered =>
-            string.IsNullOrWhiteSpace(TextoBusqueda)
-                ? Usuarios
-                : Usuarios.Where(usuario => (usuario.Nombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                   || (usuario.Apellido ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                   || (usuario.Dni ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                   || (usuario.RolNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
 
         private int _idRol;
         public int IdRol
@@ -169,21 +170,60 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
         {
-            Usuarios.Clear();
             await CargarRolesAsync();
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
 
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
+        {
+            IsLoading = true;
             try
             {
-                var lista = await _listarUsuariosHandler.HandleAsync();
-                foreach (var usuario in lista)
+                var (items, total) = await _listarUsuariosHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    PaginaActual,
+                    TamanoPagina);
+
+                Usuarios.Clear();
+                foreach (var usuario in items)
                 {
                     Usuarios.Add(usuario);
                 }
+
+                ActualizarTotales(total);
             }
             catch
             {
+                Usuarios.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -211,24 +251,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (usuario.Id == 0)
                 {
-                    var dto = await _registrarUsuarioHandler.HandleAsync(usuario);
-                    Usuarios.Add(dto);
+                    await _registrarUsuarioHandler.HandleAsync(usuario);
                 }
                 else
                 {
-                    var dto = await _modificarUsuarioHandler.HandleAsync(usuario);
-                    var index = -1;
-                    for (int i = 0; i < Usuarios.Count; i++)
-                    {
-                        if (Usuarios[i].IdUsuario == dto.IdUsuario)
-                        {
-                            index = i;
-                            break;
-                        }
-                    }
-                    if (index >= 0) Usuarios[index] = dto;
-                    else Usuarios.Add(dto);
+                    await _modificarUsuarioHandler.HandleAsync(usuario);
                 }
+
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
 
                 RegistrationCompleted?.Invoke(this, true);
                 return true;
@@ -279,17 +310,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             try
             {
-                var dto = await _modificarUsuarioHandler.HandleAsync(usuario);
-                var index = -1;
-                for (int i = 0; i < Usuarios.Count; i++)
-                {
-                    if (Usuarios[i].IdUsuario == dto.IdUsuario)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-                if (index >= 0) Usuarios[index] = dto;
+                await _modificarUsuarioHandler.HandleAsync(usuario);
+                // Recargar la pagina actual para que el listado refleje el cambio de estado.
+                await CargarPaginaAsync();
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
