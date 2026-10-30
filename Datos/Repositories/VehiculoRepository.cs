@@ -12,24 +12,28 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class VehiculoRepository : Repository<Vehiculo>, IVehiculoRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public VehiculoRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public VehiculoRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
-        public async Task<IEnumerable<Vehiculo>> GetByClienteAsync(int idCliente) =>
-            await _cvDbContext.Vehiculos
+        public async Task<IEnumerable<Vehiculo>> GetByClienteAsync(int idCliente)
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Vehiculos
                 .Include(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(v => v.Modelo)
                 .ThenInclude(m => m.Marca)
                 .Where(v => v.Propietarios.Any(p => p.ClienteId == idCliente && p.EsActual))
                 .ToListAsync();
+        }
 
         public async Task<IEnumerable<Vehiculo>> GetAllWithDetailsAsync(int? mecanicoId = null)
         {
-            var query = _cvDbContext.Vehiculos
+            await using var ctx = CrearContexto();
+            var query = ctx.Vehiculos
                 .Include(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(v => v.Modelo)
                 .ThenInclude(m => m.Marca)
@@ -37,7 +41,7 @@ namespace TP_ControlVehicular.Datos.Repositories
 
             if (mecanicoId.HasValue)
             {
-                query = query.Where(v => _cvDbContext.RegistroServicios
+                query = query.Where(v => ctx.RegistroServicios
                     .Any(rs => rs.VehiculoId == v.Id && rs.Detalles.Any(ds => ds.UsuarioId == mecanicoId.Value)));
             }
 
@@ -46,7 +50,8 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<Vehiculo?> GetByPatenteAsync(string patente)
         {
-            return await _cvDbContext.Vehiculos
+            await using var ctx = CrearContexto();
+            return await ctx.Vehiculos
                 .Include(v => v.Propietarios)
                 .ThenInclude(p => p.Cliente)
                 .Include(v => v.Modelo)

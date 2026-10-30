@@ -10,15 +10,17 @@ namespace TP_ControlVehicular.Negocio.Handlers
 {
     public class ObtenerPermisosHandler
     {
-        private readonly CVDbContext _context;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public ObtenerPermisosHandler(CVDbContext context)
+        public ObtenerPermisosHandler(IDbContextFactory<CVDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<List<PermisoDto>> HandleAsync()
         {
+            await using var _context = _contextFactory.CreateDbContext();
+
             var permisos = await _context.Permisos
                 .OrderBy(p => p.Nombre)
                 .ToListAsync();

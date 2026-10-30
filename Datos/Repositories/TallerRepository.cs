@@ -12,13 +12,18 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class TallerRepository : Repository<Taller>, ITallerRepository
     {
-        private readonly CVDbContext _cvDbContext;
-        public TallerRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
+
+        public TallerRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
-        public async Task<List<Taller>> GetActivosAsync() =>
-            await _cvDbContext.Talleres.Where(t => t.Activo).ToListAsync();
+
+        public async Task<List<Taller>> GetActivosAsync()
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Talleres.Where(t => t.Activo).ToListAsync();
+        }
 
         public async Task<(IEnumerable<Taller> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,

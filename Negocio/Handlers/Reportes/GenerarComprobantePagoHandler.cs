@@ -8,15 +8,17 @@ namespace TP_ControlVehicular.Negocio.Handlers.Reportes;
 
 public class GenerarComprobantePagoHandler
 {
-    private readonly CVDbContext _dbContext;
+    private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-    public GenerarComprobantePagoHandler(CVDbContext dbContext)
+    public GenerarComprobantePagoHandler(IDbContextFactory<CVDbContext> contextFactory)
     {
-        _dbContext = dbContext;
+        _contextFactory = contextFactory;
     }
 
     public async Task<ComprobantePagoDto?> HandleAsync(int ordenId)
     {
+        await using var _dbContext = _contextFactory.CreateDbContext();
+
         var parametro = new SqlParameter("@OrdenId", ordenId);
         var resultados = await _dbContext.Database
             .SqlQueryRaw<ComprobantePagoRowDto>("EXEC sp_GenerarComprobantePago @OrdenId", parametro)

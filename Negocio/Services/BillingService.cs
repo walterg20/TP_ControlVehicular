@@ -11,18 +11,18 @@ namespace TP_ControlVehicular.Negocio.Services
 {
     public class BillingService : IBillingService
     {
-        private readonly CVDbContext _context;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
         private readonly IFacturaRepository _facturaRepo;
         private readonly IPagoRepository _pagoRepo;
         private readonly IMetodoPagoRepository _metodoRepo;
 
         public BillingService(
-            CVDbContext context,
+            IDbContextFactory<CVDbContext> contextFactory,
             IFacturaRepository facturaRepo,
             IPagoRepository pagoRepo,
             IMetodoPagoRepository metodoRepo)
         {
-            _context = context;
+            _contextFactory = contextFactory;
             _facturaRepo = facturaRepo;
             _pagoRepo = pagoRepo;
             _metodoRepo = metodoRepo;
@@ -30,6 +30,8 @@ namespace TP_ControlVehicular.Negocio.Services
 
         public async Task<Factura> GenerarFactura(int registroServicioId)
         {
+            await using var _context = _contextFactory.CreateDbContext();
+
             var detalles = await _context.DetalleServicios
                 .Where(d => d.RegistroServicioId == registroServicioId)
                 .ToListAsync();
@@ -54,6 +56,8 @@ namespace TP_ControlVehicular.Negocio.Services
 
         public async Task<(Pago pago, decimal vuelto)> RegistrarPago(int facturaId, int metodoPagoId, decimal montoAbonado)
         {
+            await using var _context = _contextFactory.CreateDbContext();
+
             var factura = await _facturaRepo.GetById(facturaId);
             if (factura == null)
                 throw new Exception("Factura no encontrada.");

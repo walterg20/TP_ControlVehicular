@@ -12,15 +12,18 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class RolRepository : Repository<Rol>, IRolRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public RolRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public RolRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
-        public async Task<List<Rol>> GetActivosAsync() =>
-            await _cvDbContext.Roles.Include(r => r.Permisos).Where(r => r.Activo).ToListAsync();
+        public async Task<List<Rol>> GetActivosAsync()
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Roles.Include(r => r.Permisos).Where(r => r.Activo).ToListAsync();
+        }
 
         public async Task<(IEnumerable<Rol> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,

@@ -12,31 +12,32 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class RegistroServicioRepository : Repository<RegistroServicio>, IRegistroServicioRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public RegistroServicioRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public RegistroServicioRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
         public new async Task UpdateAsync(RegistroServicio entity)
         {
-            _cvDbContext.ChangeTracker.Clear();
+            await using var ctx = CrearContexto();
+            ctx.ChangeTracker.Clear();
 
-            var existente = await _cvDbContext.RegistroServicios
+            var existente = await ctx.RegistroServicios
                 .Include(r => r.Detalles)
                 .FirstOrDefaultAsync(r => r.Id == entity.Id);
 
             if (existente != null)
             {
-                _cvDbContext.Entry(existente).CurrentValues.SetValues(entity);
+                ctx.Entry(existente).CurrentValues.SetValues(entity);
 
                 // Eliminar detalles que ya no están
                 foreach (var detalleExistente in existente.Detalles.ToList())
                 {
                     if (!entity.Detalles.Any(d => d.Id == detalleExistente.Id))
                     {
-                        _cvDbContext.DetalleServicios.Remove(detalleExistente);
+                        ctx.DetalleServicios.Remove(detalleExistente);
                     }
                 }
 
@@ -47,18 +48,19 @@ namespace TP_ControlVehicular.Datos.Repositories
                     existente.Detalles.Add(detalle);
                 }
 
-                await _cvDbContext.SaveChangesAsync();
+                await ctx.SaveChangesAsync();
             }
             else
             {
-                _cvDbContext.RegistroServicios.Update(entity);
-                await _cvDbContext.SaveChangesAsync();
+                ctx.RegistroServicios.Update(entity);
+                await ctx.SaveChangesAsync();
             }
         }
 
         public async Task<List<RegistroServicio>> GetReporteCompletoAsync(int? mecanicoId = null)
         {
-            var query = _cvDbContext.RegistroServicios
+            await using var ctx = CrearContexto();
+            var query = ctx.RegistroServicios
                 .Include(r => r.Vehiculo)
                     .ThenInclude(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(r => r.Vehiculo)
@@ -83,7 +85,7 @@ namespace TP_ControlVehicular.Datos.Repositories
         /// Include común de las consultas de órdenes de servicio.
         /// AsSplitQuery evita que el JOIN 1:N de las colecciones altere el Skip/Take.
         /// </summary>
-        private IQueryable<RegistroServicio> BasePaginado(IQueryable<RegistroServicio> query) =>
+        private static IQueryable<RegistroServicio> BasePaginado(IQueryable<RegistroServicio> query) =>
             query.Include(r => r.Vehiculo)
                     .ThenInclude(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(r => r.Vehiculo)
@@ -157,8 +159,9 @@ namespace TP_ControlVehicular.Datos.Repositories
             DateTime? fechaDesde,
             DateTime? fechaHasta)
         {
+            await using var ctx = CrearContexto();
             var query = AplicarFiltros(
-                BasePaginado(_cvDbContext.RegistroServicios.AsNoTracking().AsQueryable()),
+                BasePaginado(ctx.RegistroServicios.AsNoTracking().AsQueryable()),
                 busqueda, estado, fechaDesde, fechaHasta);
 
             return await query.OrderByDescending(r => r.Id).ToListAsync();

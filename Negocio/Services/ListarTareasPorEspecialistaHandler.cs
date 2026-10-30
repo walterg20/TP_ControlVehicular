@@ -12,17 +12,19 @@ namespace TP_ControlVehicular.Negocio.Services
 {
     public class ListarTareasPorEspecialistaHandler
     {
-        private readonly CVDbContext _context;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
         private readonly IMapper _mapper;
 
-        public ListarTareasPorEspecialistaHandler(CVDbContext context, IMapper mapper)
+        public ListarTareasPorEspecialistaHandler(IDbContextFactory<CVDbContext> contextFactory, IMapper mapper)
         {
-            _context = context;
+            _contextFactory = contextFactory;
             _mapper = mapper;
         }
 
         public async Task<IEnumerable<DetalleServicioDto>> HandleAsync(int usuarioMecanicoId)
         {
+            await using var _context = _contextFactory.CreateDbContext();
+
             // Solo devolvemos tareas que pertenezcan a este mecánico y que NO estén finalizadas.
             // Opcionalmente se podría devolver solo las "En Curso", 
             // pero mostrar "Pendiente" también le permite ver qué tiene en cola.

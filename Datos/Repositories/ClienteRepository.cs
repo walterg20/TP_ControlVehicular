@@ -13,15 +13,18 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class ClienteRepository : Repository<Cliente>, IClienteRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public ClienteRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public ClienteRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
-        public async Task<IEnumerable<Cliente>> GetActivosAsync() =>
-            await _cvDbContext.Clientes.Where(c => c.Activo).ToListAsync();
+        public async Task<IEnumerable<Cliente>> GetActivosAsync()
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Clientes.Where(c => c.Activo).ToListAsync();
+        }
 
         public async Task<(IEnumerable<Cliente> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,

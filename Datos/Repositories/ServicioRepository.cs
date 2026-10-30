@@ -12,21 +12,27 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class ServicioRepository : Repository<Servicio>, IServicioRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public ServicioRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public ServicioRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
-        public async Task<List<Servicio>> GetActivosAsync() =>
-            await _cvDbContext.Servicios
+        public async Task<List<Servicio>> GetActivosAsync()
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Servicios
                 .Where(s => s.Activo)
                 .ToListAsync();
+        }
 
-        public async Task<Servicio?> GetByNombreAsync(string nombre) =>
-            await _cvDbContext.Servicios
+        public async Task<Servicio?> GetByNombreAsync(string nombre)
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Servicios
                 .FirstOrDefaultAsync(s => s.Nombre == nombre);
+        }
 
         public async Task<(IEnumerable<Servicio> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,

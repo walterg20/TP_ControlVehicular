@@ -12,29 +12,51 @@ using TP_ControlVehicular.Negocio.Interfaces;
 
 namespace TP_ControlVehicular.Datos.Repositories
 {
+    /// <summary>
+    /// Repositorio base. Cada operacion usa su propio <see cref="CVDbContext"/> (creado por
+    /// <see cref="IDbContextFactory{TContext}"/>) para que dos operaciones concurrentes nunca
+    /// compartan la misma instancia de contexto.
+    /// </summary>
+    /// <remarks>
+    /// En WPF no hay un ambito de request: los servicios Scoped viven toda la vida de la
+    /// aplicacion. Si el repositorio guardara un unico contexto, dos pantallas cargando a la
+    /// vez (o el evento Loaded disparandose de nuevo sobre un control reutilizado) fallarian
+    /// con "A second operation was started on this context instance".
+    /// </remarks>
     public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly CVDbContext _cvDbContext;
-        private readonly DbSet<T> _dbSet;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public Repository(CVDbContext cvDbContext)
+        public Repository(IDbContextFactory<CVDbContext> contextFactory)
         {
-            _cvDbContext = cvDbContext;
-            _dbSet = _cvDbContext.Set<T>();
+            _contextFactory = contextFactory;
         }
+
+        /// <summary>Crea un contexto nuevo, exclusivo de la operacion que lo va a usar.</summary>
+        protected CVDbContext CrearContexto() => _contextFactory.CreateDbContext();
+
         public virtual async Task<T?> GetByIdAsync(int id)
         {
-            var keyName = _cvDbContext.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.Select(x => x.Name).SingleOrDefault();
+            await using var ctx = CrearContexto();
+            var keyName = ctx.Model.FindEntityType(typeof(T))?.FindPrimaryKey()?.Properties.Select(x => x.Name).SingleOrDefault();
             if (keyName != null)
             {
-                return await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => EF.Property<int>(e, keyName) == id);
+                return await ctx.Set<T>().AsNoTracking().FirstOrDefaultAsync(e => EF.Property<int>(e, keyName) == id);
             }
-            return await _dbSet.FindAsync(id);
+            return await ctx.Set<T>().FindAsync(id);
         }
 
-        public virtual async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.AsNoTracking().ToListAsync();
+        public virtual async Task<IEnumerable<T>> GetAllAsync()
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Set<T>().AsNoTracking().ToListAsync();
+        }
 
-        public virtual async Task<IEnumerable<T>> GetTodosAsync() => await _dbSet.AsNoTracking().ToListAsync();
+        public virtual async Task<IEnumerable<T>> GetTodosAsync()
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Set<T>().AsNoTracking().ToListAsync();
+        }
 
         /// <summary>
         /// Recupera una pagina de registros y el total de registros que cumplen el filtro.
@@ -52,7 +74,9 @@ namespace TP_ControlVehicular.Datos.Repositories
             Func<IQueryable<T>, IQueryable<T>>? configurador = null,
             Func<IQueryable<T>, IOrderedQueryable<T>>? orden = null)
         {
-            var query = _dbSet.AsNoTracking().AsQueryable();
+            await using var ctx = CrearContexto();
+
+            var query = ctx.Set<T>().AsNoTracking().AsQueryable();
 
             if (configurador is not null)
             {
@@ -91,25 +115,28 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task AddAsync(T entity)
         {
-            _cvDbContext.ChangeTracker.Clear();
-            await _dbSet.AddAsync(entity);
-            await _cvDbContext.SaveChangesAsync();
+            await using var ctx = CrearContexto();
+            ctx.ChangeTracker.Clear();
+            await ctx.Set<T>().AddAsync(entity);
+            await ctx.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(T entity)
         {
-            _cvDbContext.ChangeTracker.Clear();
-            _cvDbContext.Entry(entity).State = EntityState.Modified;
-            await _cvDbContext.SaveChangesAsync();
+            await using var ctx = CrearContexto();
+            ctx.ChangeTracker.Clear();
+            ctx.Entry(entity).State = EntityState.Modified;
+            await ctx.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _dbSet.FindAsync(id);
+            await using var ctx = CrearContexto();
+            var entity = await ctx.Set<T>().FindAsync(id);
             if (entity != null)
             {
-                _dbSet.Remove(entity);
-                await _cvDbContext.SaveChangesAsync();
+                ctx.Set<T>().Remove(entity);
+                await ctx.SaveChangesAsync();
             }
         }
     }

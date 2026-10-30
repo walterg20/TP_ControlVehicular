@@ -58,8 +58,14 @@ namespace TP_ControlVehicular
             IConfiguration configuration = builder.Build();
             services.AddSingleton<IConfiguration>(configuration);
 
-            services.AddDbContext<CVDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
+            // El contexto se resuelve con una factory: cada operacion de repositorio usa su
+            // propia instancia, de modo que dos consultas concurrentes (por ejemplo, dos
+            // pantallas cargando a la vez) nunca compartan el mismo DbContext. En WPF los
+            // servicios Scoped viven toda la vida de la aplicacion, asi que compartir una
+            // unica instancia de contexto habria provocar "A second operation was started
+            // on this context instance".
+            services.AddDbContextFactory<CVDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
 
             // Repositorios

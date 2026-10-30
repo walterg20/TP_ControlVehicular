@@ -13,16 +13,17 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class MarcaRepository : Repository<Marca>, IMarcaRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public MarcaRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public MarcaRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
         public async Task<Marca?> GetByNombreAsync(string nombre)
         {
-            return await _cvDbContext.Marcas
+            await using var ctx = CrearContexto();
+            return await ctx.Marcas
                 .Include(m => m.Modelos)
                 .FirstOrDefaultAsync(m => m.NombreMarca == nombre);
         }

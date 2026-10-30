@@ -9,22 +9,24 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class FacturaRepository : IFacturaRepository
     {
-        private readonly CVDbContext _context;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public FacturaRepository(CVDbContext context)
+        public FacturaRepository(IDbContextFactory<CVDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task Create(Factura factura)
         {
-            await _context.Facturas.AddAsync(factura);
-            await _context.SaveChangesAsync();
+            await using var ctx = _contextFactory.CreateDbContext();
+            await ctx.Facturas.AddAsync(factura);
+            await ctx.SaveChangesAsync();
         }
 
         public async Task<Factura?> GetById(int Id)
         {
-            return await _context.Facturas
+            await using var ctx = _contextFactory.CreateDbContext();
+            return await ctx.Facturas
                 .Include(f => f.Pagos)
                 .Include(f => f.RegistroServicio)
                 .FirstOrDefaultAsync(f => f.Id == Id);
@@ -32,7 +34,8 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<Factura?> GetByRegistroServicio(int RegistroServicioId)
         {
-            return await _context.Facturas
+            await using var ctx = _contextFactory.CreateDbContext();
+            return await ctx.Facturas
                 .Include(f => f.Pagos)
                 .Include(f => f.RegistroServicio)
                 .FirstOrDefaultAsync(f => f.RegistroServicioId == RegistroServicioId);

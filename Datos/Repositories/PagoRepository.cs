@@ -11,22 +11,24 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class PagoRepository : IPagoRepository
     {
-        private readonly CVDbContext _context;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public PagoRepository(CVDbContext context)
+        public PagoRepository(IDbContextFactory<CVDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task Create(Pago pago)
         {
-            await _context.Pagos.AddAsync(pago);
-            await _context.SaveChangesAsync();
+            await using var ctx = _contextFactory.CreateDbContext();
+            await ctx.Pagos.AddAsync(pago);
+            await ctx.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<Pago>> GetPagosByFactura(int Id)
         {
-            return await _context.Pagos
+            await using var ctx = _contextFactory.CreateDbContext();
+            return await ctx.Pagos
                 .Include(p => p.MetodoPago)
                 .Where(p => p.FacturaId == Id)
                 .ToListAsync();

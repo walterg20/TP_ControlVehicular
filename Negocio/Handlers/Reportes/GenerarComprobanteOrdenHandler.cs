@@ -8,15 +8,17 @@ namespace TP_ControlVehicular.Negocio.Handlers.Reportes;
 
 public class GenerarComprobanteOrdenHandler
 {
-    private readonly CVDbContext _dbContext;
+    private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-    public GenerarComprobanteOrdenHandler(CVDbContext dbContext)
+    public GenerarComprobanteOrdenHandler(IDbContextFactory<CVDbContext> contextFactory)
     {
-        _dbContext = dbContext;
+        _contextFactory = contextFactory;
     }
 
     public async Task<ComprobanteOrdenDto?> HandleAsync(int ordenId)
     {
+        await using var _dbContext = _contextFactory.CreateDbContext();
+
         var parametro = new SqlParameter("@OrdenId", ordenId);
         var resultados = await _dbContext.Database
             .SqlQueryRaw<ComprobanteOrdenRowDto>("EXEC sp_GenerarComprobanteOrden @OrdenId", parametro)
