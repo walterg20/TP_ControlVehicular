@@ -147,6 +147,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Content="📄 Imprimir PDF (Top Clientes)" Command="{Binding ImprimirPdfTopClientesCommand}" 
                                 HorizontalAlignment="Left" Margin="0,0,0,15" Padding="14,8" Background="#E74C3C" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
@@ -164,6 +165,7 @@
                                 <DataGridTextColumn Header="Total Gastado" Binding="{Binding TotalGastado, StringFormat={}{0:C}}" Width="150"/>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <compartido:CtlPaginacion Grid.Row="2" Model="{Binding PaginacionTopClientes}"/>
                     </Grid>
                 </TabItem>
 
@@ -173,6 +175,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Content="📄 Imprimir PDF (Modelos)" Command="{Binding ImprimirPdfModelosCommand}" 
                                 HorizontalAlignment="Left" Margin="0,0,0,15" Padding="14,8" Background="#E74C3C" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
@@ -188,6 +191,7 @@
                                 <DataGridTextColumn Header="Cant. Reparaciones" Binding="{Binding CantidadReparaciones}" Width="150"/>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <compartido:CtlPaginacion Grid.Row="2" Model="{Binding PaginacionModelos}"/>
                     </Grid>
                 </TabItem>
 
@@ -197,6 +201,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Content="Imprimir PDF (Servicios por Rango)" Command="{Binding ImprimirPdfServiciosCommand}" 
                                 HorizontalAlignment="Left" Margin="0,0,0,15" Padding="14,8" Background="#E74C3C" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
@@ -212,6 +217,7 @@
                                 <DataGridTextColumn Header="Cantidad" Binding="{Binding Cantidad}" Width="150"/>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <compartido:CtlPaginacion Grid.Row="2" Model="{Binding PaginacionServicios}"/>
                     </Grid>
                 </TabItem>
             </TabControl>
