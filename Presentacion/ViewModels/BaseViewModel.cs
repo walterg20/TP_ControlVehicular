@@ -29,7 +29,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         private bool _isLoading;
         public bool IsNotLoading => !IsLoading;
-        public bool IsLoading
+        public virtual bool IsLoading
         {
             get => _isLoading;
             set { SetProperty(ref _isLoading, value); OnPropertyChanged(nameof(IsNotLoading)); }

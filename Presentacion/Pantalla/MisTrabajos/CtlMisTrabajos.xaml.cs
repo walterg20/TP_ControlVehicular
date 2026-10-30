@@ -82,5 +82,41 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.MisTrabajos
                 win.AgregarPagina(new Pantalla.OrdenServicio.CtlOrdenServicioForm(orden, "MisTrabajos"));
             }
         }
+
+        /// <summary>Busca con retardo mientras el usuario escribe.</summary>
+        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!IsLoaded || DataContext is not MisTrabajosViewModel vmMisTrabajos) return;
+            vmMisTrabajos.ProgramarBusqueda();
+        }
+
+        /// <summary>La tecla Enter ejecuta la busqueda de inmediato.</summary>
+        private async void TxtBusqueda_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter || DataContext is not MisTrabajosViewModel vmMisTrabajos) return;
+            vmMisTrabajos.CancelarBusquedaProgramada();
+            await vmMisTrabajos.BuscarAsync();
+        }
+
+        /// <summary>Recarga el listado al cambiar el rango de fechas.</summary>
+        private void DtpFechaDesde_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded || DataContext is not MisTrabajosViewModel vmMisTrabajos) return;
+            vmMisTrabajos.ProgramarBusqueda();
+        }
+
+        /// <summary>Recarga el listado al cambiar el rango de fechas.</summary>
+        private void DtpFechaHasta_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded || DataContext is not MisTrabajosViewModel vmMisTrabajos) return;
+            vmMisTrabajos.ProgramarBusqueda();
+        }
+
+        /// <summary>Recarga el listado al cambiar el filtro de tareas.</summary>
+        private void CboFiltroEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded || DataContext is not MisTrabajosViewModel vmMisTrabajos) return;
+            vmMisTrabajos.ProgramarBusqueda();
+        }
     }
 }

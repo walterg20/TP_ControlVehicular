@@ -9,15 +9,17 @@ namespace TP_ControlVehicular.Negocio.Handlers
 {
     public class ActualizarPermisosRolHandler
     {
-        private readonly CVDbContext _context;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public ActualizarPermisosRolHandler(CVDbContext context)
+        public ActualizarPermisosRolHandler(IDbContextFactory<CVDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<bool> HandleAsync(int idRol, List<int> permisosIds)
         {
+            await using var _context = _contextFactory.CreateDbContext();
+
             var rol = await _context.Roles
                 .Include(r => r.Permisos)
                 .FirstOrDefaultAsync(r => r.Id == idRol);

@@ -7,12 +7,17 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using TP_ControlVehicular.Negocio.Reportes.Documentos;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class ReporteOrdenesViewModel : BaseViewModel
+    /// <summary>
+    /// Reporte de ordenes con paginacion y busqueda en la base de datos.
+    /// </summary>
+    public class ReporteOrdenesViewModel : BasePaginableViewModel
     {
         private readonly ObtenerReporteOrdenesHandler _obtenerReporteOrdenesHandler;
+        private readonly Debouncer _debouncer;
 
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
@@ -22,7 +27,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (SetProperty(ref _textoBusqueda, value))
                 {
-                    AplicarFiltros();
+                    // El filtro cambio: el listado vuelve a la primera pagina.
+                    ReiniciarPagina();
                 }
             }
         }
@@ -35,7 +41,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (SetProperty(ref _estadoFiltro, value))
                 {
-                    AplicarFiltros();
+                    // El filtro cambio: el listado vuelve a la primera pagina.
+                    ReiniciarPagina();
                 }
             }
         }
@@ -48,7 +55,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (SetProperty(ref _fechaDesde, value))
                 {
-                    AplicarFiltros();
+                    // El filtro cambio: el listado vuelve a la primera pagina.
+                    ReiniciarPagina();
                 }
             }
         }
@@ -61,7 +69,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (SetProperty(ref _fechaHasta, value))
                 {
-                    AplicarFiltros();
+                    // El filtro cambio: el listado vuelve a la primera pagina.
+                    ReiniciarPagina();
                 }
             }
         }
@@ -73,44 +82,85 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set => SetProperty(ref _mensajeValidacionFechas, value);
         }
 
-        private bool _isLoading;
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
-        }
-
-        private readonly List<OrdenTrabajoReporteDto> _todosLosRegistros = new();
-        public ObservableCollection<OrdenTrabajoReporteDto> ListadoOrdenesFiltered { get; } = new();
+        /// <summary>Registros de la pagina actual.</summary>
+        public ObservableCollection<OrdenTrabajoReporteDto> Ordenes { get; } = new();
 
         public ICommand CargarReporteCommand { get; }
         public ICommand ImprimirPdfCommand { get; }
         private ICommand? _limpiarFiltrosCommand;
-        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(() =>
+        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(async () =>
         {
             TextoBusqueda = string.Empty;
             EstadoFiltro = "Todos";
             FechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             FechaHasta = DateTime.Today;
-            return Task.CompletedTask;
+            await BuscarAsync();
         });
 
         public ReporteOrdenesViewModel(ObtenerReporteOrdenesHandler obtenerReporteOrdenesHandler)
         {
             _obtenerReporteOrdenesHandler = obtenerReporteOrdenesHandler;
+            _debouncer = new Debouncer();
             CargarReporteCommand = new RelayCommand(LoadAsync);
             ImprimirPdfCommand = new RelayCommand(ImprimirPdfAsync);
         }
 
+        /// <summary>
+        /// Carga la primera pagina del reporte (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
+        {
+            if (!ValidarFechas()) return;
+
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el reporte desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            if (!ValidarFechas()) return;
+
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
         {
             IsLoading = true;
             try
             {
-                var resultados = await _obtenerReporteOrdenesHandler.HandleAsync();
-                _todosLosRegistros.Clear();
-                _todosLosRegistros.AddRange(resultados);
-                AplicarFiltros();
+                var (items, total) = await _obtenerReporteOrdenesHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                EstadoFiltro,
+                FechaDesde,
+                FechaHasta,
+                PaginaActual,
+                TamanoPagina);
+
+                Ordenes.Clear();
+                foreach (var orden in items)
+                {
+                    Ordenes.Add(orden);
+                }
+
+                ActualizarTotales(total);
+            }
+            catch
+            {
+                Ordenes.Clear();
+                ActualizarTotales(0);
             }
             finally
             {
@@ -118,55 +168,29 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        private void AplicarFiltros()
+        private bool ValidarFechas()
         {
-            ListadoOrdenesFiltered.Clear();
-
             if (FechaDesde.HasValue && FechaHasta.HasValue && FechaDesde.Value.Date > FechaHasta.Value.Date)
             {
                 MensajeValidacionFechas = "La fecha 'Desde' no puede ser posterior a 'Hasta'.";
-                return;
+                return false;
             }
+
             MensajeValidacionFechas = string.Empty;
-
-            var query = _todosLosRegistros.AsEnumerable();
-
-            if (!string.IsNullOrWhiteSpace(TextoBusqueda))
-            {
-                var txt = TextoBusqueda.Trim().ToLower();
-                query = query.Where(r =>
-                    r.Patente.ToLower().Contains(txt) ||
-                    r.MarcaModelo.ToLower().Contains(txt) ||
-                    r.ClienteNombre.ToLower().Contains(txt) ||
-                    r.MecanicoNombre.ToLower().Contains(txt) ||
-                    r.RecepcionistaNombre.ToLower().Contains(txt) ||
-                    r.ServiciosAplicados.ToLower().Contains(txt));
-            }
-
-            if (!string.IsNullOrEmpty(EstadoFiltro) && EstadoFiltro != "Todos")
-            {
-                query = query.Where(r => r.Estado.Equals(EstadoFiltro, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (FechaDesde.HasValue)
-            {
-                query = query.Where(r => r.FechaIngreso >= FechaDesde.Value.Date);
-            }
-
-            if (FechaHasta.HasValue)
-            {
-                query = query.Where(r => r.FechaIngreso.Date <= FechaHasta.Value.Date);
-            }
-
-            foreach (var item in query)
-            {
-                ListadoOrdenesFiltered.Add(item);
-            }
+            return true;
         }
 
         private async Task ImprimirPdfAsync()
         {
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ReporteOrdenes_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+
+            // El PDF exporta el conjunto completo de registros que cumplen los filtros,
+            // no solo la pagina visible.
+            var ordenes = (await _obtenerReporteOrdenesHandler.HandleCompletoAsync(
+                TextoBusqueda.Trim(),
+                EstadoFiltro,
+                FechaDesde,
+                FechaHasta)).ToList();
 
             var document = QuestPDF.Fluent.Document.Create(container =>
             {
@@ -178,7 +202,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     page.DefaultTextStyle(x => x.FontSize(10));
 
                     page.Header().Element(c => c.ComposeEncabezadoTaller("Reporte de Órdenes de Trabajo"));
-                    page.Content().Element(ComposeContent);
+                    page.Content().Element(c => ComposeContent(c, ordenes));
                     page.Footer().Element(c => c.ComposePieDePagina());
                 });
             });
@@ -209,7 +233,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             return filtrosStr;
         }
 
-        private void ComposeContent(QuestPDF.Infrastructure.IContainer container)
+        private void ComposeContent(QuestPDF.Infrastructure.IContainer container, List<OrdenTrabajoReporteDto> ordenes)
         {
             container.PaddingVertical(1, QuestPDF.Infrastructure.Unit.Centimetre).Column(column =>
             {
@@ -219,7 +243,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.ConstantColumn(50); // N° Orden
+                        columns.ConstantColumn(50); // Nº Orden
                         columns.ConstantColumn(80); // Fecha
                         columns.ConstantColumn(70); // Patente
                         columns.RelativeColumn(2);  // Vehículo
@@ -230,7 +254,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
                     table.Header(header =>
                     {
-                        header.Cell().Element(CellStyle).Text("N° Orden");
+                        header.Cell().Element(CellStyle).Text("Nº Orden");
                         header.Cell().Element(CellStyle).Text("Fecha");
                         header.Cell().Element(CellStyle).Text("Patente");
                         header.Cell().Element(CellStyle).Text("Vehículo");
@@ -244,7 +268,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         }
                     });
 
-                    foreach (var orden in ListadoOrdenesFiltered)
+                    foreach (var orden in ordenes)
                     {
                         table.Cell().Element(Block).Text(orden.IdOrden.ToString());
                         table.Cell().Element(Block).Text(orden.FechaIngreso.ToString("dd/MM/yyyy HH:mm"));

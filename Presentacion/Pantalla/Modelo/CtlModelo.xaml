@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"
              xmlns:local="clr-namespace:TP_ControlVehicular.Presentacion.Modelo"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
@@ -13,8 +14,10 @@
             <!-- Encabezado -->
             <RowDefinition Height="Auto"/>
             <!-- Barra de Búsqueda y Acción Superior -->
-            <RowDefinition Height="*"/>
             <!-- Tabla de Modelos -->
+            <RowDefinition Height="*"/>
+            <!-- Barra de Paginación -->
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <!-- Pie de Acciones -->
         </Grid.RowDefinitions>
@@ -40,7 +43,9 @@
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,10,0"/>
-                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+                             TextChanged="TxtBusqueda_TextChanged"
+                             KeyDown="TxtBusqueda_KeyDown"
                              Width="300" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1">
                         <TextBox.Resources>
                             <Style TargetType="Border">
@@ -48,6 +53,14 @@
                             </Style>
                         </TextBox.Resources>
                     </TextBox>
+                    <Button Content="Buscar" Width="80" Padding="8,6" Margin="10,0,0,0" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnBuscar_Click" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
                 </StackPanel>
 
                 <Button Grid.Column="1" Content="➕ Nuevo Modelo" Click="BtnNuevo_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeCrear}">
@@ -67,7 +80,7 @@
             </Border.Effect>
 
             <DataGrid x:Name="dgModelos"
-                      ItemsSource="{Binding ListadoModelosFiltered}"
+                      ItemsSource="{Binding Modelos}"
                       SelectedItem="{Binding ModeloSeleccionado, Mode=TwoWay}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
@@ -96,9 +109,11 @@
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
+        <!-- BARRA DE PAGINACIÓN -->
+        <compartido:CtlPaginacion Grid.Row="3" Model="{Binding}"/>
 
         <!-- PIE DE ACCIONES -->
-        <Border Grid.Row="3" Background="White" CornerRadius="12" Padding="16" Margin="0,16,0,0">
+        <Border Grid.Row="4" Background="White" CornerRadius="12" Padding="16" Margin="0,16,0,0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>

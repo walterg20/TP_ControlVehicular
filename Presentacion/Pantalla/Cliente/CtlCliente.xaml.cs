@@ -1,6 +1,7 @@
 // walterg20
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
@@ -31,20 +32,61 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             }
         }
 
-        private void BtnBuscar_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Ejecuta la busqueda en la base de datos (boton Buscar).
+        /// </summary>
+        private async void BtnBuscar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is TP_ControlVehicular.Presentacion.ViewModels.ClienteViewModel vmCliente)
+            if (this.DataContext is ClienteViewModel vmCliente)
             {
-                // Asignar ItemsSource al filtro calculado
-                dgClientes.ItemsSource = vmCliente.ListadoClientesFiltered;
+                vmCliente.CancelarBusquedaProgramada();
+                await vmCliente.BuscarAsync();
             }
         }
+
+        /// <summary>
+        /// Busca con retardo mientras el usuario escribe, para no consultar la base de datos
+        /// en cada tecla.
+        /// </summary>
+        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (this.DataContext is ClienteViewModel vmCliente)
+            {
+                vmCliente.ProgramarBusqueda();
+            }
+        }
+
+        /// <summary>
+        /// La tecla Enter ejecuta la busqueda de inmediato.
+        /// </summary>
+        private async void TxtBusqueda_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            if (this.DataContext is ClienteViewModel vmCliente)
+            {
+                vmCliente.CancelarBusquedaProgramada();
+                await vmCliente.BuscarAsync();
+            }
+        }
+
+        /// <summary>
+        /// Cambiar la visibilidad de los clientes inactivos recarga el listado.
+        /// </summary>
+        private async void ChkMostrarInactivos_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is ClienteViewModel vmCliente)
+            {
+                vmCliente.CancelarBusquedaProgramada();
+                await vmCliente.BuscarAsync();
+            }
+        }
+
         // Evento para simular la acción de "Editar" haciendo doble clic en la fila
         private void DgUsuarios_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            /*var usuarioSeleccionado; //= dgUsuarios.SelectedItem as UsuarioModel;
+            /*var usuarioSeleccionado;//= dgUsuarios.SelectedItem as UsuarioModel;
 
-            if (usuarioSeleccionado != null)
+            if (usuarioSeleccionado is not null)
             {
                 MessageBox.Show($"Abriendo edición para: {usuarioSeleccionado.Nombre}", "Sistema MDI");
                 // Acá ponés la lógica para mandar este 'usuarioSeleccionado' a tu formulario

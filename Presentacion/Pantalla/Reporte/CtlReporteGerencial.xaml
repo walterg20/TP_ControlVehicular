@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido" 
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="950">
     <Grid Margin="10">
@@ -135,48 +136,8 @@
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <!-- Fila 3: Barra de Paginación -->
-                        <Border Grid.Row="3" Background="#F8F9F9" BorderBrush="#E5E7E9" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,10,0,0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <!-- Selector de tamaño de página -->
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Filas por página:" VerticalAlignment="Center" Foreground="#566573" FontSize="12" Margin="0,0,8,0"/>
-                                    <ComboBox ItemsSource="{Binding OpcionesTamanoPagina}" SelectedItem="{Binding TamanoPagina}" 
-                                              Width="65" Height="28" VerticalContentAlignment="Center"/>
-                                </StackPanel>
-
-                                <!-- Indicador de página -->
-                                <TextBlock Grid.Column="1" Text="{Binding TextoPaginacion}" 
-                                           HorizontalAlignment="Center" VerticalAlignment="Center" 
-                                           FontWeight="SemiBold" Foreground="#2C3E50" FontSize="12"/>
-
-                                <!-- Botones de navegación -->
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button Content="⏮" Command="{Binding IrPrimeraPaginaCommand}" 
-                                            Width="32" Height="28" Margin="0,0,4,0" Background="#2C3E50" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Primera página">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
-                                    </Button>
-                                    <Button Content="◀" Command="{Binding PaginaAnteriorCommand}" 
-                                            Width="32" Height="28" Margin="0,0,8,0" Background="#2C3E50" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Página anterior">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
-                                    </Button>
-                                    <Button Content="▶" Command="{Binding PaginaSiguienteCommand}" 
-                                            Width="32" Height="28" Margin="0,0,4,0" Background="#2C3E50" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Página siguiente">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
-                                    </Button>
-                                    <Button Content="⏭" Command="{Binding IrUltimaPaginaCommand}" 
-                                            Width="32" Height="28" Background="#2C3E50" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" ToolTip="Última página">
-                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                        <!-- Fila 3: Barra de Paginacion (control reutilizable) -->
+                        <compartido:CtlPaginacion Grid.Row="3" Model="{Binding}"/>
                     </Grid>
                 </TabItem>
 
@@ -186,6 +147,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Content="📄 Imprimir PDF (Top Clientes)" Command="{Binding ImprimirPdfTopClientesCommand}" 
                                 HorizontalAlignment="Left" Margin="0,0,0,15" Padding="14,8" Background="#E74C3C" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
@@ -203,6 +165,7 @@
                                 <DataGridTextColumn Header="Total Gastado" Binding="{Binding TotalGastado, StringFormat={}{0:C}}" Width="150"/>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <compartido:CtlPaginacion Grid.Row="2" Model="{Binding PaginacionTopClientes}"/>
                     </Grid>
                 </TabItem>
 
@@ -212,6 +175,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Content="📄 Imprimir PDF (Modelos)" Command="{Binding ImprimirPdfModelosCommand}" 
                                 HorizontalAlignment="Left" Margin="0,0,0,15" Padding="14,8" Background="#E74C3C" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
@@ -227,6 +191,7 @@
                                 <DataGridTextColumn Header="Cant. Reparaciones" Binding="{Binding CantidadReparaciones}" Width="150"/>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <compartido:CtlPaginacion Grid.Row="2" Model="{Binding PaginacionModelos}"/>
                     </Grid>
                 </TabItem>
 
@@ -236,6 +201,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Content="Imprimir PDF (Servicios por Rango)" Command="{Binding ImprimirPdfServiciosCommand}" 
                                 HorizontalAlignment="Left" Margin="0,0,0,15" Padding="14,8" Background="#E74C3C" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
@@ -251,6 +217,7 @@
                                 <DataGridTextColumn Header="Cantidad" Binding="{Binding Cantidad}" Width="150"/>
                             </DataGrid.Columns>
                         </DataGrid>
+                        <compartido:CtlPaginacion Grid.Row="2" Model="{Binding PaginacionServicios}"/>
                     </Grid>
                 </TabItem>
             </TabControl>

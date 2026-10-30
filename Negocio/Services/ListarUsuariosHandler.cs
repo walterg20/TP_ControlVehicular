@@ -32,5 +32,17 @@ namespace TP_ControlVehicular.Negocio.Services
             // 2. Mapea la colección de entidades a la colección de DTOs
             return _mapper.Map<List<UsuarioDto>>(entities);
         }
+
+        /// <summary>
+        /// Recupera una pagina de usuarios con la busqueda aplicada en la base de datos.
+        /// </summary>
+        public async Task<(IEnumerable<UsuarioDto> Items, int TotalRegistros)> HandlePaginadoAsync(
+            string? busqueda,
+            int pagina,
+            int tamanoPagina)
+        {
+            var (entities, total) = await _usuarioRepository.GetPaginadoAsync(busqueda, pagina, tamanoPagina);
+            return (_mapper.Map<List<UsuarioDto>>(entities), total);
+        }
     }
 }

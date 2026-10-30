@@ -7,6 +7,7 @@ using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -15,7 +16,7 @@ using System.Diagnostics;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class OrdenServicioViewModel : BaseViewModel, INotifyDataErrorInfo
+    public class OrdenServicioViewModel : BasePaginableViewModel, INotifyDataErrorInfo
     {
         private readonly ListarRegistroServiciosHandler _listarHandler;
         private readonly RegistrarRegistroServicioHandler _registrarHandler;
@@ -29,6 +30,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler _generarComprobantePagoHandler;
         private readonly AsignarVehiculoPorPatenteHandler _asignarVehiculoPorPatenteHandler;
         private readonly IMapper _mapper;
+        private readonly Debouncer _debouncer;
 
         public OrdenServicioViewModel(
             ListarRegistroServiciosHandler listarHandler,
@@ -56,6 +58,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _generarComprobantePagoHandler = generarComprobantePagoHandler;
             _asignarVehiculoPorPatenteHandler = asignarVehiculoPorPatenteHandler;
             _mapper = mapper;
+            _debouncer = new Debouncer();
 
             Ordenes = new ObservableCollection<RegistroServicioDto>();
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
@@ -69,7 +72,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) =>
             {
-                OnPropertyChanged(nameof(ListadoOrdenesFiltered));
                 OnPropertyChanged(nameof(IsListEmpty));
             };
 
@@ -135,28 +137,28 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public string TextoBusqueda
         {
             get => _textoBusqueda;
-            set { _textoBusqueda = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+            set { _textoBusqueda = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
 
         private DateTime? _fechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         public DateTime? FechaDesde
         {
             get => _fechaDesde;
-            set { _fechaDesde = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+            set { _fechaDesde = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
 
         private DateTime? _fechaHasta = DateTime.Today;
         public DateTime? FechaHasta
         {
             get => _fechaHasta;
-            set { _fechaHasta = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+            set { _fechaHasta = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
 
         private string _estadoFiltro = "Todos";
         public string EstadoFiltro
         {
             get => _estadoFiltro;
-            set { _estadoFiltro = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+            set { _estadoFiltro = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
 
         private string _mensajeValidacionFechas = string.Empty;
@@ -166,60 +168,31 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _mensajeValidacionFechas = value; OnPropertyChanged(); }
         }
 
-        public IEnumerable<RegistroServicioDto> ListadoOrdenesFiltered
+        /// <summary>
+        /// Valida el rango de fechas y devuelve true si es correcto.
+        /// </summary>
+        private bool ValidarFechas()
         {
-            get
+            if (FechaDesde.HasValue && FechaHasta.HasValue && FechaDesde.Value.Date > FechaHasta.Value.Date)
             {
-                if (FechaDesde.HasValue && FechaHasta.HasValue && FechaDesde.Value.Date > FechaHasta.Value.Date)
-                {
-                    MensajeValidacionFechas = "La fecha 'Desde' no puede ser posterior a 'Hasta'.";
-                    return Enumerable.Empty<RegistroServicioDto>();
-                }
-                MensajeValidacionFechas = string.Empty;
-
-                var query = Ordenes.AsEnumerable();
-
-                if (FechaDesde.HasValue)
-                {
-                    query = query.Where(o => o.Fecha.Date >= FechaDesde.Value.Date);
-                }
-
-                if (FechaHasta.HasValue)
-                {
-                    query = query.Where(o => o.Fecha.Date <= FechaHasta.Value.Date);
-                }
-
-                if (!string.IsNullOrWhiteSpace(EstadoFiltro) && EstadoFiltro != "Todos")
-                {
-                    query = query.Where(o => string.Equals(o.Estado, EstadoFiltro, StringComparison.OrdinalIgnoreCase));
-                }
-
-                if (!string.IsNullOrWhiteSpace(TextoBusqueda))
-                {
-                    var txt = TextoBusqueda.Trim();
-                    query = query.Where(o => (o.VehiculoPatente ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.VehiculoDetalle ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.RecepcionistaNombre ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.TallerNombre ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.ClienteDetalle ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.Estado ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || o.Id.ToString().Contains(txt));
-                }
-
-                return query;
+                MensajeValidacionFechas = "La fecha 'Desde' no puede ser posterior a 'Hasta'.";
+                return false;
             }
+
+            MensajeValidacionFechas = string.Empty;
+            return true;
         }
 
-        public bool IsListEmpty => !ListadoOrdenesFiltered.Any();
+        public bool IsListEmpty => !Ordenes.Any();
 
         private ICommand? _limpiarFiltrosCommand;
-        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(() =>
+        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(async () =>
         {
             FechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             FechaHasta = DateTime.Today;
             EstadoFiltro = "Todos";
             TextoBusqueda = string.Empty;
-            return Task.CompletedTask;
+            await BuscarAsync();
         });
 
         private ICommand? _imprimirListadoFiltradoCommand;
@@ -227,7 +200,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public async Task ImprimirListadoFiltradoAsync()
         {
-            var ordenes = ListadoOrdenesFiltered.ToList();
+            // El PDF exporta el conjunto completo de ordenes que cumplen los filtros,
+            // no solo la pagina visible.
+            var ordenes = (await _listarHandler.HandleCompletoAsync(
+                TextoBusqueda.Trim(),
+                EstadoFiltro,
+                FechaDesde,
+                FechaHasta)).ToList();
+
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ListadoOrdenes_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
 
             var filtrosTexto = $"Estado: {EstadoFiltro}";
@@ -459,18 +439,67 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             OnPropertyChanged(nameof(PuedePagar));
             OnPropertyChanged(nameof(PuedeVerComprobantePago));
 
-            Ordenes.Clear();
             await LoadCombosAsync();
 
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            if (!ValidarFechas()) return;
+
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        /// <summary>
+        /// Carga la pagina actual de ordenes con los filtros aplicados en la base de datos.
+        /// </summary>
+        protected override async Task CargarPaginaAsync()
+        {
+            if (!ValidarFechas()) return;
+
+            IsLoading = true;
             try
             {
-                var lista = await _listarHandler.HandleAsync();
-                foreach (var orden in lista)
+                var (items, total) = await _listarHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    EstadoFiltro,
+                    FechaDesde,
+                    FechaHasta,
+                    PaginaActual,
+                    TamanoPagina);
+
+                Ordenes.Clear();
+                foreach (var orden in items)
                 {
                     Ordenes.Add(orden);
                 }
+
+                ActualizarTotales(total);
             }
-            catch { }
+            catch
+            {
+                Ordenes.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         public async Task<bool> CancelarOrdenSeleccionadaAsync()
@@ -504,20 +533,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             try
             {
-                var dto = await _modificarHandler.HandleAsync(orden);
-                var index = -1;
-                for (int i = 0; i < Ordenes.Count; i++)
-                {
-                    if (Ordenes[i].Id == dto.Id)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-                if (index >= 0)
-                {
-                    Ordenes[index] = dto;
-                }
+                await _modificarHandler.HandleAsync(orden);
+                // Recargar la pagina actual para que el listado refleje el cambio de estado.
+                await CargarPaginaAsync();
                 return true;
             }
             catch (Exception ex)
@@ -562,24 +580,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (orden.Id == 0)
                 {
-                    var dto = await _registrarHandler.HandleAsync(orden);
-                    Ordenes.Add(dto);
+                    await _registrarHandler.HandleAsync(orden);
                 }
                 else
                 {
-                    var dto = await _modificarHandler.HandleAsync(orden);
-                    var index = -1;
-                    for (int i = 0; i < Ordenes.Count; i++)
-                    {
-                        if (Ordenes[i].Id == dto.Id)
-                        {
-                            index = i;
-                            break;
-                        }
-                    }
-                    if (index >= 0) Ordenes[index] = dto;
-                    else Ordenes.Add(dto);
+                    await _modificarHandler.HandleAsync(orden);
                 }
+
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
 
                 return true;
             }

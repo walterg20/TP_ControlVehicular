@@ -32,7 +32,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - `Entidad/` — entidades `Marca`, `Cliente`, `Modelo`, `Vehiculo` (convenciones: `string.Empty`, `new List<T>()`, `null!` en navs)
 - `Migracion/` — migraciones EF Core y `CVDbContextModelSnapshot.cs`
 - `Negocio/` — handlers (`RegistrarClienteHandler`, `RegistrarVehiculoHandler`, `ListarVehiculosPorClienteHandler`), `MappingProfile.cs` (Entity→DTO), DTOs, reportes QuestPDF
-- `Presentacion/` — `ViewModels/` (`BaseViewModel`, `ClienteViewModel`, `ModeloViewModel`, `MarcaViewModel`, `VehiculoViewModel`), `Pantalla/*/Ctl*.xaml.cs` (UserControls), `MainWindow`
+- `Presentacion/` — `ViewModels/` (`BaseViewModel`, `BasePaginableViewModel`, `IPaginacion`, `ClienteViewModel`, `ModeloViewModel`, `MarcaViewModel`, `VehiculoViewModel`), `Pantalla/*/Ctl*.xaml.cs` (UserControls), `Pantalla/Compartido/` (`CtlPaginacion`, `FrmConfirmacion`), `Helpers/` (`Debouncer`), `MainWindow`
 - `bd/` — scripts SQL canónicos idempotentes, consolidados por tipo (`01_estructura.sql`, `02_datos.sql`, `03_procedimientos.sql`, `04_triggers.sql`, `05_utilidades_test.sql`) · `docs/` — documentación · `openspec/` — specs
 
 ## Convenciones de código
@@ -41,7 +41,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - **Handlers**: inyectan interfaz de repositorio + `IMapper`; `HandleAsync` retorna `_mapper.Map<Dto>(entidad)`.
 - **AutoMapper**: perfil unidireccional Entity→DTO con nombres compuestos (`ClienteDto`, `VehiculoDto`, etc.).
 - **ViewModels**: heredan `BaseViewModel` (`INotifyPropertyChanged`, `SetProperty<T>`), `RelayCommand` con `async () =>`, `ObservableCollection<Dto>` en ctor, campos `private readonly` inyectados (repo + opcional `IMapper`).
-  - **Excepción `VehiculoViewModel`**: clase plana, no hereda `BaseViewModel`, construye `Entidad.Vehiculo` directo.
+  - **Excepción `VehiculoViewModel`**: es plano en el sentido de que no usa handlers — inyecta `IVehiculoRepository` directo y construye `Entidad.Vehiculo` directo. **Sí** hereda de `BaseViewModel` (la nota anterior que decía lo contrario estaba desactualizada; el código es la evidencia).
   - `ClienteViewModel` usa `OnPropertyChanged()` en setters de propiedades.
 - **Inyección de dependencias**: ambos patrones son válidos — handlers usan inyección basada en handler para escritura/validación; `VehiculoViewModel` usa inyección directa de repositorio (patrón aceptado).
 
@@ -54,6 +54,21 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - Paleta de colores de botones: `➕ Nuevo` (`#27AE60` Verde), `✏️ Editar` (`#F39C12` Naranja), `🗑️ Eliminar` (`#C0392B` Rojo), `🔄 Actualizar / Buscar` (`#2980B9` Azul).
 - Code-behind (`Ctl*.xaml.cs`): registrar el evento `Loaded` una sola vez en el constructor principal para evitar ejecuciones concurrentes de `LoadAsync()` sobre el DbContext.
 - **Nomenclatura**: al declarar, recuperar del DI o castear el DataContext a un ViewModel en el code-behind, nombrar la variable con el prefijo `vm` + el nombre de la entidad (ej: `vmOrdenServicio`, `vmCliente`). **Nunca** usar simplemente `vm`.
+- **Listados paginados**: las pantallas de listado agregan una fila extra con `<compartido:CtlPaginacion Model="{Binding}"/>` (namespace `xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"`), ubicada entre la grilla y el pie de acciones.
+- **Pantallas con dos grillas paginadas**: cada grilla tiene su propio estado. Se usa `PaginacionViewModel` (`Presentacion/ViewModels/`) — una instancia concreta de `BasePaginableViewModel` que recibe un delegado de carga — y la vista la enlaza con `<compartido:CtlPaginacion Model="{Binding MiPaginacion}"/>`.
+
+## UI — Paginación (`CtlPaginacion`)
+- Todo listado con grilla usa el control compartido `Presentacion/Pantalla/Compartido/CtlPaginacion.xaml`; **no** reimplementar la barra ni el estado de paginación en cada pantalla.
+- El ViewModel del listado hereda `BasePaginableViewModel` (`Presentacion/ViewModels/`), que implementa `IPaginacion` y centraliza `PaginaActual`, `TotalPaginas`, `TotalRegistros`, `TamanoPagina`, `TextoPaginacion`, `PuedeIrAnterior/PuedeIrSiguiente` y los comandos `IrPrimeraPaginaCommand` / `PaginaAnteriorCommand` / `PaginaSiguienteCommand` / `IrUltimaPaginaCommand`.
+- La subclase implementa `protected override Task CargarPaginaAsync()` y llama a `ActualizarTotales(total)` con la cantidad de registros que devuelve la consulta paginada.
+- **La paginación es en base de datos**: los repositorios exponen métodos paginados (`Repository<T>.GetPaginadoAsync(...)` en EF Core → `OFFSET ... FETCH NEXT ... ROWS ONLY`; SP en `bd/03_procedimientos.sql` cuando la proyección lo exige). No cargar la colección completa para filtrar en memoria.
+- **La búsqueda también es server-side**: el término se aplica en la consulta, no sobre una colección en memoria. Los setters de filtro sólo actualizan estado y reinician la página a 1; la recarga se dispara desde la acción `Buscar`, la tecla `Enter` y un debounce de 500 ms (`Presentacion/Helpers/Debouncer.cs`).
+- **Los filtros que dependen de joins se expresan por columna**, no sobre el DTO aplanado: `r.Id.ToString().Contains(...)` no es traducible a SQL (comparar `r.Id == n` si el término es numérico) y `string.Join` sobre una colección tampoco (usar `STRING_AGG` en el SP).
+- Las altas/ediciones/bajas de un listado paginado **recargan la página** en lugar de manipular la colección en memoria.
+- Los PDFs de reportes siguen exportando el **conjunto completo** de registros filtrados, no sólo la página visible (en los SP, `@TamanoPagina = 0` devuelve todo).
+- `BaseViewModel.IsLoading` es `virtual` para que las subclases paginadas puedan notificar el estado de los comandos de navegación.
+- **EF Core y `Include` de colecciones**: usar `AsSplitQuery()` cuando la consulta pagina y trae colecciones (propietarios, permisos, detalles), para que el JOIN 1:N no altere el `Skip`/`Take`.
+- **EF Core y `SqlQueryRaw`**: el tipo de resultado debe tener **todas** las columnas que devuelve la consulta; si falta una, EF Core lanza `The required column 'X' was not present in the results of a 'FromSql' operation`.
 
 ## UI — Formularios modales (`Frm*.xaml`)
 - `Grid` principal con `Margin="24"`.
@@ -86,6 +101,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - **Subagentes SDD** (`.opencode/agents/`): `coordinator`, `planner`, `implementer`, `reviewer`.
 - **MCP servers** (`mcp.json`): `codegraph`, `github`, `sqlite`.
 - **Base de datos**: SQL Server `<SERVIDOR>\<INSTANCIA>` vía EF Core 10; migraciones en `Migracion/`; scripts idempotentes en `bd/`, consolidados por tipo (`01_estructura.sql`, `02_datos.sql`, `03_procedimientos.sql`, `04_triggers.sql`, `05_utilidades_test.sql`). Un objeto nuevo se agrega al script canónico de su tipo; no se crean scripts numerados nuevos.
+- **DbContext por operación**: el contexto se registra con `AddDbContextFactory<CVDbContext>` y **cada operación de repositorio crea su propio contexto** (`_contextFactory.CreateDbContext()`), que se descarta al terminar. **Nunca** guardar un `CVDbContext` en un campo de un repositorio, handler o servicio: en WPF los servicios Scoped viven toda la vida de la aplicación, así que un contexto compartido provoca *"A second operation was started on this context instance"* en cuanto dos pantallas cargan a la vez (o el evento `Loaded` vuelve a dispararse sobre un control reutilizado). Los repositorios heredan de `Repository<T>` y usan `CrearContexto()`; los que no heredan usan `_contextFactory.CreateDbContext()`.
 - **Tests**: `TP_ControlVehicular.Tests` (xUnit + Moq), `dotnet test` · **Scripts temporales**: `docs/script/` (.py/.ps1).
 
 ## No hagas

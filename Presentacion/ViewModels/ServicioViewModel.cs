@@ -5,10 +5,14 @@ using System.Windows.Input;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class ServicioViewModel : BaseViewModel
+    /// <summary>
+    /// Listado de servicios con paginacion y busqueda en la base de datos.
+    /// </summary>
+    public class ServicioViewModel : BasePaginableViewModel
     {
         protected override string Modulo => "Servicio";
 
@@ -17,6 +21,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ModificarServicioHandler _modificarServicioHandler;
         private readonly EliminarServicioHandler _eliminarServicioHandler;
         private readonly ReactivarServicioHandler _reactivarServicioHandler;
+        private readonly Debouncer _debouncer;
 
         private int _idServicio;
         public int IdServicio
@@ -43,7 +48,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public bool Activo
         {
             get => _activo;
-            set => SetProperty(ref _activo, value);
+            set { SetProperty(ref _activo, value); }
         }
 
         private bool _mostrarInactivos;
@@ -54,7 +59,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (SetProperty(ref _mostrarInactivos, value))
                 {
-                    _ = LoadAsync();
+                    // El filtro cambio: el listado vuelve a la primera pagina.
+                    ReiniciarPagina();
                 }
             }
         }
@@ -67,20 +73,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (SetProperty(ref _textoBusqueda, value))
                 {
-                    AplicarFiltro();
+                    // El filtro cambio: el listado vuelve a la primera pagina.
+                    ReiniciarPagina();
                 }
             }
         }
 
-        private bool _isLoading;
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
-        }
-
-        private readonly List<ServicioDto> _todosLosServicios = new();
-        public ObservableCollection<ServicioDto> ListadoServiciosFiltered { get; } = new();
+        /// <summary>Registros de la pagina actual.</summary>
+        public ObservableCollection<ServicioDto> Servicios { get; } = new();
 
         public ICommand CargarServiciosCommand { get; }
 
@@ -96,40 +96,60 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _modificarServicioHandler = modificarServicioHandler;
             _eliminarServicioHandler = eliminarServicioHandler;
             _reactivarServicioHandler = reactivarServicioHandler;
+            _debouncer = new Debouncer();
 
             CargarServiciosCommand = new RelayCommand(LoadAsync);
         }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
         {
             IsLoading = true;
             try
             {
-                var list = await _listarServiciosHandler.HandleAsync(MostrarInactivos);
-                _todosLosServicios.Clear();
-                _todosLosServicios.AddRange(list);
-                AplicarFiltro();
+                var (items, total) = await _listarServiciosHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    MostrarInactivos,
+                    PaginaActual,
+                    TamanoPagina);
+
+                Servicios.Clear();
+                foreach (var item in items)
+                {
+                    Servicios.Add(item);
+                }
+
+                ActualizarTotales(total);
             }
             finally
             {
                 IsLoading = false;
-            }
-        }
-
-        private void AplicarFiltro()
-        {
-            ListadoServiciosFiltered.Clear();
-            var query = _todosLosServicios.AsEnumerable();
-
-            if (!string.IsNullOrWhiteSpace(TextoBusqueda))
-            {
-                var txt = TextoBusqueda.Trim().ToLower();
-                query = query.Where(s => s.Nombre.ToLower().Contains(txt));
-            }
-
-            foreach (var item in query)
-            {
-                ListadoServiciosFiltered.Add(item);
             }
         }
 

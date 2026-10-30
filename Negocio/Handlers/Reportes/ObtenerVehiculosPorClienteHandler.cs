@@ -25,5 +25,19 @@ namespace TP_ControlVehicular.Negocio.Handlers.Reportes
 
             return await _repository.ObtenerVehiculosPorClienteAsync(clienteId, dni);
         }
+
+        /// <summary>
+        /// Recupera una pagina de los vehiculos del cliente con la paginacion en la base de datos.
+        /// </summary>
+        public async Task<(IEnumerable<VehiculoClienteDto> Items, int TotalRegistros)> HandlePaginadoAsync(
+            int? clienteId, string? dni, int pagina, int tamanoPagina)
+        {
+            if (clienteId == null && string.IsNullOrWhiteSpace(dni))
+            {
+                throw new ArgumentException("Debe proporcionar un ID de cliente o un DNI.");
+            }
+
+            return await _repository.ObtenerVehiculosPorClientePaginadoAsync(clienteId, dni, pagina, tamanoPagina);
+        }
     }
 }
