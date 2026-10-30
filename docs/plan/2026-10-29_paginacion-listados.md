@@ -195,6 +195,29 @@ Ambos se corrigieron en los SP originales y en los nuevos paginados. La columna 
 
 ---
 
+## Complemento — Paginación de las pestañas del Reporte Gerencial
+
+Las pestañas **Top Clientes**, **Modelos Más Reparados** y **Servicios por Rango** del Reporte Gerencial se habían quedado fuera: la barra del Gerencial solo cubría la pestaña *Ingresos Totales*. La razón era que sus procedimientosLIMITaban el resultado con `TOP (@TopN) = 10`, así que nunca había más de una página que paginar.
+
+### Qué se hizo
+
+- **SQL**: tres procedimientos nuevos en `bd/03_procedimientos.sql` — `sp_ReporteTopClientesPaginado`, `sp_ReporteModelosReparadosPaginado` y `sp_ReporteServiciosPorRangoPaginado`. A diferencia de los originales, **no aplican el tope `TOP`**: devuelven el ranking completo y lo paginan con `OFFSET ... FETCH NEXT`. Con `@TamanoPagina = 0` devuelven el conjunto completo (lo usan los PDF).
+  Los procedimientos originales (`sp_ReporteTopClientes`, `sp_ReporteModelosReparados`) se mantienen sin cambios porque `ReporteOperativoViewModel` los sigue usando con `@TopN = 10` para el ranking de vehículos frecuentes.
+- **ViewModel**: `ReporteGerencialViewModel` expone tres estados de paginación independientes — `PaginacionTopClientes`, `PaginacionModelos` y `PaginacionServicios` (instancias de `PaginacionViewModel`), cada uno con su delegado de carga. `LoadAsync` carga la primera página de cada pestaña.
+- **Vista**: las tres pestañas ganan una tercera fila con `<compartido:CtlPaginacion Model="{Binding Paginacion...}"/>`.
+- **PDF**: las tres exportaciones ahora piden el conjunto completo al procedimiento (`@TamanoPagina = 0`), de modo que el documento no se limita a la página visible.
+
+### Consecuencia a tener en cuenta
+
+Las pestañas antes mostraban como máximo 10 filas; ahora muestran el **ranking completo paginado** (con los datos de ejemplo: 55 clientes, 43 modelos y 13 servicios). El PDF correspondiente también pasó de 10 filas al ranking completo, en línea con la regla de que los PDF exportan el conjunto filtrado completo.
+
+### Verificación
+
+- `dotnet build` → 0 errores. `dotnet test` → **87 / 87** (81 previos + 6 E2E nuevos: `ReporteGerencialPaginacionTests`).
+- Los tres procedimientos se probaron además con `sqlcmd` contra la base de desarrollo: Top Clientes 55 registros, Modelos 43, Servicios 13.
+
+---
+
 ## Fases 2 y 3 (pendientes)
 
 ### Fase 2 — CRUD restantes
