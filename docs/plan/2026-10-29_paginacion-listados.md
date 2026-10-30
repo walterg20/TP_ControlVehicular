@@ -218,6 +218,35 @@ Las pestañas antes mostraban como máximo 10 filas; ahora muestran el **ranking
 
 ---
 
+## Complemento — Agregación por período del gráfico de ingresos del Reporte Gerencial
+
+El PDF de *Ingresos Totales* mostraba el **gráfico de barras por día** mientras la grilla de
+resumen que va justo debajo estaba **agrupada por mes**. Con un rango de varios meses, el
+gráfico llegó a tener decenas de barras diarias y no era comparable con la tabla.
+
+### Qué se hizo
+
+- `IngresosBarChartGenerator` se refactorizó sobre un núcleo común (`ConstruirSvg`) que recibe
+  una serie de `(Etiqueta, Valor)`:
+  - `BuildSvg(ingresosDiarios)` → barras por día con etiqueta `dd/MM` (comportamiento actual).
+  - `BuildSvgPorMeses(ingresosMensuales)` → barras por período con etiqueta `MM/aa`.
+  - `BuildSvg(ingresosDiarios, ingresosMensuales)` → **elige la agregación**: por período
+    mensual si el rango abarca más de un mes calendario, por día si el rango cubre un solo mes
+    (en ese caso una única barra mensual no aportaría información).
+- El SVG incluye un título que explicita la agregación aplicada: *"Ingresos por mes"* o
+  *"Ingresos por día"*.
+- `ComposeIngresosContent` pasa a llamar a la sobrecarga que decide, de modo que **el gráfico y
+  la tabla de resumen por mes usan exactamente la misma fuente de datos** (`IngresosMensuales`).
+
+### Verificación
+
+- `dotnet test` → **93 / 93**. Incluye una prueba que renderiza el SVG con QuestPDF a un PDF
+  real, para confirmar que el parser SVG sigue aceptando el documento con el título nuevo.
+- Se generó y revisó el SVG mensual con datos de ejemplo: 5 barras (una por mes), etiquetas
+  `06/26`…`10/26`, montos y escala de eje Y correctos.
+
+---
+
 ## Fases 2 y 3 (pendientes)
 
 ### Fase 2 — CRUD restantes
