@@ -21,11 +21,13 @@ namespace TP_ControlVehicular.Tests.EndToEnd
     public class PaginacionBaseDeDatosTests : IAsyncLifetime
     {
         private readonly CVDbContext _ctx;
+        private readonly ContextoTestFactoryAdapter _factory;
         private SemillaE2EResult _siembra = new();
 
         public PaginacionBaseDeDatosTests()
         {
             _ctx = ContextoTestFactory.Create();
+            _factory = new ContextoTestFactoryAdapter(TestRunContext.ConnectionString);
         }
 
         public async Task InitializeAsync()
@@ -55,8 +57,8 @@ namespace TP_ControlVehicular.Tests.EndToEnd
             _ctx.Dispose();
         }
 
-        private RegistroServicioRepository CrearRepoServicios() => new(_ctx);
-        private ReporteRepository CrearRepoReportes() => new(_ctx);
+        private RegistroServicioRepository CrearRepoServicios() => new(_factory);
+        private ReporteRepository CrearRepoReportes() => new(_factory);
 
         [RequiereSqlServerFact]
         public async Task GetPaginadoAsync_DevuelveSoloLaPaginaYPropagaElTotal()
@@ -206,6 +208,50 @@ namespace TP_ControlVehicular.Tests.EndToEnd
 
             Assert.True(total >= 1, $"El filtro por DNI deberia encontrar el cliente, fue {total}.");
             Assert.NotEmpty(items);
+        }
+
+        // ------------------------------------------------------------------
+        // Regresión: dos operaciones concurrentes sobre el mismo repositorio
+        // no deben compartir la instancia de DbContext.
+        // ------------------------------------------------------------------
+
+        [RequiereSqlServerFact]
+        public async Task ConfiguracionEmpresa_DosCargasConcurrentes_NoCompartenElContexto()
+        {
+            // Reproduce el crash reportado: el evento Loaded de CtlConfiguracion vuelve a
+            // dispararse cuando se reutiliza el control y dos ObtenerAsync se superponen.
+            var repo = new ConfiguracionEmpresaRepository(_factory);
+
+            var primera = repo.ObtenerAsync();
+            var segunda = repo.ObtenerAsync();
+            await Task.WhenAll(primera, segunda);
+
+            Assert.True(primera.Result is not null || segunda.Result is not null);
+        }
+
+        [RequiereSqlServerFact]
+        public async Task GetPaginadoAsync_OperacionesConcurrentes_NoCompartenElContexto()
+        {
+            var repo = CrearRepoServicios();
+
+            var primera = repo.GetPaginadoAsync(null, null, null, null, 1, 10);
+            var segunda = repo.GetPaginadoAsync(null, null, null, null, 2, 10);
+            await Task.WhenAll(primera, segunda);
+
+            Assert.NotEmpty((await primera).Items);
+            Assert.NotEmpty((await segunda).Items);
+        }
+
+        [RequiereSqlServerFact]
+        public async Task GetPaginadoPorMecanicoAsync_OperacionesConcurrentes_NoCompartenElContexto()
+        {
+            var repo = CrearRepoServicios();
+
+            var primera = repo.GetPaginadoPorMecanicoAsync(_siembra.MecanicoId, null, "Todos", null, null, 1, 10);
+            var segunda = repo.GetPaginadoPorMecanicoAsync(_siembra.MecanicoId, null, "Pendientes", null, null, 1, 10);
+            await Task.WhenAll(primera, segunda);
+
+            Assert.NotEmpty((await primera).Items);
         }
     }
 }

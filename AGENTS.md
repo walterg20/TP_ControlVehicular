@@ -101,6 +101,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - **Subagentes SDD** (`.opencode/agents/`): `coordinator`, `planner`, `implementer`, `reviewer`.
 - **MCP servers** (`mcp.json`): `codegraph`, `github`, `sqlite`.
 - **Base de datos**: SQL Server `<SERVIDOR>\<INSTANCIA>` vía EF Core 10; migraciones en `Migracion/`; scripts idempotentes en `bd/`, consolidados por tipo (`01_estructura.sql`, `02_datos.sql`, `03_procedimientos.sql`, `04_triggers.sql`, `05_utilidades_test.sql`). Un objeto nuevo se agrega al script canónico de su tipo; no se crean scripts numerados nuevos.
+- **DbContext por operación**: el contexto se registra con `AddDbContextFactory<CVDbContext>` y **cada operación de repositorio crea su propio contexto** (`_contextFactory.CreateDbContext()`), que se descarta al terminar. **Nunca** guardar un `CVDbContext` en un campo de un repositorio, handler o servicio: en WPF los servicios Scoped viven toda la vida de la aplicación, así que un contexto compartido provoca *"A second operation was started on this context instance"* en cuanto dos pantallas cargan a la vez (o el evento `Loaded` vuelve a dispararse sobre un control reutilizado). Los repositorios heredan de `Repository<T>` y usan `CrearContexto()`; los que no heredan usan `_contextFactory.CreateDbContext()`.
 - **Tests**: `TP_ControlVehicular.Tests` (xUnit + Moq), `dotnet test` · **Scripts temporales**: `docs/script/` (.py/.ps1).
 
 ## No hagas
