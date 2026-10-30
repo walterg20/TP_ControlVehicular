@@ -229,10 +229,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 }
                 column.Item().PaddingBottom(10).Text($"Total Recaudado en el periodo: {total:C}").FontSize(14).Bold();
 
-                // 1. Gráfico de evolución de ingresos
+                // 1. Gráfico de evolución de ingresos (por periodo mensual si el rango
+                //    abarca mas de un mes; por dia si el rango cubre un solo mes).
                 if (listaIngresos.Count > 0)
                 {
-                    column.Item().PaddingBottom(15).Svg(IngresosBarChartGenerator.BuildSvg(listaIngresos));
+                    column.Item().PaddingBottom(15).Svg(IngresosBarChartGenerator.BuildSvg(listaIngresos, listaMensuales));
                 }
 
                 // 2. Resumen Agrupado por Mes
