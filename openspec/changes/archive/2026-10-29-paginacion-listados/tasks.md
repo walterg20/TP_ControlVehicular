@@ -46,4 +46,4 @@
 - [x] C.1 Write the execution plan/log to `docs/plan/2026-10-29_paginacion-listados.md`.
 - [x] C.2 Update `MEMORY.md` with the new pagination conventions, the new stored procedures and the new files.
 - [x] C.3 Update `AGENTS.md` with the pagination conventions and correct the stale `VehiculoViewModel` inheritance note.
-- [ ] C.4 Merge `feature/paginacion-listados` into `develop` and archive the change under `openspec/changes/archive/`.
+- [x] C.4 Merge `feature/paginacion-listados` into `develop` and archive the change under `openspec/changes/archive/`.
