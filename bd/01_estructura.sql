@@ -6,7 +6,7 @@
 -- Idempotente: cada objeto se crea solo si no existe (puede re-ejecutarse).
 -- Requiere: base de datos [ControlVehicular] ya creada.
 -- Compatible con SQL Server 2019 Express. Codificación UTF-8.
--- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades.
+-- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades -> 06_poblacion.
 -- ============================================================================
 USE [ControlVehicular];
 GO
@@ -25,6 +25,108 @@ IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Usuari
    AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Usuarios]') AND name = 'Activo')
 BEGIN
     EXEC sp_rename '[dbo].[Usuarios].[Estado]', 'Activo', 'COLUMN';
+END
+GO
+
+-- ----------------------------------------------------------------------------
+-- Asegurar columnas Activo en tablas existentes
+-- ----------------------------------------------------------------------------
+IF OBJECT_ID(N'[dbo].[Cliente]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Cliente]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Cliente] ADD [Activo] bit NOT NULL CONSTRAINT DF_Cliente_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Roles]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Roles]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Roles] ADD [Activo] bit NOT NULL CONSTRAINT DF_Roles_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Usuarios]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Usuarios]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Usuarios] ADD [Activo] bit NOT NULL CONSTRAINT DF_Usuarios_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Servicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Servicio]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Servicio] ADD [Activo] bit NOT NULL CONSTRAINT DF_Servicio_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Taller]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Taller]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Taller] ADD [Activo] bit NOT NULL CONSTRAINT DF_Taller_Activo DEFAULT (1);
+END
+GO
+
+-- ----------------------------------------------------------------------------
+-- Asegurar columna OrdenEjecucion en DetalleServicio
+-- ----------------------------------------------------------------------------
+IF OBJECT_ID(N'[dbo].[DetalleServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[DetalleServicio]') AND name = 'OrdenEjecucion')
+BEGIN
+    ALTER TABLE [dbo].[DetalleServicio] ADD [OrdenEjecucion] int NOT NULL CONSTRAINT DF_DetalleServicio_OrdenEjecucion DEFAULT (1);
+END
+GO
+
+-- ----------------------------------------------------------------------------
+-- Asegurar restricciones CHECK en tablas existentes
+-- ----------------------------------------------------------------------------
+IF OBJECT_ID(N'[dbo].[RegistroServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CHK_RegistroServicio_Estado')
+BEGIN
+    ALTER TABLE [dbo].[RegistroServicio] ADD CONSTRAINT [CHK_RegistroServicio_Estado]
+        CHECK ([Estado] IN ('Abierta', 'En Proceso', 'Completada', 'Pagada', 'Cancelada'));
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[DetalleServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CHK_DetalleServicio_Estado')
+BEGIN
+    ALTER TABLE [dbo].[DetalleServicio] ADD CONSTRAINT [CHK_DetalleServicio_Estado]
+        CHECK ([Estado] IN ('Pendiente', 'En Curso', 'Finalizada'));
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Servicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_Servicio_Precio')
+BEGIN
+    ALTER TABLE [dbo].[Servicio] ADD CONSTRAINT [CK_Servicio_Precio] CHECK ([Precio] > 0);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Vehiculo]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_Vehiculo_KmActual')
+BEGIN
+    ALTER TABLE [dbo].[Vehiculo] ADD CONSTRAINT [CK_Vehiculo_KmActual] CHECK ([KmActual] >= 0);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[RegistroServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_RegistroServicio_KmIngreso')
+BEGIN
+    ALTER TABLE [dbo].[RegistroServicio] ADD CONSTRAINT [CK_RegistroServicio_KmIngreso] CHECK ([KmIngreso] >= 0);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[DetalleServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_DetalleServicio_Precio')
+BEGIN
+    ALTER TABLE [dbo].[DetalleServicio] ADD CONSTRAINT [CK_DetalleServicio_Precio] CHECK ([Precio] >= 0);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[DetalleServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_DetalleServicio_Cantidad')
+BEGIN
+    ALTER TABLE [dbo].[DetalleServicio] ADD CONSTRAINT [CK_DetalleServicio_Cantidad] CHECK ([Cantidad] > 0);
 END
 GO
 

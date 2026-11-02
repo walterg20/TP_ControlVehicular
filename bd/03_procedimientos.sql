@@ -2,11 +2,12 @@
 -- 03_procedimientos.sql — Procedimientos almacenados (reportes y comprobantes).
 -- ----------------------------------------------------------------------------
 -- Autor: consolidación de scripts históricos (2026-10-12).
--- Contenido: 16 procedimientos almacenados, cada uno con CREATE OR ALTER
+-- Contenido: 22 procedimientos almacenados oficiales (reportes, comprobantes y paginados),
+--            cada uno con CREATE OR ALTER
 --            (idempotente: puede re-ejecutarse sobre una base existente).
 -- Requiere: esquema creado por 01_estructura.sql y datos de 02_datos.sql.
 -- Compatible con SQL Server 2019 Express. Codificación UTF-8.
--- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades.
+-- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades -> 06_poblacion.
 -- ----------------------------------------------------------------------------
 -- NOTAS DE COLISIÓN DE NOMBRES (origen histórico):
 --   * sp_ReporteIngresos: definido en 06_ (3 parámetros) y redefinido en 07_
