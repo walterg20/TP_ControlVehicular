@@ -176,7 +176,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 MostrarGraficoMecanico = esMecanico;
 
                 TituloSeccion = MostrarGraficosGerenciales
-                    ? "📊 Visiones gerenciales"
+                    ? "📊 Reportes gerenciales (últimos 6 meses)"
                     : MostrarGraficoMecanico
                         ? "🔧 Mi rendimiento"
                         : "📋 Estado de órdenes";

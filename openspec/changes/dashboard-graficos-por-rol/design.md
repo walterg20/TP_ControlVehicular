@@ -43,8 +43,8 @@ Los tres gráficos del Reporte Gerencial existen hoy como **cadenas SVG** genera
   | Gráfico | Rol | Rango |
   |---|---|---|
   | Ingresos por mes | Administrador | últimos 6 meses (mes en curso incluido) |
-  | Modelos más reparados | Administrador | mes en curso |
-  | Servicios por rango | Administrador | mes en curso |
+  | Modelos más reparados | Administrador | últimos 6 meses (mes en curso incluido) |
+  | Servicios por rango | Administrador | últimos 6 meses (mes en curso incluido) |
   | Órdenes por estado | Recepcionista | mes en curso |
   | Tareas por estado | Mecánico | **sin filtro de fecha** |
 - **Rationale:** cada gráfico tiene su rango natural y un selector obligaría a recargar tres consultas a la vez para un dato que el usuario no suele cambiar. El caso del mecánico se explica en la decisión 5.

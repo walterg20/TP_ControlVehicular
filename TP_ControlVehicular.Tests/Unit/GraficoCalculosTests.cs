@@ -47,7 +47,7 @@ namespace TP_ControlVehicular.Tests.Unit
         {
             var escala = GraficoCalculos.CalcularEscala(Serie(("a", 100m)));
 
-            Assert.Equal(1d, escala.Proporcion(100m), 3);
+            Assert.Equal(1d, escala.Proporcion(200m), 3);
             Assert.Equal(0d, escala.Proporcion(-50m), 3);
         }
 

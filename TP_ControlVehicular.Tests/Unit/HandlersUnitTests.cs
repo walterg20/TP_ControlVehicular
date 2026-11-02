@@ -6,8 +6,11 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Negocio.Context;
+using TP_ControlVehicular.Negocio.DTOs.Reportes;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Mappers;
+using TP_ControlVehicular.Negocio.Reportes;
 using TP_ControlVehicular.Negocio.Reportes.Documentos;
 using TP_ControlVehicular.Negocio.Services;
 using Xunit;
@@ -472,6 +475,63 @@ namespace TP_ControlVehicular.Tests.Unit
             Assert.Equal("Chevrolet", dto.MarcaNombre);
             repo.Verify(r => r.UpdateAsync(input), Times.Once);
             repo.Verify(r => r.GetByIdAsync(input.Id), Times.Once);
+        }
+
+        [Fact]
+        public async Task ObtenerDashboardHandler_Administrador_ConsultaModelosYServiciosUltimos6Meses()
+        {
+            // Arrange
+            var prevUser = UserSession.CurrentUser;
+            UserSession.CurrentUser = new UsuarioDto
+            {
+                IdUsuario = 1,
+                Nombre = "Admin",
+                IdRol = (int)RolesSistema.Administrador
+            };
+
+            try
+            {
+                var repoRegistro = new Mock<IRegistroServicioRepository>();
+                repoRegistro.Setup(r => r.GetReporteCompletoAsync(null))
+                    .ReturnsAsync(new List<RegistroServicio>());
+
+                var repoReportes = new Mock<IReporteGerencialRepository>();
+                repoReportes.Setup(r => r.ObtenerIngresosPorFechaAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                    .ReturnsAsync(new List<ReporteIngresoDto>());
+                repoReportes.Setup(r => r.ObtenerIngresosMensualesAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>()))
+                    .ReturnsAsync(new List<ReporteIngresoMensualDto>());
+                repoReportes.Setup(r => r.ObtenerModelosMasReparadosPaginadoAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), 1, 8))
+                    .ReturnsAsync((new List<ReporteModeloReparadoDto>(), 0));
+                repoReportes.Setup(r => r.ObtenerServiciosPorRangoPaginadoAsync(It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), 1, 0))
+                    .ReturnsAsync((new List<ReporteServicioCantidadDto>(), 0));
+
+                var handler = new ObtenerDashboardHandler(repoRegistro.Object, repoReportes.Object);
+
+                // Act
+                var metricas = await handler.HandleAsync();
+
+                // Assert
+                Assert.NotNull(metricas);
+                Assert.True(metricas.MostrarGraficosGerenciales);
+
+                // Verifica que Modelos y Servicios se consulten con la fecha de inicio de 5 meses atrás
+                var inicioMes = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                var fechaEsperadaDesde = inicioMes.AddMonths(-5);
+
+                repoReportes.Verify(r => r.ObtenerModelosMasReparadosPaginadoAsync(
+                    It.Is<DateTime?>(d => d.HasValue && d.Value.Date == fechaEsperadaDesde.Date),
+                    It.Is<DateTime?>(d => d.HasValue && d.Value.Date == DateTime.Today),
+                    1, 8), Times.Once);
+
+                repoReportes.Verify(r => r.ObtenerServiciosPorRangoPaginadoAsync(
+                    It.Is<DateTime?>(d => d.HasValue && d.Value.Date == fechaEsperadaDesde.Date),
+                    It.Is<DateTime?>(d => d.HasValue && d.Value.Date == DateTime.Today),
+                    1, 0), Times.Once);
+            }
+            finally
+            {
+                UserSession.CurrentUser = prevUser;
+            }
         }
     }
 }

@@ -54,7 +54,7 @@ namespace TP_ControlVehicular.Presentacion.Graficos
             /// <summary>Proporcion de la altura ocupada por un valor, en el rango 0..1.</summary>
             public double Proporcion(decimal valor)
             {
-                if (MaximoEscala <= 0) return 0;
+                if (Maximo <= 0 || MaximoEscala <= 0) return 0;
                 return Math.Clamp((double)valor / MaximoEscala, 0, 1);
             }
         }
@@ -80,6 +80,12 @@ namespace TP_ControlVehicular.Presentacion.Graficos
             /// <summary>Verdadero si la porcion abarca mas de media vuelta.</summary>
             public bool EsPorcionGrande => (AnguloFin - AnguloInicio) > 180.0;
         }
+
+        /// <summary>
+        /// Calcula la escala del eje vertical a partir de una serie de dashboard.
+        /// </summary>
+        public static Escala CalcularEscala(IEnumerable<DashboardSerieDto> serie, int cantidadCortes = 4) =>
+            CalcularEscala((serie ?? Enumerable.Empty<DashboardSerieDto>()).Select(s => s.Valor), cantidadCortes);
 
         /// <summary>
         /// Calcula la escala del eje vertical a partir de los valores de la serie.

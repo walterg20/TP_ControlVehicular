@@ -149,9 +149,9 @@ namespace TP_ControlVehicular.Negocio.Services
                 })
                 .ToList();
 
-            // 2. Modelos mas reparados: mes en curso, top 8.
+            // 2. Modelos mas reparados: ultimos 6 meses, top 8.
             var modelos = await _reporteGerencialRepository.ObtenerModelosMasReparadosPaginadoAsync(
-                inicioMes, hoy, 1, 8);
+                desdeIngresos, hoy, 1, 8);
 
             metricas.ModelosMasReparados = modelos.Items
                 .Select(m => new DashboardSerieDto
@@ -161,10 +161,10 @@ namespace TP_ControlVehicular.Negocio.Services
                 })
                 .ToList();
 
-            // 3. Servicios por cantidad: mes en curso (el agrupamiento top N + Otros lo
+            // 3. Servicios por cantidad: ultimos 6 meses (el agrupamiento top N + Otros lo
             //    aplica el control de torta).
             var servicios = await _reporteGerencialRepository.ObtenerServiciosPorRangoPaginadoAsync(
-                inicioMes, hoy, 1, 0);
+                desdeIngresos, hoy, 1, 0);
 
             metricas.ServiciosPorRango = servicios.Items
                 .Select(s => new DashboardSerieDto
