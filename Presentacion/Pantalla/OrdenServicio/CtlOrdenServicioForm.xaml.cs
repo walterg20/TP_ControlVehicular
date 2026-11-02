@@ -374,6 +374,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                             idMecanicoAuto = mWin.UsuarioSesionActual.IdUsuario;
                     }
 
+                    if (idMecanicoAuto == 0 && vmOrdenServicioForm.MecanicosDisponibles.Count > 0)
+                    {
+                        idMecanicoAuto = vmOrdenServicioForm.MecanicosDisponibles[0].IdUsuario;
+                    }
+
                     vmOrdenServicioForm.DetallesOrdenActual.Add(new DetalleServicioDto
                     {
                         ServicioId = vmOrdenServicioForm.ServicioBusquedaSeleccionado.IdServicio,
@@ -476,6 +481,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 if (vmOrdenServicioForm.DetallesOrdenActual.Count == 0)
                 {
                     Compartido.FrmConfirmacion.MostrarAviso("Debe agregar al menos un servicio a la orden antes de guardar.", "Validación", Window.GetWindow(this));
+                    return;
+                }
+                if (vmOrdenServicioForm.DetallesOrdenActual.Any(d => d.UsuarioId <= 0))
+                {
+                    Compartido.FrmConfirmacion.MostrarAviso("Debe asignar un mecánico a cada servicio de la orden antes de guardar.", "Validación", Window.GetWindow(this));
                     return;
                 }
 

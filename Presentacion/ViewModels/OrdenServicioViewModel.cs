@@ -511,11 +511,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     ServiciosDisponibles.Add(dto);
                 }
 
-                var usuarios = await _usuarioRepository.GetAllAsync();
-                // Asumimos que RolId == 3 o similar es Mecánico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
-                foreach (var u in usuarios.Where(u => u.Rol?.Nombre?.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0 || u.RolId == 3))
+                var usuarios = await _usuarioRepository.GetActivosAsync();
+                if (usuarios != null)
                 {
-                    MecanicosDisponibles.Add(_mapper.Map<UsuarioDto>(u));
+                    // Asumimos que RolId == 3 o similar es Mecánico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
+                    foreach (var u in usuarios.Where(u => u.RolId == 3 || (u.Rol?.Nombre != null && u.Rol.Nombre.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0)))
+                    {
+                        MecanicosDisponibles.Add(_mapper.Map<UsuarioDto>(u));
+                    }
                 }
             }
             catch { }
@@ -638,6 +641,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public async Task<bool> GuardarOrdenAsync()
         {
             if (!ValidateAll()) return false;
+
+            if (DetallesOrdenActual.Any(d => d.UsuarioId <= 0))
+            {
+                RegistrationFailed?.Invoke(this, "Debe asignar un mecánico a cada servicio de la orden.");
+                return false;
+            }
 
             if (IsLoading) return false;
             IsLoading = true;
