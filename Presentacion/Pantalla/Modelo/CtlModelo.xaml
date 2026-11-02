@@ -82,6 +82,7 @@
             <DataGrid x:Name="dgModelos"
                       ItemsSource="{Binding Modelos}"
                       SelectedItem="{Binding ModeloSeleccionado, Mode=TwoWay}"
+                      MouseDoubleClick="DgModelos_MouseDoubleClick"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       CanUserAddRows="False"

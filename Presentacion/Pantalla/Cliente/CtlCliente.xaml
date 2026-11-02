@@ -85,6 +85,7 @@
             <DataGrid x:Name="dgClientes"
                       ItemsSource="{Binding Clientes}"
                       SelectedItem="{Binding ClienteSeleccionado, Mode=TwoWay}"
+                      MouseDoubleClick="DgClientes_MouseDoubleClick"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       CanUserAddRows="False"

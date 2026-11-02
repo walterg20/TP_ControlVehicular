@@ -82,6 +82,7 @@
             <DataGrid x:Name="dgMarcas"
                       ItemsSource="{Binding Marcas}"
                       SelectedItem="{Binding MarcaSeleccionada, Mode=TwoWay}"
+                      MouseDoubleClick="DgMarcas_MouseDoubleClick"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       CanUserAddRows="False"

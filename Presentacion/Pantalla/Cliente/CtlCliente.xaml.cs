@@ -13,23 +13,41 @@ namespace TP_ControlVehicular.Presentacion.Cliente
     /// </summary>
     public partial class CtlCliente : UserControl
     {
+        public ClienteViewModel? ViewModel => DataContext as ClienteViewModel;
+
         public CtlCliente()
         {
             InitializeComponent();
-            // Asignar ViewModel desde DI para que la vista tenga DataContext y podamos cargar datos
             try
             {
-                var vmCliente = App.ServiceProvider.GetService(typeof(ClienteViewModel)) as ClienteViewModel;
-                if (vmCliente is not null)
+                if (App.ServiceProvider != null)
                 {
-                    this.DataContext = vmCliente;
-                    this.Loaded += async (s, e) => { await vmCliente.LoadAsync(); };
+                    var vmCliente = App.ServiceProvider.GetService(typeof(ClienteViewModel)) as ClienteViewModel;
+                    if (vmCliente != null)
+                    {
+                        DataContext = vmCliente;
+                    }
                 }
             }
             catch
             {
                 // ignore DI resolution errors
             }
+
+            Loaded += async (s, e) =>
+            {
+                if (ViewModel != null)
+                {
+                    ViewModel.NotificarPermisos();
+                    await ViewModel.LoadAsync();
+                }
+            };
+        }
+
+        public CtlCliente(ClienteViewModel viewModel) : this()
+        {
+            DataContext = viewModel;
+            ViewModel?.NotificarPermisos();
         }
 
         /// <summary>
@@ -81,62 +99,75 @@ namespace TP_ControlVehicular.Presentacion.Cliente
             }
         }
 
-        // Evento para simular la acción de "Editar" haciendo doble clic en la fila
-        private void DgUsuarios_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void DgClientes_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            /*var usuarioSeleccionado;//= dgUsuarios.SelectedItem as UsuarioModel;
-
-            if (usuarioSeleccionado is not null)
+            if (ViewModel is ClienteViewModel vmCliente && !vmCliente.PuedeEditar)
             {
-                MessageBox.Show($"Abriendo edición para: {usuarioSeleccionado.Nombre}", "Sistema MDI");
-                // Acá ponés la lógica para mandar este 'usuarioSeleccionado' a tu formulario
-            }*/
+                return;
+            }
+            BtnEditar_Click(sender, e);
         }
 
         private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            var frm = new FrmCliente();
-            frm.Owner = Window.GetWindow(this);
-            var resultado = frm.ShowDialog();
-            if (resultado == true && this.DataContext is ClienteViewModel clienteViewModel)
+            if (ViewModel is ClienteViewModel vmCliente)
             {
-                // Intentar recargar usando el DataContext (si es ClienteViewModel)
-                if (this.DataContext is ClienteViewModel vmCliente)
+                if (!vmCliente.PuedeCrear)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para registrar nuevos clientes.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
+                var frm = new FrmCliente();
+                frm.Owner = Window.GetWindow(this);
+                var resultado = frm.ShowDialog();
+                if (resultado == true)
                 {
                     await vmCliente.LoadAsync();
                 }
-
             }
         }
 
         private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
         {
-            // Eliminación lógica: marcar Activo = false
-            var selected = dgClientes.SelectedItem as ClienteDto;
-            if (selected is null)
+            if (ViewModel is ClienteViewModel vmCliente)
             {
-                FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
-                return;
-            }
+                if (!vmCliente.PuedeEliminar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para eliminar clientes.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
 
-            if (!FrmConfirmacion.Mostrar($"¿Seguro que querés marcar como inactivo al cliente {selected.Nombre} {selected.Apellido}?", "Confirmar baja", Window.GetWindow(this)))
-                return;
+                var selected = vmCliente.ClienteSeleccionado ?? dgClientes.SelectedItem as ClienteDto;
+                if (selected is null)
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
 
-            if (this.DataContext is ClienteViewModel vmCliente)
-            {
+                if (!FrmConfirmacion.Mostrar($"¿Seguro que querés marcar como inactivo al cliente {selected.Nombre} {selected.Apellido}?", "Confirmar baja", Window.GetWindow(this)))
+                    return;
+
                 await vmCliente.DeleteClienteAsync(selected.IdCliente);
             }
         }
+
         private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is ClienteViewModel vmCliente)
+            if (ViewModel is ClienteViewModel vmCliente)
             {
+                if (!vmCliente.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para modificar clientes.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
 
                 if (vmCliente.ClienteSeleccionado is null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
                     return;
                 }
+
                 var frm = new FrmCliente(vmCliente.ClienteSeleccionado);
                 frm.Owner = Window.GetWindow(this);
                 var ok = frm.ShowDialog();
@@ -145,24 +176,27 @@ namespace TP_ControlVehicular.Presentacion.Cliente
                     await vmCliente.LoadAsync();
                 }
             }
-
-
         }
 
         private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
         {
-            var selected = dgClientes.SelectedItem as ClienteDto;
-            if (selected is null)
+            if (ViewModel is ClienteViewModel vmCliente)
             {
-                FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
-                return;
-            }
+                if (!vmCliente.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para reactivar clientes.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
 
-            if (this.DataContext is ClienteViewModel vmCliente)
-            {
+                var selected = vmCliente.ClienteSeleccionado ?? dgClientes.SelectedItem as ClienteDto;
+                if (selected is null)
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un cliente.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+
                 await vmCliente.ReactivarClienteAsync(selected.IdCliente);
             }
         }
-
     }
 }

@@ -13,7 +13,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
     /// </summary>
     public class ModeloViewModel : BasePaginableViewModel
     {
-        protected override string Modulo => "Vehiculo";
+        protected override string Modulo => "Modelo";
 
         private readonly ListarModelosHandler _listarModelosHandler;
         private readonly RegistrarModeloHandler _registrarModeloHandler;

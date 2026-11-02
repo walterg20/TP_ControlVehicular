@@ -13,7 +13,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
     /// </summary>
     public class MarcaViewModel : BasePaginableViewModel
     {
-        protected override string Modulo => "Vehiculo";
+        protected override string Modulo => "Marca";
 
         private readonly ListarMarcaHandler _listarMarcaHandler;
         private readonly RegistrarMarcaHandler _registrarMarcaHandler;

@@ -9,21 +9,41 @@ namespace TP_ControlVehicular.Presentacion.Marca
 {
     public partial class CtlMarca : UserControl
     {
+        public MarcaViewModel? ViewModel => DataContext as MarcaViewModel;
+
         public CtlMarca()
         {
             InitializeComponent();
             try
             {
-                if (App.ServiceProvider.GetService(typeof(MarcaViewModel)) is MarcaViewModel vmMarca)
+                if (App.ServiceProvider != null)
                 {
-                    this.DataContext = vmMarca;
-                    this.Loaded += async (s, e) => { await vmMarca.LoadAsync(); };
+                    var vmMarca = App.ServiceProvider.GetService(typeof(MarcaViewModel)) as MarcaViewModel;
+                    if (vmMarca != null)
+                    {
+                        DataContext = vmMarca;
+                    }
                 }
             }
             catch
             {
                 // Silenciar si DI no está listo
             }
+
+            Loaded += async (s, e) =>
+            {
+                if (ViewModel != null)
+                {
+                    ViewModel.NotificarPermisos();
+                    await ViewModel.LoadAsync();
+                }
+            };
+        }
+
+        public CtlMarca(MarcaViewModel viewModel) : this()
+        {
+            DataContext = viewModel;
+            ViewModel?.NotificarPermisos();
         }
 
         /// <summary>
@@ -75,21 +95,45 @@ namespace TP_ControlVehicular.Presentacion.Marca
             }
         }
 
+        private void DgMarcas_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (ViewModel is MarcaViewModel vmMarca && !vmMarca.PuedeEditar)
+            {
+                return;
+            }
+            BtnEditar_Click(sender, e);
+        }
+
         private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            var frm = new FrmMarca();
-            frm.Owner = Window.GetWindow(this);
-            var ok = frm.ShowDialog();
-            if (ok == true && this.DataContext is MarcaViewModel vmMarca)
+            if (ViewModel is MarcaViewModel vmMarca)
             {
-                await vmMarca.LoadAsync();
+                if (!vmMarca.PuedeCrear)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para registrar nuevas marcas.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
+                var frm = new FrmMarca();
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmMarca.LoadAsync();
+                }
             }
         }
 
         private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is MarcaViewModel vmMarca)
+            if (ViewModel is MarcaViewModel vmMarca)
             {
+                if (!vmMarca.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para modificar marcas.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmMarca.MarcaSeleccionada == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero una marca.", "Aviso", Window.GetWindow(this));
@@ -108,8 +152,14 @@ namespace TP_ControlVehicular.Presentacion.Marca
 
         private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is MarcaViewModel vmMarca)
+            if (ViewModel is MarcaViewModel vmMarca)
             {
+                if (!vmMarca.PuedeEliminar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para eliminar marcas.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmMarca.MarcaSeleccionada == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero una marca para eliminar.", "Aviso", Window.GetWindow(this));

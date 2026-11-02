@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="TP_ControlVehicular.Presentacion.Vehiculo.CtlVehiculo"
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Vehiculo.CtlVehiculo"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -91,6 +91,7 @@
             <DataGrid x:Name="dgVehiculos"
                       ItemsSource="{Binding Vehiculos}"
                       SelectedItem="{Binding VehiculoSeleccionado, Mode=TwoWay}"
+                      MouseDoubleClick="DgVehiculos_MouseDoubleClick"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       CanUserAddRows="False"

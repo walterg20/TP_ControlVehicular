@@ -23,6 +23,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ReactivarServicioHandler _reactivarServicioHandler;
         private readonly Debouncer _debouncer;
 
+        private ServicioDto? _servicioSeleccionado;
+        public ServicioDto? ServicioSeleccionado
+        {
+            get => _servicioSeleccionado;
+            set => SetProperty(ref _servicioSeleccionado, value);
+        }
+
         private int _idServicio;
         public int IdServicio
         {
@@ -186,26 +193,33 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             if (!ValidateAll()) return false;
 
-            var entity = new Servicio
+            try
             {
-                Id = IdServicio,
-                Nombre = Nombre.Trim(),
-                Precio = Precio,
-                Activo = Activo
-            };
+                var entity = new Servicio
+                {
+                    Id = IdServicio,
+                    Nombre = Nombre.Trim(),
+                    Precio = Precio,
+                    Activo = Activo
+                };
 
-            if (IdServicio == 0)
-            {
-                await _registrarServicioHandler.HandleAsync(entity);
-            }
-            else
-            {
-                await _modificarServicioHandler.HandleAsync(entity);
-            }
+                if (IdServicio == 0)
+                {
+                    await _registrarServicioHandler.HandleAsync(entity);
+                }
+                else
+                {
+                    await _modificarServicioHandler.HandleAsync(entity);
+                }
 
-            LimpiarFormulario();
-            await LoadAsync();
-            return true;
+                LimpiarFormulario();
+                await LoadAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task DeleteAsync(int id)
@@ -226,6 +240,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             Nombre = string.Empty;
             Precio = 0;
             Activo = true;
+            ServicioSeleccionado = null;
             ClearAllErrors();
         }
     }

@@ -44,10 +44,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public bool TienePermiso(string permiso)
         {
-            var main = System.Windows.Application.Current?.MainWindow as MainWindow;
-            if (main == null || main.UsuarioSesionActual == null || main.UsuarioSesionActual.Permisos == null)
-                return true;
-            return main.UsuarioSesionActual.Permisos.Contains(permiso);
+            var usuario = (System.Windows.Application.Current?.MainWindow as MainWindow)?.UsuarioSesionActual
+                          ?? UserSession.CurrentUser;
+            if (usuario == null)
+                return false;
+            if (usuario.Permisos == null)
+                return usuario.IdRol == 1;
+            return usuario.Permisos.Contains(permiso);
         }
 
         public void NotificarPermisos()

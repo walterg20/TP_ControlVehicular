@@ -9,21 +9,41 @@ namespace TP_ControlVehicular.Presentacion.Modelo
 {
     public partial class CtlModelo : UserControl
     {
+        public ModeloViewModel? ViewModel => DataContext as ModeloViewModel;
+
         public CtlModelo()
         {
             InitializeComponent();
             try
             {
-                if (App.ServiceProvider.GetService(typeof(ModeloViewModel)) is ModeloViewModel vmModelo)
+                if (App.ServiceProvider != null)
                 {
-                    this.DataContext = vmModelo;
-                    this.Loaded += async (s, e) => { await vmModelo.LoadAsync(); };
+                    var vmModelo = App.ServiceProvider.GetService(typeof(ModeloViewModel)) as ModeloViewModel;
+                    if (vmModelo != null)
+                    {
+                        DataContext = vmModelo;
+                    }
                 }
             }
             catch
             {
                 // Silenciar si DI no está listo
             }
+
+            Loaded += async (s, e) =>
+            {
+                if (ViewModel != null)
+                {
+                    ViewModel.NotificarPermisos();
+                    await ViewModel.LoadAsync();
+                }
+            };
+        }
+
+        public CtlModelo(ModeloViewModel viewModel) : this()
+        {
+            DataContext = viewModel;
+            ViewModel?.NotificarPermisos();
         }
 
         /// <summary>
@@ -75,21 +95,45 @@ namespace TP_ControlVehicular.Presentacion.Modelo
             }
         }
 
+        private void DgModelos_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (ViewModel is ModeloViewModel vmModelo && !vmModelo.PuedeEditar)
+            {
+                return;
+            }
+            BtnEditar_Click(sender, e);
+        }
+
         private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            var frm = new FrmModelo();
-            frm.Owner = Window.GetWindow(this);
-            var ok = frm.ShowDialog();
-            if (ok == true && this.DataContext is ModeloViewModel vmModelo)
+            if (ViewModel is ModeloViewModel vmModelo)
             {
-                await vmModelo.LoadAsync();
+                if (!vmModelo.PuedeCrear)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para registrar nuevos modelos.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
+                var frm = new FrmModelo();
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmModelo.LoadAsync();
+                }
             }
         }
 
         private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is ModeloViewModel vmModelo)
+            if (ViewModel is ModeloViewModel vmModelo)
             {
+                if (!vmModelo.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para modificar modelos.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmModelo.ModeloSeleccionado == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un modelo.", "Aviso", Window.GetWindow(this));
@@ -108,8 +152,14 @@ namespace TP_ControlVehicular.Presentacion.Modelo
 
         private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is ModeloViewModel vmModelo)
+            if (ViewModel is ModeloViewModel vmModelo)
             {
+                if (!vmModelo.PuedeEliminar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para eliminar modelos.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmModelo.ModeloSeleccionado == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un modelo para eliminar.", "Aviso", Window.GetWindow(this));

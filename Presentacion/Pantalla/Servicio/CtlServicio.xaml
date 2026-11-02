@@ -100,8 +100,12 @@
 
             <DataGrid x:Name="dgServicios" 
                       ItemsSource="{Binding Servicios}" 
+                      SelectedItem="{Binding ServicioSeleccionado, Mode=TwoWay}"
                       AutoGenerateColumns="False" 
                       IsReadOnly="True" 
+                      CanUserAddRows="False"
+                      SelectionMode="Single"
+                      MouseDoubleClick="DgServicios_MouseDoubleClick"
                       GridLinesVisibility="Horizontal" 
                       HeadersVisibility="Column" 
                       Background="Transparent" 
@@ -135,21 +139,21 @@
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="♻️ Reactivar" Click="BtnReactivar_Click" Padding="12,8" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
+                <Button Content="♻️ Reactivar Seleccionado" Click="BtnReactivar_Click" Padding="12,8" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" IsEnabled="{Binding PuedeEditar}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>
                         </Style>
                     </Button.Resources>
                 </Button>
-                <Button Content="✏️ Editar" Click="BtnEditar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" IsEnabled="{Binding PuedeEditar}">
+                <Button Content="✏️ Editar Seleccionado" Click="BtnEditar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" IsEnabled="{Binding PuedeEditar}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>
                         </Style>
                     </Button.Resources>
                 </Button>
-                <Button Content="🗑️ Eliminar" Click="BtnBorrar_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeEliminar}">
+                <Button Content="🗑️ Eliminar Seleccionado" Click="BtnBorrar_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeEliminar}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>

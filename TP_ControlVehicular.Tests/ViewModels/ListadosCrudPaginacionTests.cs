@@ -256,6 +256,56 @@ namespace TP_ControlVehicular.Tests.ViewModels
             Assert.Single(vm.Servicios);
         }
 
+        [Fact]
+        public void Servicio_ServicioSeleccionado_NotificaCambioYLimpiarFormularioLoResetea()
+        {
+            var repo = new Mock<IServicioRepository>();
+            var mapper = CrearMapper();
+            var vm = new ServicioViewModel(
+                new ListarServiciosHandler(repo.Object, mapper),
+                new RegistrarServicioHandler(repo.Object, mapper),
+                new ModificarServicioHandler(repo.Object, mapper),
+                new EliminarServicioHandler(repo.Object),
+                new ReactivarServicioHandler(repo.Object));
+
+            var dto = new ServicioDto { IdServicio = 5, Nombre = "Alineación", Precio = 12000m, Activo = true };
+            vm.ServicioSeleccionado = dto;
+            Assert.Equal(dto, vm.ServicioSeleccionado);
+
+            vm.LimpiarFormulario();
+            Assert.Null(vm.ServicioSeleccionado);
+            Assert.Equal(0, vm.IdServicio);
+            Assert.Empty(vm.Nombre);
+        }
+
+        [Fact]
+        public async Task Servicio_SaveAsync_ConIdExistente_LlamaModificarServicioHandler()
+        {
+            var repo = new Mock<IServicioRepository>();
+            repo.Setup(r => r.GetByIdAsync(5))
+                .ReturnsAsync(new Servicio { Id = 5, Nombre = "Balanceo", Precio = 8000m, Activo = true });
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, bool inactivos, int p, int t) => (new List<Servicio>(), 0));
+
+            var mapper = CrearMapper();
+            var vm = new ServicioViewModel(
+                new ListarServiciosHandler(repo.Object, mapper),
+                new RegistrarServicioHandler(repo.Object, mapper),
+                new ModificarServicioHandler(repo.Object, mapper),
+                new EliminarServicioHandler(repo.Object),
+                new ReactivarServicioHandler(repo.Object));
+
+            vm.IdServicio = 5;
+            vm.Nombre = "Balanceo Computarizado";
+            vm.Precio = 9500m;
+            vm.Activo = true;
+
+            var ok = await vm.SaveAsync();
+
+            Assert.True(ok);
+            repo.Verify(r => r.UpdateAsync(It.Is<Servicio>(s => s.Id == 5 && s.Nombre == "Balanceo Computarizado" && s.Precio == 9500m)), Times.Once);
+        }
+
         // ------------------------------------------------------------------
         // TALLER
         // ------------------------------------------------------------------

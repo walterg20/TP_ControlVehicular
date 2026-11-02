@@ -247,7 +247,14 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_Cliente(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlCliente());
+            if (App.ServiceProvider?.GetService(typeof(CtlCliente)) is CtlCliente ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlCliente());
+            }
         }
 
         private void MenuItem_Click_Taller(object sender, RoutedEventArgs e)
@@ -315,19 +322,40 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_Vehiculo(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlVehiculo());
+            if (App.ServiceProvider?.GetService(typeof(CtlVehiculo)) is CtlVehiculo ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlVehiculo());
+            }
         }
 
         private void MenuItem_Click_Modelo(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlModelo());
+            if (App.ServiceProvider?.GetService(typeof(CtlModelo)) is CtlModelo ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlModelo());
+            }
         }
 
         private void MenuItem_Click_Marca(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlMarca());
+            if (App.ServiceProvider?.GetService(typeof(CtlMarca)) is CtlMarca ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlMarca());
+            }
         }
 
         private void MenuItem_Click_ManualUsuario(object sender, RoutedEventArgs e)

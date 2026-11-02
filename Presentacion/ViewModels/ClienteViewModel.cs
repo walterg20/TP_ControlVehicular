@@ -18,6 +18,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
     /// </summary>
     public class ClienteViewModel : BasePaginableViewModel
     {
+        protected override string Modulo => "Cliente";
+
         private readonly RegistrarClienteHandler _registrarClienteHandler;
         private readonly TP_ControlVehicular.Negocio.Interfaces.IClienteRepository _clienteRepository;
         private readonly AutoMapper.IMapper _mapper;
