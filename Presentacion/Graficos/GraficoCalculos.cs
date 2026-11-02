@@ -1,8 +1,6 @@
 // walterg20
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using TP_ControlVehicular.Negocio.DTOs;
 
 namespace TP_ControlVehicular.Presentacion.Graficos
@@ -125,7 +123,7 @@ namespace TP_ControlVehicular.Presentacion.Graficos
             if (valor >= 1_000_000)
                 return $"${(valor / 1_000_000).ToString("0.#", CultureInfo.InvariantCulture)}M";
             if (valor >= 10_000)
-                return $"${(valor / 1_000).ToString("0.#", CultureInfo.InvariantCulture)}k";
+                return $"${(valor / 1_000).ToString("0.#", CultureInfo.InvariantCulture)}m";
             return $"${valor.ToString("N0", CultureInfo.InvariantCulture)}";
         }
 
