@@ -91,6 +91,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public ObservableCollection<UsuarioDto> MecanicosDisponibles { get; set; }
 
         private List<VehiculoDto> _todosLosVehiculos = new();
+        private List<ClienteDto> _todosLosClientes = new();
+        private List<ServicioDto> _todosLosServicios = new();
+
+        public IReadOnlyList<ClienteDto> TodosLosClientes => _todosLosClientes;
+        public IReadOnlyList<ServicioDto> TodosLosServicios => _todosLosServicios;
 
         private int _clienteId;
         public int ClienteId
@@ -123,6 +128,85 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             if (v != null)
             {
                 ClienteId = v.IdCliente;
+            }
+        }
+
+        /// <summary>
+        /// Filtra la lista de clientes disponibles según el término ingresado.
+        /// Se activa únicamente cuando el término contiene 3 o más caracteres (coincidiendo por Nombre, Apellido o DNI).
+        /// Con menos de 3 caracteres se preserva o restaura la lista completa sin filtrar agresivamente.
+        /// </summary>
+        public void FiltrarClientes(string? texto)
+        {
+            if (!_todosLosClientes.Any() && ClientesDisponibles.Any())
+            {
+                _todosLosClientes.AddRange(ClientesDisponibles);
+            }
+
+            var term = texto?.Trim() ?? string.Empty;
+
+            if (term.Length < 3)
+            {
+                if (ClientesDisponibles.Count != _todosLosClientes.Count)
+                {
+                    ClientesDisponibles.Clear();
+                    foreach (var c in _todosLosClientes)
+                    {
+                        ClientesDisponibles.Add(c);
+                    }
+                }
+                return;
+            }
+
+            var filtrados = _todosLosClientes.Where(c =>
+                (!string.IsNullOrEmpty(c.Nombre) && c.Nombre.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.Apellido) && c.Apellido.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.Dni) && c.Dni.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.NombreCompletoConDni) && c.NombreCompletoConDni.Contains(term, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+
+            ClientesDisponibles.Clear();
+            foreach (var c in filtrados)
+            {
+                ClientesDisponibles.Add(c);
+            }
+        }
+
+        /// <summary>
+        /// Soporte dual para servicios: cuando el texto no tiene filtro o tiene menos de 3 caracteres,
+        /// expone el catálogo completo de servicios; cuando tiene 3 o más caracteres, filtra
+        /// dinámicamente por el nombre del servicio.
+        /// </summary>
+        public void FiltrarServicios(string? texto)
+        {
+            if (!_todosLosServicios.Any() && ServiciosDisponibles.Any())
+            {
+                _todosLosServicios.AddRange(ServiciosDisponibles);
+            }
+
+            var term = texto?.Trim() ?? string.Empty;
+
+            if (term.Length < 3)
+            {
+                if (ServiciosDisponibles.Count != _todosLosServicios.Count)
+                {
+                    ServiciosDisponibles.Clear();
+                    foreach (var s in _todosLosServicios)
+                    {
+                        ServiciosDisponibles.Add(s);
+                    }
+                }
+                return;
+            }
+
+            var filtrados = _todosLosServicios.Where(s =>
+                !string.IsNullOrEmpty(s.Nombre) && s.Nombre.Contains(term, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+            ServiciosDisponibles.Clear();
+            foreach (var s in filtrados)
+            {
+                ServiciosDisponibles.Add(s);
             }
         }
 
@@ -379,10 +463,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             int currentTallerId = TallerId;
 
             ClientesDisponibles.Clear();
+            _todosLosClientes.Clear();
             _todosLosVehiculos.Clear();
             VehiculosDisponibles.Clear();
             TalleresDisponibles.Clear();
             ServiciosDisponibles.Clear();
+            _todosLosServicios.Clear();
             MecanicosDisponibles.Clear();
 
             try
@@ -390,7 +476,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 var clientes = await _clienteRepository.GetAllAsync();
                 foreach (var c in clientes)
                 {
-                    ClientesDisponibles.Add(_mapper.Map<ClienteDto>(c));
+                    var dto = _mapper.Map<ClienteDto>(c);
+                    _todosLosClientes.Add(dto);
+                    ClientesDisponibles.Add(dto);
                 }
 
                 var vehiculos = await _vehiculoRepository.GetAllWithDetailsAsync(); // Use the specialized method to include Modelo and Marca
@@ -418,7 +506,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 var servicios = await _servicioRepository.GetAllAsync();
                 foreach (var s in servicios)
                 {
-                    ServiciosDisponibles.Add(_mapper.Map<ServicioDto>(s));
+                    var dto = _mapper.Map<ServicioDto>(s);
+                    _todosLosServicios.Add(dto);
+                    ServiciosDisponibles.Add(dto);
                 }
 
                 var usuarios = await _usuarioRepository.GetAllAsync();

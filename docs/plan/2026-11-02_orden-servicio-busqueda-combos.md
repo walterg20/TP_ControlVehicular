@@ -31,11 +31,11 @@ En la pantalla de registro y modificación de órdenes de servicio (`CtlOrdenSer
 ---
 
 ## 3. Plan de Tareas
-- [ ] 1.1 Métodos de filtrado en `OrdenServicioViewModel`.
-- [ ] 1.2 Soporte dual de servicios en `OrdenServicioViewModel`.
-- [ ] 1.3 Pruebas unitarias de los filtros con umbral de 3 caracteres.
-- [ ] 2.1 Actualización de XAML en `CtlOrdenServicioForm.xaml`.
-- [ ] 2.2 Control de eventos de teclado y dropdown en `CtlOrdenServicioForm.xaml.cs`.
-- [ ] 2.3 Integración del selector dual de servicios en `CtlOrdenServicioForm`.
-- [ ] 2.4 Verificación de cascada hacia `cmbVehiculos`.
-- [ ] 3.1 Verificación de compilación y pruebas completas (`dotnet test`).
+- [x] 1.1 Métodos de filtrado en `OrdenServicioViewModel`.
+- [x] 1.2 Soporte dual de servicios en `OrdenServicioViewModel`.
+- [x] 1.3 Pruebas unitarias de los filtros con umbral de 3 caracteres.
+- [x] 2.1 Actualización de XAML en `CtlOrdenServicioForm.xaml`.
+- [x] 2.2 Control de eventos de teclado y dropdown en `CtlOrdenServicioForm.xaml.cs`.
+- [x] 2.3 Integración del selector dual de servicios en `CtlOrdenServicioForm`.
+- [x] 2.4 Verificación de cascada hacia `cmbVehiculos`.
+- [x] 3.1 Verificación de compilación y pruebas completas (`dotnet test`).

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Presentacion.Helpers;
 using TP_ControlVehicular.Presentacion.ViewModels;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
@@ -10,6 +11,10 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
     public partial class CtlOrdenServicioForm : UserControl
     {
         private readonly bool _esModificacion;
+        private readonly Debouncer _debouncerClientes = new(TimeSpan.FromMilliseconds(250));
+        private readonly Debouncer _debouncerServicios = new(TimeSpan.FromMilliseconds(250));
+        private bool _omitirFiltroClientes = false;
+        private bool _omitirFiltroServicios = false;
 
         public CtlOrdenServicioForm()
         {
@@ -19,8 +24,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             lblTitulo.Text = "Registrar Nueva Orden";
             ConfigurarViewModel(null);
             ConfigurarValidacionAlPerderFoco();
+            ConfigurarBusquedaCombos();
             this.Unloaded += (s, e) =>
             {
+                _debouncerClientes.Cancel();
+                _debouncerServicios.Cancel();
                 if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
@@ -38,8 +46,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             lblTitulo.Text = $"Modificar Orden #{orden.Id}";
             ConfigurarViewModel(orden);
             ConfigurarValidacionAlPerderFoco();
+            ConfigurarBusquedaCombos();
             this.Unloaded += (s, e) =>
             {
+                _debouncerClientes.Cancel();
+                _debouncerServicios.Cancel();
                 if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
@@ -177,10 +188,176 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             }
         }
 
+        private void ConfigurarBusquedaCombos()
+        {
+            cmbClientes.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler(CmbClientes_TextChanged));
+            cmbClientes.SelectionChanged += CmbClientes_SelectionChanged;
+
+            cmbServicios.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler(CmbServicios_TextChanged));
+            cmbServicios.SelectionChanged += CmbServicios_SelectionChanged;
+            cmbServicios.DropDownOpened += CmbServicios_DropDownOpened;
+        }
+
+        private void CmbClientes_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_omitirFiltroClientes) return;
+
+            if (e.OriginalSource is TextBox textBox && textBox.IsKeyboardFocused)
+            {
+                string texto = textBox.Text;
+                int caret = textBox.SelectionStart;
+
+                if (texto.Trim().Length < 3)
+                {
+                    _debouncerClientes.Cancel();
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        vmOrdenServicio.FiltrarClientes(texto);
+                    }
+                    cmbClientes.IsDropDownOpen = false;
+                    return;
+                }
+
+                _debouncerClientes.Debounce(() =>
+                {
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        _omitirFiltroClientes = true;
+                        try
+                        {
+                            vmOrdenServicio.FiltrarClientes(texto);
+                            cmbClientes.IsDropDownOpen = vmOrdenServicio.ClientesDisponibles.Any();
+                            textBox.SelectionStart = Math.Min(caret, textBox.Text.Length);
+                            textBox.SelectionLength = 0;
+                        }
+                        finally
+                        {
+                            _omitirFiltroClientes = false;
+                        }
+                    }
+                    return Task.CompletedTask;
+                });
+            }
+        }
+
+        private void CmbClientes_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_omitirFiltroClientes) return;
+
+            if (cmbClientes.SelectedItem is ClienteDto cliente)
+            {
+                _debouncerClientes.Cancel();
+                _omitirFiltroClientes = true;
+                try
+                {
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        vmOrdenServicio.ClienteId = cliente.IdCliente;
+                    }
+                    cmbClientes.Text = cliente.NombreCompletoConDni;
+                    cmbClientes.IsDropDownOpen = false;
+                }
+                finally
+                {
+                    _omitirFiltroClientes = false;
+                }
+            }
+        }
+
+        private void CmbServicios_DropDownOpened(object? sender, EventArgs e)
+        {
+            if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+            {
+                if (string.IsNullOrWhiteSpace(cmbServicios.Text) || cmbServicios.Text.Trim().Length < 3)
+                {
+                    _omitirFiltroServicios = true;
+                    try
+                    {
+                        vmOrdenServicio.FiltrarServicios(string.Empty);
+                    }
+                    finally
+                    {
+                        _omitirFiltroServicios = false;
+                    }
+                }
+            }
+        }
+
+        private void CmbServicios_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_omitirFiltroServicios) return;
+
+            if (e.OriginalSource is TextBox textBox && textBox.IsKeyboardFocused)
+            {
+                string texto = textBox.Text;
+                int caret = textBox.SelectionStart;
+
+                if (texto.Trim().Length < 3)
+                {
+                    _debouncerServicios.Cancel();
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        vmOrdenServicio.FiltrarServicios(texto);
+                    }
+                    return;
+                }
+
+                _debouncerServicios.Debounce(() =>
+                {
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        _omitirFiltroServicios = true;
+                        try
+                        {
+                            vmOrdenServicio.FiltrarServicios(texto);
+                            cmbServicios.IsDropDownOpen = vmOrdenServicio.ServiciosDisponibles.Any();
+                            textBox.SelectionStart = Math.Min(caret, textBox.Text.Length);
+                            textBox.SelectionLength = 0;
+                        }
+                        finally
+                        {
+                            _omitirFiltroServicios = false;
+                        }
+                    }
+                    return Task.CompletedTask;
+                });
+            }
+        }
+
+        private void CmbServicios_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_omitirFiltroServicios) return;
+
+            if (cmbServicios.SelectedItem is ServicioDto servicio)
+            {
+                _debouncerServicios.Cancel();
+                _omitirFiltroServicios = true;
+                try
+                {
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        vmOrdenServicio.ServicioBusquedaSeleccionado = servicio;
+                    }
+                    cmbServicios.Text = servicio.Nombre;
+                    cmbServicios.IsDropDownOpen = false;
+                }
+                finally
+                {
+                    _omitirFiltroServicios = false;
+                }
+            }
+        }
+
         private void BtnAgregarItem_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
             {
+                if (vmOrdenServicioForm.ServicioBusquedaSeleccionado == null && !string.IsNullOrWhiteSpace(cmbServicios.Text))
+                {
+                    vmOrdenServicioForm.ServicioBusquedaSeleccionado = vmOrdenServicioForm.ServiciosDisponibles
+                        .FirstOrDefault(s => s.Nombre.Equals(cmbServicios.Text.Trim(), StringComparison.OrdinalIgnoreCase));
+                }
+
                 if (vmOrdenServicioForm.ServicioBusquedaSeleccionado != null)
                 {
                     if (vmOrdenServicioForm.DetallesOrdenActual.Any(d => d.ServicioId == vmOrdenServicioForm.ServicioBusquedaSeleccionado.IdServicio))
@@ -209,7 +386,20 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                         Estado = "Pendiente",
                         Origen = "Manual"
                     });
-                    vmOrdenServicioForm.ServicioBusquedaSeleccionado = null;
+
+                    _debouncerServicios.Cancel();
+                    _omitirFiltroServicios = true;
+                    try
+                    {
+                        vmOrdenServicioForm.ServicioBusquedaSeleccionado = null;
+                        cmbServicios.Text = string.Empty;
+                        vmOrdenServicioForm.FiltrarServicios(string.Empty);
+                        cmbServicios.IsDropDownOpen = false;
+                    }
+                    finally
+                    {
+                        _omitirFiltroServicios = false;
+                    }
                 }
                 else
                 {

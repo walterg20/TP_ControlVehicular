@@ -58,6 +58,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <ComboBox Grid.Column="0" x:Name="cmbClientes" Height="30"
+                              IsEditable="True"
+                              IsTextSearchEnabled="False"
+                              StaysOpenOnEdit="True"
+                              TextSearch.TextPath="NombreCompletoConDni"
                               ItemsSource="{Binding ClientesDisponibles}"
                               SelectedValue="{Binding ClienteId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValuePath="IdCliente">
@@ -111,7 +115,15 @@
         <Border Grid.Row="2" Background="#ECF0F1" CornerRadius="8" Padding="15" Margin="0,0,0,15">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="Agregar Ítem de Inspección:" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <ComboBox Width="250" Height="30" Margin="0,0,10,0" IsEditable="True" ItemsSource="{Binding ServiciosDisponibles}" SelectedItem="{Binding ServicioBusquedaSeleccionado, Mode=TwoWay}" DisplayMemberPath="Nombre" /><Button x:Name="btnNuevoServicio" Content="➕" Width="30" Height="30" Margin="0,0,10,0" ToolTip="Nuevo Servicio" Click="BtnNuevoServicio_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
+                <ComboBox x:Name="cmbServicios" Width="250" Height="30" Margin="0,0,10,0"
+                          IsEditable="True"
+                          IsTextSearchEnabled="False"
+                          StaysOpenOnEdit="True"
+                          ItemsSource="{Binding ServiciosDisponibles}"
+                          SelectedItem="{Binding ServicioBusquedaSeleccionado, Mode=TwoWay}"
+                          DisplayMemberPath="Nombre"
+                          TextSearch.TextPath="Nombre" />
+                <Button x:Name="btnNuevoServicio" Content="➕" Width="30" Height="30" Margin="0,0,10,0" ToolTip="Nuevo Servicio" Click="BtnNuevoServicio_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
                 <Button Content="➕ Agregar" Click="BtnAgregarItem_Click" Padding="12,6" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
