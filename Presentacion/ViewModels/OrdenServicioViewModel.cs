@@ -63,6 +63,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             Ordenes = new ObservableCollection<RegistroServicioDto>();
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
             VehiculosDisponibles = new ObservableCollection<VehiculoDto>();
+            ResultadosBusquedaUniversal = new ObservableCollection<BusquedaClienteVehiculoDto>();
             TalleresDisponibles = new ObservableCollection<TallerDto>();
             EstadosDisponibles = new ObservableCollection<string> { "Abierta", "En Proceso", "Completada", "Cancelada" };
             DetallesOrdenActual = new ObservableCollection<DetalleServicioDto>();
@@ -82,6 +83,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public ObservableCollection<RegistroServicioDto> Ordenes { get; set; }
         public ObservableCollection<ClienteDto> ClientesDisponibles { get; set; }
         public ObservableCollection<VehiculoDto> VehiculosDisponibles { get; set; }
+
+        /// <summary>
+        /// Filas del buscador universal (cliente + vehiculo) mostradas en el desplegable
+        /// de la pantalla de orden de servicio.
+        /// </summary>
+        public ObservableCollection<BusquedaClienteVehiculoDto> ResultadosBusquedaUniversal { get; set; }
         public ObservableCollection<TallerDto> TalleresDisponibles { get; set; }
         public ObservableCollection<string> EstadosDisponibles { get; set; }
 
@@ -170,6 +177,280 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 ClientesDisponibles.Add(c);
             }
+        }
+
+        /// <summary>
+        /// Catalogo completo de vehiculos cargado en memoria. Se expone para las pruebas
+        /// y para consultas que necesiten el total de vehiculos del taller.
+        /// </summary>
+        public IReadOnlyList<VehiculoDto> TodosLosVehiculos => _todosLosVehiculos;
+
+        /// <summary>
+        /// Texto tipeado actualmente en el buscador universal. Se conserva para poder
+        /// reutilizarlo (por ejemplo, para prellenar la patente en el modal de alta).
+        /// </summary>
+        private string _textoBusquedaUniversal = string.Empty;
+        public string TextoBusquedaUniversal
+        {
+            get => _textoBusquedaUniversal;
+            set { _textoBusquedaUniversal = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Fila seleccionada en el desplegable del buscador universal. La asignacion de
+        /// cliente y vehiculo la realiza <see cref="SeleccionarResultadoUniversal"/>, que
+        /// invoca el code-behind de forma explicita para no disparar efectos colaterales
+        /// al prellenar una orden en modo edicion.
+        /// </summary>
+        private BusquedaClienteVehiculoDto? _resultadoBusquedaSeleccionado;
+        public BusquedaClienteVehiculoDto? ResultadoBusquedaSeleccionado
+        {
+            get => _resultadoBusquedaSeleccionado;
+            set { _resultadoBusquedaSeleccionado = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Se dispara cuando el operador elige la fila "Registrar Nuevo Cliente y Vehiculo".
+        /// El parametro es el texto tipeado en el buscador.
+        /// </summary>
+        public event EventHandler<string>? AbrirModalNuevoClienteVehiculoRequested;
+
+        /// <summary>Se dispara cuando hay que elegir el vehiculo en el desplegable.</summary>
+        public event EventHandler? FocoVehiculoRequested;
+
+        /// <summary>Se dispara cuando el cliente y el vehiculo ya estan completos.</summary>
+        public event EventHandler? FocoKilometrajeRequested;
+
+        /// <summary>Cantidad maxima de filas mostradas en el desplegable del buscador.</summary>
+        public const int MaximoResultadosBusquedaUniversal = 25;
+
+        /// <summary>
+        /// Busca clientes y vehiculos de forma simultanea por DNI, apellido, nombre y patente.
+        /// El filtro predictivo se activa desde 3 caracteres (igual que el resto de los combos
+        /// de la pantalla). Cada fila se formatea como
+        /// <c>[Patente] - Apellido, Nombre (DNI) - Vehiculo</c>.
+        /// </summary>
+        public void FiltrarBusquedaUniversal(string? texto)
+        {
+            if (!_todosLosClientes.Any() && ClientesDisponibles.Any())
+            {
+                _todosLosClientes.AddRange(ClientesDisponibles);
+            }
+
+            var term = texto?.Trim() ?? string.Empty;
+            TextoBusquedaUniversal = term;
+
+            if (term.Length < 3)
+            {
+                ResultadosBusquedaUniversal.Clear();
+                return;
+            }
+
+            var filas = ConstruirFilasBusquedaUniversal(term);
+
+            ResultadosBusquedaUniversal.Clear();
+            foreach (var fila in filas)
+            {
+                ResultadosBusquedaUniversal.Add(fila);
+            }
+        }
+
+        /// <summary>
+        /// Construye las filas del desplegable a partir de los catalogos en memoria.
+        /// Un cliente con un solo vehiculo produce una fila normal; un cliente con dos o mas
+        /// vehiculos produce una fila agrupada que deriva la eleccion al desplegable de vehiculos.
+        /// </summary>
+        private List<BusquedaClienteVehiculoDto> ConstruirFilasBusquedaUniversal(string term)
+        {
+            var filas = new List<BusquedaClienteVehiculoDto>();
+
+            // Un vehiculo puede no tener propietario actual: se indexa aparte para no
+            // contaminar los grupos por cliente.
+            var vehiculosSinCliente = new List<VehiculoDto>();
+
+            // Cliente -> vehiculos cuyo texto coincide con los datos del cliente.
+            var coincidenciasPorCliente = new Dictionary<int, List<VehiculoDto>>();
+
+            // Clientes que ya tienen una fila propia por coincidencia de patente.
+            var clientesConPatente = new HashSet<int>();
+
+            foreach (var vehiculo in _todosLosVehiculos)
+            {
+                var cliente = BuscarCliente(vehiculo.IdCliente);
+                bool coincidePatente = Coincide(vehiculo.Patente, term);
+                bool coincideCliente = cliente != null && CoincideCliente(cliente, term);
+
+                if (!coincidePatente && !coincideCliente) continue;
+
+                if (vehiculo.IdCliente <= 0 || cliente == null)
+                {
+                    if (coincidePatente) vehiculosSinCliente.Add(vehiculo);
+                    continue;
+                }
+
+                if (coincidePatente)
+                {
+                    // Coincidencia directa por patente: se muestra el vehiculo concreto
+                    // aunque el cliente tenga varios autos.
+                    filas.Add(CrearFilaVehiculo(vehiculo, cliente));
+                    clientesConPatente.Add(cliente.IdCliente);
+                    continue;
+                }
+
+                if (!coincidenciasPorCliente.TryGetValue(cliente.IdCliente, out var lista))
+                {
+                    lista = new List<VehiculoDto>();
+                    coincidenciasPorCliente[cliente.IdCliente] = lista;
+                }
+                lista.Add(vehiculo);
+            }
+
+            // Clientes que coinciden por nombre, apellido o DNI.
+            foreach (var par in coincidenciasPorCliente)
+            {
+                var cliente = BuscarCliente(par.Key);
+                if (cliente == null) continue;
+
+                // Si el cliente ya tiene una fila propia por coincidencia de patente,
+                // no se agrega la fila agrupada para evitar duplicar al cliente.
+                if (clientesConPatente.Contains(cliente.IdCliente)) continue;
+
+                int totalVehiculos = _todosLosVehiculos.Count(v => v.IdCliente == cliente.IdCliente);
+
+                if (totalVehiculos <= 1)
+                {
+                    filas.Add(CrearFilaVehiculo(par.Value[0], cliente));
+                }
+                else
+                {
+                    filas.Add(CrearFilaAgrupada(cliente, totalVehiculos));
+                }
+            }
+
+            // Vehiculos sin propietario actual que coinciden por patente.
+            foreach (var vehiculo in vehiculosSinCliente)
+            {
+                filas.Add(CrearFilaVehiculo(vehiculo, null));
+            }
+
+            if (filas.Count == 0)
+            {
+                filas.Add(CrearFilaAccionRegistrar());
+            }
+
+            return filas.Take(MaximoResultadosBusquedaUniversal).ToList();
+        }
+
+        /// <summary>
+        /// Aplica la seleccion de una fila del buscador universal: completa cliente y vehiculo
+        /// de la orden y avisa al code-behind donde debe ir el foco.
+        /// </summary>
+        public void SeleccionarResultadoUniversal(BusquedaClienteVehiculoDto resultado)
+        {
+            if (resultado == null) return;
+
+            if (resultado.EsAccionRegistrar)
+            {
+                AbrirModalNuevoClienteVehiculoRequested?.Invoke(this, TextoBusquedaUniversal);
+                return;
+            }
+
+            ClienteId = resultado.ClienteId;
+
+            if (resultado.EsAgrupado || resultado.VehiculoId <= 0)
+            {
+                // Cliente con varios vehiculos (o sin vehiculo): el operador elige en el desplegable.
+                VehiculoId = 0;
+                FocoVehiculoRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            VehiculoId = resultado.VehiculoId;
+            FocoKilometrajeRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Indica si el texto tipeado tiene forma de patente y, por lo tanto, conviene
+        /// prellenarlo en el modal de alta unificada. Una patente combina letras y numeros
+        /// (por ejemplo "AG 987 ZK"); un nombre o un DNI puro no cumplen esa forma.
+        /// </summary>
+        public bool ParecePatente(string? texto)
+        {
+            var term = texto?.Trim() ?? string.Empty;
+            if (term.Length < 5) return false;
+
+            bool tieneLetras = term.Any(char.IsLetter);
+            bool tieneNumeros = term.Any(char.IsDigit);
+
+            return tieneLetras && tieneNumeros;
+        }
+
+        private ClienteDto? BuscarCliente(int idCliente)
+        {
+            if (idCliente <= 0) return null;
+            return _todosLosClientes.FirstOrDefault(c => c.IdCliente == idCliente);
+        }
+
+        private static bool Coincide(string? valor, string term)
+        {
+            return !string.IsNullOrEmpty(valor) && valor.Contains(term, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool CoincideCliente(ClienteDto cliente, string term)
+        {
+            return Coincide(cliente.Dni, term)
+                || Coincide(cliente.Apellido, term)
+                || Coincide(cliente.Nombre, term);
+        }
+
+        private static BusquedaClienteVehiculoDto CrearFilaVehiculo(VehiculoDto vehiculo, ClienteDto? cliente)
+        {
+            var fila = new BusquedaClienteVehiculoDto
+            {
+                ClienteId = cliente?.IdCliente ?? 0,
+                VehiculoId = vehiculo.Id,
+                Patente = vehiculo.Patente,
+                Apellido = cliente?.Apellido ?? string.Empty,
+                Nombre = cliente?.Nombre ?? string.Empty,
+                Dni = cliente?.Dni ?? string.Empty,
+                VehiculoDescripcion = $"{vehiculo.MarcaNombre} {vehiculo.ModeloNombre}".Trim()
+            };
+
+            fila.DisplayText = cliente == null
+                ? $"[{fila.Patente}] - (Sin Cliente) - {fila.VehiculoDescripcion}"
+                : $"[{fila.Patente}] - {fila.Apellido}, {fila.Nombre} ({fila.Dni}) - {fila.VehiculoDescripcion}";
+
+            fila.TextMostrar = cliente == null
+                ? $"[{fila.Patente}] - (Sin Cliente)"
+                : $"{fila.Apellido}, {fila.Nombre}";
+
+            return fila;
+        }
+
+        private static BusquedaClienteVehiculoDto CrearFilaAgrupada(ClienteDto cliente, int cantidadVehiculos)
+        {
+            return new BusquedaClienteVehiculoDto
+            {
+                ClienteId = cliente.IdCliente,
+                VehiculoId = 0,
+                Apellido = cliente.Apellido,
+                Nombre = cliente.Nombre,
+                Dni = cliente.Dni,
+                EsAgrupado = true,
+                CantidadVehiculos = cantidadVehiculos,
+                DisplayText = $"{cliente.Apellido}, {cliente.Nombre} (DNI: {cliente.Dni}) - [Ver {cantidadVehiculos} vehiculos]",
+                TextMostrar = $"{cliente.Apellido}, {cliente.Nombre}"
+            };
+        }
+
+        private static BusquedaClienteVehiculoDto CrearFilaAccionRegistrar()
+        {
+            return new BusquedaClienteVehiculoDto
+            {
+                EsAccionRegistrar = true,
+                DisplayText = "🔍 No se encontraron resultados. + Registrar Nuevo Cliente y Vehiculo",
+                TextMostrar = "🔍 No se encontraron resultados. + Registrar Nuevo Cliente y Vehiculo"
+            };
         }
 
         /// <summary>
