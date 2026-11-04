@@ -1,0 +1,50 @@
+<UserControl x:Class="TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlBuscadorUniversal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+
+    <Grid>
+        <TextBox x:Name="txtBusqueda" Height="30"
+                 ToolTip="Escriba DNI, apellido, nombre o patente (mínimo 3 caracteres)."
+                 TextChanged="TxtBusqueda_TextChanged"
+                 GotKeyboardFocus="TxtBusqueda_GotKeyboardFocus"
+                 KeyDown="TxtBusqueda_KeyDown" />
+
+        <Popup x:Name="popupDesplegable"
+               Placement="Bottom"
+               PlacementTarget="{Binding ElementName=txtBusqueda}"
+               StaysOpen="False"
+               AllowsTransparency="True"
+               PopupAnimation="Fade">
+            <Border Background="White"
+                    BorderBrush="#D5D8DC"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    MaxHeight="320"
+                    MinWidth="{Binding ActualWidth, ElementName=txtBusqueda}"
+                    MaxWidth="{Binding ActualWidth, ElementName=txtBusqueda}">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.18"/>
+                </Border.Effect>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ListBox x:Name="lstResultados"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             MaxHeight="310"
+                             ItemsSource="{Binding ResultadosBusquedaUniversal}"
+                             DisplayMemberPath="DisplayText"
+                             PreviewMouseLeftButtonDown="LstResultados_PreviewMouseLeftButtonDown"
+                             SelectionChanged="LstResultados_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayText}" Padding="4,3" TextWrapping="Wrap"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </ScrollViewer>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

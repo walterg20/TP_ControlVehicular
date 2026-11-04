@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ctl="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio"
              mc:Ignorable="d"
              FocusManager.FocusedElement="{Binding ElementName=cmbVehiculos}">
 
@@ -51,27 +52,14 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Cliente:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Cliente / Vehículo:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center"/>
                 <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0" x:Name="cmbClientes" Height="30"
-                              IsEditable="True"
-                              IsTextSearchEnabled="False"
-                              StaysOpenOnEdit="True"
-                              TextSearch.TextPath="NombreCompletoConDni"
-                              ItemsSource="{Binding ClientesDisponibles}"
-                              SelectedValue="{Binding ClienteId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValuePath="IdCliente">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding NombreCompletoConDni}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <Button Grid.Column="1" x:Name="btnNuevoCliente" Content="➕" Width="30" Height="30" Margin="5,0,0,0" ToolTip="Nuevo Cliente" Click="BtnNuevoCliente_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
+                    <ctl:CtlBuscadorUniversal Grid.Column="0" x:Name="ctlBusquedaUniversal" Height="30"/>
+                    <Button Grid.Column="1" x:Name="btnNuevoCliente" Content="➕" Width="30" Height="30" Margin="5,0,0,0" ToolTip="Registrar Nuevo Cliente y Vehículo" Click="BtnNuevoCliente_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
                 </Grid>
 
                 <TextBlock Grid.Row="0" Grid.Column="3" Text="Vehículo:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center"/>
