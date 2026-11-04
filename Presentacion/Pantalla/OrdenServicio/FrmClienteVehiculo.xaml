@@ -9,6 +9,10 @@
         WindowStartupLocation="CenterOwner"
         FocusManager.FocusedElement="{Binding ElementName=txtPatente}">
 
+        <Window.Resources>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        </Window.Resources>
+
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -51,7 +55,7 @@
                                      Text="{Binding Dni, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtDni, FallbackValue=''}"
                                        Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
-                                       Visibility="{Binding (Validation.HasError), ElementName=txtDni, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                                       Visibility="{Binding (Validation.HasError), ElementName=txtDni, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                         </StackPanel>
 
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Apellido y Nombre:" FontWeight="Bold" Margin="0,0,0,2"/>
@@ -61,19 +65,19 @@
                                      Text="{Binding Apellido, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtApellido, FallbackValue=''}"
                                        Foreground="#E74C3C" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"
-                                       Visibility="{Binding (Validation.HasError), ElementName=txtApellido, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                                       Visibility="{Binding (Validation.HasError), ElementName=txtApellido, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                             <TextBox x:Name="txtNombre" Height="30" Margin="0,0,0,8"
                                      IsEnabled="{Binding PuedeEditarCliente}"
                                      Text="{Binding Nombre, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtNombre, FallbackValue=''}"
                                        Foreground="#E74C3C" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"
-                                       Visibility="{Binding (Validation.HasError), ElementName=txtNombre, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                                       Visibility="{Binding (Validation.HasError), ElementName=txtNombre, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                             <TextBox x:Name="txtTelefono" Height="30"
                                      IsEnabled="{Binding PuedeEditarCliente}"
                                      Text="{Binding Telefono, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtTelefono, FallbackValue=''}"
                                        Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
-                                       Visibility="{Binding (Validation.HasError), ElementName=txtTelefono, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                                       Visibility="{Binding (Validation.HasError), ElementName=txtTelefono, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -99,7 +103,7 @@
                                      Text="{Binding Patente, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtPatente, FallbackValue=''}"
                                        Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
-                                       Visibility="{Binding (Validation.HasError), ElementName=txtPatente, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                                       Visibility="{Binding (Validation.HasError), ElementName=txtPatente, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                         </StackPanel>
 
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Marca y Modelo:" FontWeight="Bold" Margin="0,0,0,2"/>
@@ -109,13 +113,13 @@
                                       SelectedValue="{Binding IdMarca, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbMarca, FallbackValue=''}"
                                        Foreground="#E74C3C" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"
-                                       Visibility="{Binding (Validation.HasError), ElementName=cmbMarca, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                                       Visibility="{Binding (Validation.HasError), ElementName=cmbMarca, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                             <ComboBox x:Name="cmbModelo" Height="30"
                                       ItemsSource="{Binding ModelosDisponibles}" DisplayMemberPath="NombreModelo" SelectedValuePath="Id"
                                       SelectedValue="{Binding IdModelo, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbModelo, FallbackValue=''}"
                                        Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
-                                       Visibility="{Binding (Validation.HasError), ElementName=cmbModelo, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}"/>
+                                       Visibility="{Binding (Validation.HasError), ElementName=cmbModelo, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                         </StackPanel>
 
                         <TextBlock Grid.Row="5" Grid.Column="0" Text="Año / Motor (opcionales):" FontWeight="Bold" Margin="0,0,0,2"/>

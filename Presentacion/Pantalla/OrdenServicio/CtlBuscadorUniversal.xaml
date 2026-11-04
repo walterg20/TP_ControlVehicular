@@ -34,7 +34,6 @@
                              Background="Transparent"
                              MaxHeight="310"
                              ItemsSource="{Binding ResultadosBusquedaUniversal}"
-                             DisplayMemberPath="DisplayText"
                              PreviewMouseLeftButtonDown="LstResultados_PreviewMouseLeftButtonDown"
                              SelectionChanged="LstResultados_SelectionChanged">
                         <ListBox.ItemTemplate>

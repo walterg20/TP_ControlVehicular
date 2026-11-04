@@ -16,7 +16,15 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         private readonly string _patenteSugerida;
         private readonly ClienteDto? _clienteExistente;
 
-        public FrmClienteVehiculo(string patenteSugerida = "", ClienteDto? clienteExistente = null)
+        /// <summary>
+        /// Constructor sin parametros: WPF lo exige para instanciar la ventana desde el
+        /// XAML compilado (Application.LoadComponent).
+        /// </summary>
+        public FrmClienteVehiculo() : this("", null)
+        {
+        }
+
+        public FrmClienteVehiculo(string patenteSugerida, ClienteDto? clienteExistente = null)
         {
             InitializeComponent();
             _patenteSugerida = patenteSugerida;
