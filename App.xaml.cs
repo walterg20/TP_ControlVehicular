@@ -155,6 +155,7 @@ namespace TP_ControlVehicular
             services.AddScoped<ReporteGerencialViewModel>();
             services.AddScoped<ServicioViewModel>();
             services.AddScoped<OrdenServicioViewModel>();
+            services.AddScoped<ClienteVehiculoViewModel>();
             services.AddScoped<MisTareasViewModel>();
             services.AddScoped<MisTrabajosViewModel>();
             services.AddScoped<EmpresaConfiguracionViewModel>();
