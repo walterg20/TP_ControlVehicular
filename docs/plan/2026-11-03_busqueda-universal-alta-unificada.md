@@ -49,3 +49,30 @@ XAML del combo universal + code-behind (debounce, selección, foco, modal).
 - **2026-11-03** — Rama `feature/busqueda-universal-alta-unificada` creada desde `develop`.
   Spec OpenSpec escrita (proposal / spec delta / design / tasks). Umbral de 3 caracteres confirmado
   por el usuario. Fase 1 iniciada.
+
+## Bitácora de ejecución
+
+| Fase | Commit | Resultado |
+|---|---|---|
+| 1 — Modelo de datos | `feat(orden-servicio): agregar buscador universal...` | `Negocio/DTOs/BusquedaClienteVehiculoDto.cs` + `FiltrarBusquedaUniversal` / `SeleccionarResultadoUniversal` en `OrdenServicioViewModel` |
+| 2 — ViewModel | (mismo commit que la fase 1) | Colección, eventos de foco y de apertura de modal, helper `ParecePatente` |
+| 3 — Modal unificado | `feat(orden-servicio): agregar modal unificado...` | `ClienteVehiculoViewModel` + `FrmClienteVehiculo` + registro en DI |
+| 4 — Integración UI | `feat(orden-servicio): integrar el control de busqueda universal...` | `CtlBuscadorUniversal` (TextBox + Popup/ListBox) reemplaza al combo de clientes |
+| 5 — Pruebas | `test(orden-servicio): agregar pruebas del buscador universal...` | 19 + 9 tests nuevos, 144 unitarios en verde |
+| 6 — Verificación | — | `dotnet build` sin errores; `dotnet test` sin errores en unitarios |
+
+## Desviaciones respecto del plan inicial
+
+1. **El buscador no se implementó como `ComboBox` editable** sino como `TextBox` + `Popup`/`ListBox`
+   (`CtlBuscadorUniversal`). Un `ComboBox` editable escribe el texto del ítem seleccionado en su
+   caja interna y pierde el cursor al repoblar la colección, lo que hacía imposible mostrar "el
+   nombre del dueño" en el campo y "la fila completa" en el desplegable de forma determinista.
+2. **El modal unificado admite cliente preexistente.** El botón `➕` de vehículo, cuando ya hay
+   un cliente seleccionado, crea sólo el vehículo y su vínculo (`ClienteVehiculoViewModel.ClienteExistente`),
+   de modo que no se pierde la capacidad de agregar un segundo auto a un cliente ya cargado.
+3. **`FrmCliente` y `FrmVehiculo` no se tocaron** (siguen en uso por sus propias pantallas).
+
+## Pendiente de validación manual
+
+La tarea 6.3 de la spec (validación interactiva en la pantalla *Registrar Nueva Orden*) queda
+pendiente: no es automatizable sin instancia de SQL Server ni interacción con la UI.
