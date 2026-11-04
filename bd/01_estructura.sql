@@ -1,11 +1,6 @@
 -- ============================================================================
 -- 01_estructura.sql — Esquema base (DDL) del sistema de control vehicular.
 -- ----------------------------------------------------------------------------
--- Autor: consolidación de scripts históricos (2026-10-12).
--- Contenido: secuencia de facturación + 18 tablas + índices + CK/UNIQUE/FK.
--- Idempotente: cada objeto se crea solo si no existe (puede re-ejecutarse).
--- Requiere: base de datos [ControlVehicular] ya creada.
--- Compatible con SQL Server 2019 Express. Codificación UTF-8.
 -- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades -> 06_poblacion.
 -- ============================================================================
 USE [ControlVehicular];

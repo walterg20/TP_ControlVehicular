@@ -533,5 +533,70 @@ namespace TP_ControlVehicular.Tests.Unit
                 UserSession.CurrentUser = prevUser;
             }
         }
+
+        // ---------------------------------------------------------------------
+        // ModificarRegistroServicioHandler
+        // ---------------------------------------------------------------------
+
+        [Fact]
+        public async Task ModificarRegistroServicio_TodasTareasFinalizadas_CambiaEstadoACompletadaYActualizaRepo()
+        {
+            // Arrange
+            var repoMock = new Mock<IRegistroServicioRepository>();
+            var orden = new RegistroServicio
+            {
+                Id = 10,
+                Estado = RegistroServicio.EstadoEnProceso,
+                Detalles = new List<DetalleServicio>
+                {
+                    new DetalleServicio { Id = 1, Estado = DetalleServicio.EstadoFinalizada, OrdenEjecucion = 1 },
+                    new DetalleServicio { Id = 2, Estado = DetalleServicio.EstadoFinalizada, OrdenEjecucion = 2 }
+                }
+            };
+
+            repoMock.Setup(r => r.UpdateAsync(It.IsAny<RegistroServicio>())).Returns(Task.CompletedTask);
+            repoMock.Setup(r => r.GetReporteCompletoAsync(null)).ReturnsAsync(new List<RegistroServicio> { orden });
+
+            var handler = new ModificarRegistroServicioHandler(repoMock.Object, CrearMapper());
+
+            // Act
+            var resultado = await handler.HandleAsync(orden);
+
+            // Assert
+            Assert.Equal(RegistroServicio.EstadoCompletada, orden.Estado);
+            repoMock.Verify(r => r.UpdateAsync(It.Is<RegistroServicio>(o => o.Id == 10 && o.Estado == RegistroServicio.EstadoCompletada)), Times.Once);
+            Assert.NotNull(resultado);
+            Assert.Equal(10, resultado.Id);
+        }
+
+        [Fact]
+        public async Task ModificarRegistroServicio_ConTareasPendientes_AvanzaSiguienteAEnCurso()
+        {
+            // Arrange
+            var repoMock = new Mock<IRegistroServicioRepository>();
+            var orden = new RegistroServicio
+            {
+                Id = 20,
+                Estado = RegistroServicio.EstadoAbierta,
+                Detalles = new List<DetalleServicio>
+                {
+                    new DetalleServicio { Id = 1, Estado = DetalleServicio.EstadoFinalizada, OrdenEjecucion = 1 },
+                    new DetalleServicio { Id = 2, Estado = DetalleServicio.EstadoPendiente, OrdenEjecucion = 2 }
+                }
+            };
+
+            repoMock.Setup(r => r.UpdateAsync(It.IsAny<RegistroServicio>())).Returns(Task.CompletedTask);
+            repoMock.Setup(r => r.GetReporteCompletoAsync(null)).ReturnsAsync(new List<RegistroServicio> { orden });
+
+            var handler = new ModificarRegistroServicioHandler(repoMock.Object, CrearMapper());
+
+            // Act
+            var resultado = await handler.HandleAsync(orden);
+
+            // Assert
+            Assert.Equal(RegistroServicio.EstadoEnProceso, orden.Estado);
+            Assert.Equal(DetalleServicio.EstadoEnCurso, orden.Detalles.First(d => d.Id == 2).Estado);
+            repoMock.Verify(r => r.UpdateAsync(It.Is<RegistroServicio>(o => o.Id == 20 && o.Estado == RegistroServicio.EstadoEnProceso)), Times.Once);
+        }
     }
 }

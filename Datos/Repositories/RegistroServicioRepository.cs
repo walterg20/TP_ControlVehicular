@@ -32,20 +32,28 @@ namespace TP_ControlVehicular.Datos.Repositories
             {
                 ctx.Entry(existente).CurrentValues.SetValues(entity);
 
-                // Eliminar detalles que ya no están
+                // Eliminar detalles que ya no están en la entidad recibida
                 foreach (var detalleExistente in existente.Detalles.ToList())
                 {
-                    if (!entity.Detalles.Any(d => d.Id == detalleExistente.Id))
+                    if (!entity.Detalles.Any(d => d.Id == detalleExistente.Id && d.Id > 0))
                     {
                         ctx.DetalleServicios.Remove(detalleExistente);
                     }
                 }
 
-                // Asegurarse de que el Id del registro de servicio coincide
+                // Actualizar detalles existentes con sus nuevos valores o agregar nuevos
                 foreach (var detalle in entity.Detalles)
                 {
                     detalle.RegistroServicioId = existente.Id;
-                    existente.Detalles.Add(detalle);
+                    var detalleExistente = existente.Detalles.FirstOrDefault(d => d.Id == detalle.Id && d.Id > 0);
+                    if (detalleExistente != null)
+                    {
+                        ctx.Entry(detalleExistente).CurrentValues.SetValues(detalle);
+                    }
+                    else
+                    {
+                        existente.Detalles.Add(detalle);
+                    }
                 }
 
                 await ctx.SaveChangesAsync();

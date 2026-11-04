@@ -57,7 +57,7 @@ namespace TP_ControlVehicular.Tests.Unit
 
         [Theory]
         [InlineData(2500000, "$2.5M")]
-        [InlineData(150000, "$150k")]
+        [InlineData(150000, "$150m")]
         [InlineData(9500, "$9,500")]
         public void FormatearMonto_UsaElFormatoAbreviado(decimal valor, string esperado)
         {
@@ -67,7 +67,7 @@ namespace TP_ControlVehicular.Tests.Unit
         [Fact]
         public void FormatearValor_SegunEsMontoMuestraMontoOCantidad()
         {
-            Assert.Equal("$150k", GraficoCalculos.FormatearValor(150000m, true));
+            Assert.Equal("$150m", GraficoCalculos.FormatearValor(150000m, true));
             Assert.Equal("1,500", GraficoCalculos.FormatearValor(1500m, false));
         }
 

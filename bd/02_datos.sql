@@ -1,25 +1,7 @@
 -- ============================================================================
 -- 02_datos.sql — Datos semilla canónicos del sistema de control vehicular.
 -- ----------------------------------------------------------------------------
--- Contenido canónico oficial (Bootstrap de Producción / Base Limpia):
---   * 1. Roles del sistema (Administrador = 1, Recepcionista = 2, Mecánico = 3).
---   * 2. Catálogo completo de permisos RBAC (38 permisos).
---   * 3. Matriz de asignación Rol -> Permiso (roles 1, 2 y 3; autorreparable).
---   * 4. Taller base (Id = 1, Taller PRO).
---   * 5. ConfiguracionEmpresa (fila singleton, Id = 1).
---   * 6. ConfiguracionBackup (fila singleton, Id = 1).
---   * 7. Métodos de pago (Efectivo, Tarjeta).
---   * 8. Usuario inicial Administrador bootstrap (admin@example.com / 10000001).
---   * 9. Catálogo oficial de Servicios (15 servicios con precios vigentes y Activo = 1).
---   * 10. Catálogo completo de Marcas y Modelos argentinos (45 marcas, 203 modelos;
---         preservando Toyota = Id 1 y Renault = Id 2).
---
--- NOTA: Los datos de población operativa y de demostración (personal de taller,
--- clientes, vehículos, órdenes de servicio, facturas y pagos) residen en '06_poblacion.sql'.
---
--- Idempotencia:
---   * Cada sección usa MERGE o IF NOT EXISTS para re-ejecución segura sin duplicados.
--- Compatible con SQL Server 2019 Express. Codificación UTF-8.
+
 -- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades -> 06_poblacion.
 -- ============================================================================
 

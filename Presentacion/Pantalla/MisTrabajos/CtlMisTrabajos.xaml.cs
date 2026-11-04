@@ -29,10 +29,17 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.MisTrabajos
         {
             if (DataContext is MisTrabajosViewModel vmMisTrabajos)
             {
-                var ok = await vmMisTrabajos.GuardarCambiosAsync();
-                if (ok && Application.Current.MainWindow is MainWindow win)
+                try
                 {
-                    win.MostrarToast("Cambios guardados con éxito.");
+                    var ok = await vmMisTrabajos.GuardarCambiosAsync();
+                    if (ok && Application.Current.MainWindow is MainWindow win)
+                    {
+                        win.MostrarToast("Cambios guardados con éxito.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Compartido.FrmConfirmacion.MostrarAviso("Error al guardar cambios: " + ex.Message, "Error", Window.GetWindow(this));
                 }
             }
         }
