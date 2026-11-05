@@ -7,6 +7,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -68,6 +72,19 @@
                             </Style>
                         </TextBox.Resources>
                     </TextBox>
+                    <TextBlock Text="Estado:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="10,0,6,0"
+                               Visibility="{Binding PuedeVerFiltroEstado, Converter={StaticResource BoolToVis}}"/>
+                    <ComboBox ItemsSource="{Binding EstadosDisponibles}"
+                              SelectedItem="{Binding FiltroEstado, Mode=TwoWay}"
+                              SelectionChanged="CmbFiltroEstado_SelectionChanged"
+                              Width="110" Padding="6,4" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1"
+                              Visibility="{Binding PuedeVerFiltroEstado, Converter={StaticResource BoolToVis}}">
+                        <ComboBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </ComboBox.Resources>
+                    </ComboBox>
                     <Button Content="Buscar" Width="80" Padding="8,6" Margin="10,0,0,0" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnBuscar_Click" Cursor="Hand">
                         <Button.Resources>
                             <Style TargetType="Border">
@@ -75,8 +92,6 @@
                             </Style>
                         </Button.Resources>
                     </Button>
-
-                    <CheckBox Content="Mostrar inactivos" Margin="16,0,0,0" VerticalAlignment="Center" IsChecked="{Binding MostrarInactivos, Mode=TwoWay}"  Click="ChkMostrarInactivos_Click" />
                 </StackPanel>
 
                 <!-- Botón Nuevo Servicio -->
@@ -122,11 +137,20 @@
                         <Setter Property="Padding" Value="8,6"/>
                     </Style>
                 </DataGrid.Resources>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Activo}" Value="False">
+                                <Setter Property="Foreground" Value="#C0392B"/>
+                                <Setter Property="Background" Value="#FDECEA"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding IdServicio}" Width="80"/>
                     <DataGridTextColumn Header="Nombre del Servicio" Binding="{Binding Nombre}" Width="*"/>
                     <DataGridTextColumn Header="Precio Base ($)" Binding="{Binding Precio, StringFormat={}${0:N2}}" Width="150"/>
-                    <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="90"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
@@ -139,13 +163,6 @@
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="♻️ Reactivar Seleccionado" Click="BtnReactivar_Click" Padding="12,8" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" IsEnabled="{Binding PuedeEditar}">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="6"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
                 <Button Content="✏️ Editar Seleccionado" Click="BtnEditar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" IsEnabled="{Binding PuedeEditar}">
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -154,6 +171,14 @@
                     </Button.Resources>
                 </Button>
                 <Button Content="🗑️ Eliminar Seleccionado" Click="BtnBorrar_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeEliminar}">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                <Button Content="♻️ Reactivar" Click="BtnReactivar_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="8,0,0,0"
+                        Visibility="{Binding PuedeVerFiltroEstado, Converter={StaticResource BoolToVis}}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>

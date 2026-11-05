@@ -11,11 +11,11 @@ namespace TP_ControlVehicular.Negocio.Interfaces
         Task<Servicio?> GetByNombreAsync(string nombre);
 
         /// <summary>
-        /// Recupera una pagina de servicios aplicando la busqueda textual en la base de datos.
+        /// Recupera una pagina de servicios aplicando la busqueda textual y el filtro de estado (Todos / Activos / Inactivos) en la base de datos.
         /// </summary>
         Task<(IEnumerable<Servicio> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,
-            bool incluirInactivos,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina);
     }

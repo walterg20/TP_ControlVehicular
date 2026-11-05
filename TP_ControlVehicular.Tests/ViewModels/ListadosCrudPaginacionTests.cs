@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TP_ControlVehicular.Entidad;
+using TP_ControlVehicular.Negocio.Context;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Mappers;
@@ -153,8 +154,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Rol_LoadAsync_CargaPrimeraPaginaYPropagaElTotal()
         {
             var repo = new Mock<IRolRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, bool inactivos, int p, int t) => (
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (
                     new List<Rol> { new Rol { Id = 1, Nombre = "Administrador" } }, 4));
 
             var mapper = CrearMapper();
@@ -167,7 +168,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             await vm.LoadAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("", false, 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("", "Activos", 1, 10), Times.Once);
             Assert.Equal(4, vm.TotalRegistros);
             Assert.Single(vm.Roles);
         }
@@ -175,26 +176,34 @@ namespace TP_ControlVehicular.Tests.ViewModels
         [Fact]
         public async Task Rol_CambiarMostrarInactivos_ReiniciaLaPaginaYPropagaElFiltro()
         {
-            var repo = new Mock<IRolRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, bool inactivos, int p, int t) => (Enumerable.Empty<Rol>(), 0));
+            UserSession.CurrentUser = new UsuarioDto { IdRol = 1 };
+            try
+            {
+                var repo = new Mock<IRolRepository>();
+                repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                    .ReturnsAsync((string? b, string? f, int p, int t) => (Enumerable.Empty<Rol>(), 0));
 
-            var mapper = CrearMapper();
-            var vm = new RolViewModel(
-                new ListarRolHandler(repo.Object, mapper),
-                new RegistrarRolHandler(repo.Object, mapper),
-                new ModificarRolHandler(repo.Object, mapper),
-                new ReactivarRolHandler(repo.Object),
-                mapper);
+                var mapper = CrearMapper();
+                var vm = new RolViewModel(
+                    new ListarRolHandler(repo.Object, mapper),
+                    new RegistrarRolHandler(repo.Object, mapper),
+                    new ModificarRolHandler(repo.Object, mapper),
+                    new ReactivarRolHandler(repo.Object),
+                    mapper);
 
-            await vm.LoadAsync();
-            await vm.CambiarPaginaAsync(1);
+                await vm.LoadAsync();
+                await vm.CambiarPaginaAsync(1);
 
-            vm.MostrarInactivos = true;
-            Assert.Equal(1, vm.PaginaActual);
+                vm.FiltroEstado = "Inactivos";
+                Assert.Equal(1, vm.PaginaActual);
 
-            await vm.BuscarAsync();
-            repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), true, 1, 10), Times.Once);
+                await vm.BuscarAsync();
+                repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), "Inactivos", 1, 10), Times.AtLeastOnce());
+            }
+            finally
+            {
+                UserSession.CurrentUser = null;
+            }
         }
 
         // ------------------------------------------------------------------
@@ -205,8 +214,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Usuario_LoadAsync_CargaPrimeraPaginaYPropagaElTotal()
         {
             var repo = new Mock<IUsuarioRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, int p, int t) => (
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (
                     new List<Usuario> { new Usuario { Id = 1, Nombre = "Ana", Apellido = "Perez", Dni = "12345678", Rol = new Rol { Id = 1, Nombre = "Mecanico" } } }, 9));
 
             var rolRepo = new Mock<IRolRepository>();
@@ -217,12 +226,13 @@ namespace TP_ControlVehicular.Tests.ViewModels
                 new ListarUsuariosHandler(repo.Object, mapper),
                 new RegistrarUsuarioHandler(repo.Object, mapper),
                 new ModificarUsuarioHandler(repo.Object, mapper),
+                repo.Object,
                 rolRepo.Object,
                 mapper);
 
             await vm.LoadAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("", 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("", "Activos", 1, 10), Times.Once);
             Assert.Equal(9, vm.TotalRegistros);
             Assert.Single(vm.Usuarios);
             Assert.Equal("Mecanico", vm.Usuarios[0].RolNombre);
@@ -236,8 +246,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Servicio_LoadAsync_CargaPrimeraPaginaYPropagaElTotal()
         {
             var repo = new Mock<IServicioRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, bool inactivos, int p, int t) => (
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (
                     new List<Servicio> { new Servicio { Id = 1, Nombre = "Cambio de aceite", Precio = 25000m } }, 15));
 
             var mapper = CrearMapper();
@@ -250,7 +260,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             await vm.LoadAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("", false, 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("", "Activos", 1, 10), Times.Once);
             Assert.Equal(15, vm.TotalRegistros);
             Assert.Equal(2, vm.TotalPaginas);
             Assert.Single(vm.Servicios);
@@ -284,8 +294,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
             var repo = new Mock<IServicioRepository>();
             repo.Setup(r => r.GetByIdAsync(5))
                 .ReturnsAsync(new Servicio { Id = 5, Nombre = "Balanceo", Precio = 8000m, Activo = true });
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, bool inactivos, int p, int t) => (new List<Servicio>(), 0));
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (new List<Servicio>(), 0));
 
             var mapper = CrearMapper();
             var vm = new ServicioViewModel(
@@ -314,8 +324,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Taller_LoadAsync_CargaPrimeraPaginaYPropagaElTotal()
         {
             var repo = new Mock<ITallerRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, bool inactivos, int p, int t) => (
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (
                     new List<Taller> { new Taller { Id = 1, Nombre = "Taller Central", Direccion = "Av. Siempre Viva 742" } }, 3));
 
             var mapper = CrearMapper();
@@ -328,7 +338,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             await vm.LoadAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("", false, 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("", "Activos", 1, 10), Times.Once);
             Assert.Equal(3, vm.TotalRegistros);
             Assert.Single(vm.Talleres);
         }
@@ -337,8 +347,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Taller_CambiarElTextoDeBusqueda_ReiniciaElListadoEnLaPagina1()
         {
             var repo = new Mock<ITallerRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, bool inactivos, int p, int t) => (Enumerable.Empty<Taller>(), 0));
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (Enumerable.Empty<Taller>(), 0));
 
             var mapper = CrearMapper();
             var vm = new TallerViewModel(

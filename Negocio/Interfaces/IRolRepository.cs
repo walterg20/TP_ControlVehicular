@@ -10,11 +10,11 @@ namespace TP_ControlVehicular.Negocio.Interfaces
         Task<List<Rol>> GetActivosAsync();
 
         /// <summary>
-        /// Recupera una pagina de roles aplicando la busqueda textual en la base de datos.
+        /// Recupera una pagina de roles aplicando la busqueda textual y el filtro de estado (Todos / Activos / Inactivos) en la base de datos.
         /// </summary>
         Task<(IEnumerable<Rol> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,
-            bool incluirInactivos,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina);
     }

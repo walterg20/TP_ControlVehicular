@@ -1,9 +1,12 @@
 // walterg20
 using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
@@ -16,6 +19,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
     /// </summary>
     public class RolViewModel : BasePaginableViewModel, INotifyDataErrorInfo
     {
+        protected override string Modulo => "Rol";
+
         private readonly ListarRolHandler _listarRolHandler;
         private readonly RegistrarRolHandler _registrarRolHandler;
         private readonly ModificarRolHandler _modificarRolHandler;
@@ -43,6 +48,30 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
 
         public ObservableCollection<RolDto> Roles { get; set; }
+
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
 
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
@@ -78,20 +107,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _activo = value; OnPropertyChanged(); }
         }
 
-        private bool _mostrarInactivos;
         public bool MostrarInactivos
         {
-            get => _mostrarInactivos;
-            set
-            {
-                if (_mostrarInactivos != value)
-                {
-                    _mostrarInactivos = value;
-                    OnPropertyChanged(nameof(MostrarInactivos));
-                    // El filtro cambio: el listado vuelve a la primera pagina.
-                    ReiniciarPagina();
-                }
-            }
+            get => FiltroEstado != "Activos";
+            set => FiltroEstado = value ? "Todos" : "Activos";
         }
 
         public RolDto? RolSeleccionado { get; set; }
@@ -130,9 +149,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
                 var (items, total) = await _listarRolHandler.HandlePaginadoAsync(
                     TextoBusqueda.Trim(),
-                    MostrarInactivos,
+                    estado,
                     PaginaActual,
                     TamanoPagina);
 
@@ -193,6 +213,43 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        public async Task<bool> EliminarRolAsync(int id)
+        {
+            try
+            {
+                var rol = Roles.FirstOrDefault(r => r.IdRol == id);
+                if (rol == null) return false;
+                var entidad = new Entidad.Rol
+                {
+                    Id = rol.IdRol,
+                    Nombre = rol.Nombre,
+                    Descripcion = rol.Descripcion,
+                    Activo = false
+                };
+                await _modificarRolHandler.HandleAsync(entidad);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarAsync(int id)
+        {
+            try
+            {
+                await _reactivarRolHandler.HandleAsync(id);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public async Task ToggleActivoAsync()
         {
             if (RolSeleccionado == null) return;
@@ -215,12 +272,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 RegistrationFailed?.Invoke(this, "Error al actualizar estado del rol: " + ex.Message);
             }
-        }
-
-        public async Task ReactivarAsync(int id)
-        {
-            await _reactivarRolHandler.HandleAsync(id);
-            await LoadAsync();
         }
 
         public event EventHandler<bool>? RegistrationCompleted;

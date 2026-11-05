@@ -9,6 +9,8 @@ namespace TP_ControlVehicular.Presentacion.Rol
 {
     public partial class CtlRol : UserControl
     {
+        public RolViewModel? ViewModel => DataContext as RolViewModel;
+
         public CtlRol()
         {
             InitializeComponent();
@@ -18,13 +20,23 @@ namespace TP_ControlVehicular.Presentacion.Rol
                 if (vmRol is not null)
                 {
                     this.DataContext = vmRol;
-                    this.Loaded += async (s, e) => { await vmRol.LoadAsync(); };
+                    this.Loaded += async (s, e) =>
+                    {
+                        vmRol.NotificarPermisos();
+                        await vmRol.LoadAsync();
+                    };
                 }
             }
             catch
             {
                 // Ignorar si DI no está listo
             }
+        }
+
+        public CtlRol(RolViewModel viewModel) : this()
+        {
+            DataContext = viewModel;
+            ViewModel?.NotificarPermisos();
         }
 
         /// <summary>
@@ -65,9 +77,9 @@ namespace TP_ControlVehicular.Presentacion.Rol
         }
 
         /// <summary>
-        /// Cambiar la visibilidad de los registros inactivos recarga el listado.
+        /// Cambiar el filtro de estado recarga el listado.
         /// </summary>
-        private async void ChkMostrarInactivos_Click(object sender, RoutedEventArgs e)
+        private async void CmbFiltroEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (this.DataContext is RolViewModel vmRol)
             {
@@ -76,21 +88,45 @@ namespace TP_ControlVehicular.Presentacion.Rol
             }
         }
 
+        private void DgRoles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (ViewModel is RolViewModel vmRol && !vmRol.PuedeEditar)
+            {
+                return;
+            }
+            BtnEditar_Click(sender, e);
+        }
+
         private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            var frm = new FrmRol();
-            frm.Owner = Window.GetWindow(this);
-            var ok = frm.ShowDialog();
-            if (ok == true && this.DataContext is RolViewModel vmRol)
+            if (ViewModel is RolViewModel vmRol)
             {
-                await vmRol.LoadAsync();
+                if (!vmRol.PuedeCrear)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para registrar nuevos roles.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
+                var frm = new FrmRol();
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmRol.LoadAsync();
+                }
             }
         }
 
-        private async void BtnModificar_Click(object sender, RoutedEventArgs e)
+        private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is RolViewModel vmRol)
             {
+                if (!vmRol.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para modificar roles.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmRol.RolSeleccionado == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un rol.", "Aviso", Window.GetWindow(this));
@@ -106,7 +142,6 @@ namespace TP_ControlVehicular.Presentacion.Rol
                 }
             }
         }
-
 
         private void BtnAdministrarPermisos_Click(object sender, RoutedEventArgs e)
         {
@@ -127,21 +162,26 @@ namespace TP_ControlVehicular.Presentacion.Rol
             }
         }
 
-        private async void BtnBaja_Click(object sender, RoutedEventArgs e)
+        private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is RolViewModel vmRol)
             {
+                if (!vmRol.PuedeEliminar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para eliminar roles.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmRol.RolSeleccionado == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un rol.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                if (!FrmConfirmacion.Mostrar("¿Cambiar el estado del rol seleccionado?", "Confirmar cambio", Window.GetWindow(this)))
+                if (!FrmConfirmacion.Mostrar($"¿Está seguro de marcar como inactivo al rol '{vmRol.RolSeleccionado.Nombre}'?", "Confirmar baja", Window.GetWindow(this)))
                     return;
 
-                await vmRol.ToggleActivoAsync();
-                await vmRol.LoadAsync();
+                await vmRol.EliminarRolAsync(vmRol.RolSeleccionado.IdRol);
             }
         }
 
@@ -149,13 +189,23 @@ namespace TP_ControlVehicular.Presentacion.Rol
         {
             if (this.DataContext is RolViewModel vmRol)
             {
+                if (!vmRol.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para reactivar roles.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmRol.RolSeleccionado == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un rol.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                await vmRol.ReactivarAsync(vmRol.RolSeleccionado.IdRol);
+                var ok = await vmRol.ReactivarAsync(vmRol.RolSeleccionado.IdRol);
+                if (ok)
+                {
+                    FrmConfirmacion.MostrarAviso("Rol reactivado correctamente.", "Reactivar", Window.GetWindow(this));
+                }
             }
         }
     }

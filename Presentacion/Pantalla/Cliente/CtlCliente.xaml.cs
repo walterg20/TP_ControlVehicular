@@ -88,9 +88,9 @@ namespace TP_ControlVehicular.Presentacion.Cliente
         }
 
         /// <summary>
-        /// Cambiar la visibilidad de los clientes inactivos recarga el listado.
+        /// Cambiar el filtro de estado recarga el listado.
         /// </summary>
-        private async void ChkMostrarInactivos_Click(object sender, RoutedEventArgs e)
+        private async void CmbFiltroEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (this.DataContext is ClienteViewModel vmCliente)
             {
@@ -195,7 +195,11 @@ namespace TP_ControlVehicular.Presentacion.Cliente
                     return;
                 }
 
-                await vmCliente.ReactivarClienteAsync(selected.IdCliente);
+                var ok = await vmCliente.ReactivarClienteAsync(selected.IdCliente);
+                if (ok)
+                {
+                    FrmConfirmacion.MostrarAviso("Cliente reactivado correctamente.", "Reactivar", Window.GetWindow(this));
+                }
             }
         }
     }

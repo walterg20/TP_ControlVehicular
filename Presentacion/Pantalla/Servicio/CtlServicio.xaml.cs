@@ -88,9 +88,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
         }
 
         /// <summary>
-        /// Cambiar la visibilidad de los registros inactivos recarga el listado.
+        /// Cambiar el filtro de estado recarga el listado.
         /// </summary>
-        private async void ChkMostrarInactivos_Click(object sender, RoutedEventArgs e)
+        private async void CmbFiltroEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (this.DataContext is ServicioViewModel vmServicio)
             {
@@ -196,6 +196,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
                 }
 
                 await vmServicio.ReactivarAsync(selected.IdServicio);
+                FrmConfirmacion.MostrarAviso("Servicio reactivado correctamente.", "Reactivar", Window.GetWindow(this));
             }
         }
     }

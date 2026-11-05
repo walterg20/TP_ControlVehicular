@@ -17,9 +17,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
     public class UsuarioViewModel : BasePaginableViewModel, INotifyDataErrorInfo
     {
+        protected override string Modulo => "Usuario";
+
         private readonly ListarUsuariosHandler _listarUsuariosHandler;
         private readonly RegistrarUsuarioHandler _registrarUsuarioHandler;
         private readonly ModificarUsuarioHandler _modificarUsuarioHandler;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly IRolRepository _rolRepository;
         private readonly IMapper _mapper;
         private readonly Debouncer _debouncer;
@@ -28,12 +31,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ListarUsuariosHandler listarUsuariosHandler,
             RegistrarUsuarioHandler registrarUsuarioHandler,
             ModificarUsuarioHandler modificarUsuarioHandler,
+            IUsuarioRepository usuarioRepository,
             IRolRepository rolRepository,
             IMapper mapper)
         {
             _listarUsuariosHandler = listarUsuariosHandler;
             _registrarUsuarioHandler = registrarUsuarioHandler;
             _modificarUsuarioHandler = modificarUsuarioHandler;
+            _usuarioRepository = usuarioRepository;
             _rolRepository = rolRepository;
             _mapper = mapper;
             _debouncer = new Debouncer();
@@ -49,6 +54,30 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public ObservableCollection<UsuarioDto> Usuarios { get; set; }
         public ObservableCollection<RolDto> RolesDisponibles { get; set; }
+
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
 
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
@@ -203,8 +232,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
                 var (items, total) = await _listarUsuariosHandler.HandlePaginadoAsync(
                     TextoBusqueda.Trim(),
+                    estado,
                     PaginaActual,
                     TamanoPagina);
 
@@ -288,6 +319,40 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        public async Task<bool> EliminarUsuarioAsync(int id)
+        {
+            try
+            {
+                var usuario = await _usuarioRepository.GetByIdAsync(id);
+                if (usuario == null) return false;
+                usuario.Activo = false;
+                await _modificarUsuarioHandler.HandleAsync(usuario);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarUsuarioAsync(int id)
+        {
+            try
+            {
+                var usuario = await _usuarioRepository.GetByIdAsync(id);
+                if (usuario == null) return false;
+                usuario.Activo = true;
+                await _modificarUsuarioHandler.HandleAsync(usuario);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public async Task ToggleActivoAsync()
         {
             if (UsuarioSeleccionado == null) return;
@@ -331,11 +396,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         /// <summary>
         /// Realiza la validación en tiempo real de una propiedad individual del formulario al perder el foco (LostFocus).
-        /// Utiliza la clase estática ValidadorGlobal para evaluar expresiones regulares (RegEx) y reglas de negocio.
-        /// Reporta los errores a la interfaz mediante INotifyDataErrorInfo (Validation.Errors en WPF).
         /// </summary>
-        /// <param name="propertyName">Nombre de la propiedad modificada.</param>
-        /// <returns>True si la propiedad no tiene errores, False en caso contrario.</returns>
         public override bool ValidateProperty([CallerMemberName] string? propertyName = null)
         {
             if (propertyName is null) return true;
@@ -395,7 +456,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         /// <summary>
         /// Evalúa la totalidad de los campos del formulario antes de intentar guardar el registro.
         /// </summary>
-        /// <returns>True si todos los campos son válidos y no existen errores en la vista.</returns>
         public bool ValidateAll()
         {
             ValidateProperty(nameof(Nombre));
