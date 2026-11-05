@@ -113,18 +113,18 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Vehiculo_LoadAsync_CargaPrimeraPaginaYPropagaElTotal()
         {
             var repo = new Mock<IVehiculoRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, int p, int t) => (
-                    new List<Vehiculo> { new Vehiculo { Id = 1, Patente = "AB123CD", Modelo = new Modelo { Id = 1, NombreModelo = "Corolla", Marca = new Marca { Id = 1, NombreMarca = "Toyota" } } } }, 7));
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (
+                    new List<Vehiculo> { new Vehiculo { Id = 1, Patente = "AB123CD", Activo = true, Modelo = new Modelo { Id = 1, NombreModelo = "Corolla", Marca = new Marca { Id = 1, NombreMarca = "Toyota" } } } }, 7));
 
             var clienteRepo = new Mock<IClienteRepository>();
             clienteRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Cliente>());
 
             var modeloRepo = new Mock<IModeloRepository>();
-            modeloRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Modelo>());
+            modeloRepo.Setup(r => r.GetActivosAsync()).ReturnsAsync(new List<Modelo>());
 
             var marcaRepo = new Mock<IMarcaRepository>();
-            marcaRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Marca>());
+            marcaRepo.Setup(r => r.GetActivosAsync()).ReturnsAsync(new List<Marca>());
 
             var mapper = CrearMapper();
             var vm = new VehiculoViewModel(
@@ -139,7 +139,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             await vm.LoadAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("", 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("", "Activos", 1, 10), Times.Once);
             Assert.Equal(7, vm.TotalRegistros);
             Assert.Single(vm.Vehiculos);
             Assert.False(vm.IsListEmpty);

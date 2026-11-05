@@ -55,6 +55,30 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
 
         public ObservableCollection<VehiculoDto> Vehiculos { get; set; }
+
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
         public ObservableCollection<ClienteDto> ClientesDisponibles { get; set; }
         public ObservableCollection<MarcaDto> MarcasDisponibles { get; set; }
         public ObservableCollection<ModeloDto> ModelosDisponibles { get; set; }
@@ -331,8 +355,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
                 var (items, total) = await _listarVehiculosHandler.HandlePaginadoAsync(
                     TextoBusqueda.Trim(),
+                    estado,
                     PaginaActual,
                     TamanoPagina);
 
@@ -367,7 +393,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 ModeloId = IdModelo,
                 Patente = Patente.Trim().ToUpper(),
                 Anio = Anio,
-                KmActual = KmActual
+                KmActual = KmActual,
+                Activo = seleccion?.Activo ?? true
             };
 
             if (IdCliente > 0)
@@ -406,6 +433,20 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 await _eliminarVehiculoHandler.HandleAsync(id);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarVehiculoAsync(int id)
+        {
+            try
+            {
+                await _eliminarVehiculoHandler.ReactivarAsync(id);
                 await CargarPaginaAsync();
                 return true;
             }
