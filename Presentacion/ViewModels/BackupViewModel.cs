@@ -28,6 +28,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             HacerBackupCommand = new RelayCommand(async () => await HacerBackupAsync(), () => PuedeGestionar);
             ProbarBackupCommand = new RelayCommand(async () => await ProbarBackupAsync(), () => PuedeProbar);
+            RestaurarBackupCommand = new RelayCommand(async () => await RestaurarBackupAsync(), () => PuedeRestaurar);
             ResguardarCommand = new RelayCommand(async () => await ResguardarAsync(), () => PuedeGestionar);
             ActualizarCommand = new RelayCommand(async () => await CargarListaAsync(), () => PuedeGestionar);
         }
@@ -44,6 +45,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 if (SetProperty(ref _respaldoSeleccionado, value))
                 {
                     OnPropertyChanged(nameof(PuedeProbar));
+                    OnPropertyChanged(nameof(PuedeRestaurar));
                     NotificarComandos();
                 }
             }
@@ -51,11 +53,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public ICommand HacerBackupCommand { get; }
         public ICommand ProbarBackupCommand { get; }
+        public ICommand RestaurarBackupCommand { get; }
         public ICommand ResguardarCommand { get; }
         public ICommand ActualizarCommand { get; }
 
         public bool PuedeGestionar => TienePermiso($"{Modulo}.Gestionar") && IsNotLoading;
         public bool PuedeProbar => PuedeGestionar && RespaldoSeleccionado != null;
+        public bool PuedeRestaurar => PuedeGestionar && RespaldoSeleccionado != null;
 
         public async Task LoadAsync()
         {
@@ -161,6 +165,58 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        public async Task RestaurarBackupAsync()
+        {
+            if (!PuedeGestionarSinCargando())
+            {
+                MostrarAviso("No tiene permiso para gestionar los respaldos.", "Sin permiso");
+                return;
+            }
+
+            if (RespaldoSeleccionado == null)
+            {
+                MostrarAviso("Por favor, seleccione un respaldo para restaurar.", "Sin selección");
+                return;
+            }
+
+            var archivo = RespaldoSeleccionado;
+            if (!Confirmar($"¿Desea RESTAURAR la base de datos desde '{archivo.Nombre}'?\n\nEsta operación SOBREESCRIBE la base de datos actual y no se puede deshacer. Requiere autorización de un segundo usuario.", "Confirmar restauración"))
+                return;
+
+            var frm = new TP_ControlVehicular.Presentacion.Pantalla.Configuracion.FrmAutorizacionBackup();
+            frm.Owner = Owner;
+            if (frm.ShowDialog() != true)
+                return;
+
+            var dni = frm.DniAutorizador;
+            var contrasena = frm.ContrasenaAutorizador;
+
+            IsLoading = true;
+            NotificarComandos();
+            try
+            {
+                var resultado = await _databaseBackupService.RestaurarAsync(archivo.RutaCompleta, dni, contrasena);
+                if (resultado.Exitoso)
+                {
+                    MostrarAviso($"{resultado.Mensaje}", "Restauración completada", icono: "✅");
+                    await CargarRespaldosAsync();
+                }
+                else
+                {
+                    MostrarAviso($"No se pudo restaurar:\n{resultado.Mensaje}", "Error");
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarAviso($"Error al restaurar la base de datos: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
+                NotificarComandos();
+            }
+        }
+
         public async Task ResguardarAsync()
         {
             if (!PuedeGestionarSinCargando())
@@ -221,6 +277,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             ((RelayCommand)HacerBackupCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ProbarBackupCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)RestaurarBackupCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ResguardarCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ActualizarCommand).RaiseCanExecuteChanged();
         }
