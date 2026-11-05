@@ -82,6 +82,27 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID(N'[dbo].[RegistroServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[RegistroServicio]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[RegistroServicio] ADD [Activo] bit NOT NULL CONSTRAINT DF_RegistroServicio_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Factura]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Factura]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Factura] ADD [Activo] bit NOT NULL CONSTRAINT DF_Factura_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Pago]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Pago]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Pago] ADD [Activo] bit NOT NULL CONSTRAINT DF_Pago_Activo DEFAULT (1);
+END
+GO
+
 -- ----------------------------------------------------------------------------
 -- Asegurar columna OrdenEjecucion en DetalleServicio
 -- ----------------------------------------------------------------------------
@@ -372,6 +393,7 @@ BEGIN
         [Fecha] datetime2 NOT NULL,
         [KmIngreso] int NOT NULL,
         [Estado] nvarchar(50) NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_RegistroServicio_Activo] DEFAULT (1),
         CONSTRAINT [PK_RegistroServicio] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_RegistroServicio_Taller_TallerId] FOREIGN KEY ([TallerId]) REFERENCES [dbo].[Taller] ([Id]) ON DELETE NO ACTION,
         CONSTRAINT [FK_RegistroServicio_Usuarios_UsuarioId] FOREIGN KEY ([UsuarioId]) REFERENCES [dbo].[Usuarios] ([Id]) ON DELETE NO ACTION,
@@ -420,6 +442,7 @@ BEGIN
         [Numero] int NOT NULL DEFAULT (NEXT VALUE FOR [dbo].[Seq_Factura_Numero]),
         [Fecha] datetime2 NOT NULL,
         [Total] decimal(10,2) NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Factura_Activo] DEFAULT (1),
         CONSTRAINT [PK_Factura] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Factura_RegistroServicio_RegistroServicioId] FOREIGN KEY ([RegistroServicioId]) REFERENCES [dbo].[RegistroServicio] ([Id]) ON DELETE NO ACTION
     );
@@ -437,6 +460,7 @@ BEGIN
         [MetodoPagoId] int NOT NULL,
         [Monto] decimal(10,2) NOT NULL,
         [FechaPago] datetime2 NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Pago_Activo] DEFAULT (1),
         CONSTRAINT [PK_Pago] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Pago_Factura_FacturaId] FOREIGN KEY ([FacturaId]) REFERENCES [dbo].[Factura] ([Id]) ON DELETE NO ACTION,
         CONSTRAINT [FK_Pago_MetodoPago_MetodoPagoId] FOREIGN KEY ([MetodoPagoId]) REFERENCES [dbo].[MetodoPago] ([Id]) ON DELETE NO ACTION

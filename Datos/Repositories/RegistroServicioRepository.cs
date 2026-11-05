@@ -115,11 +115,14 @@ namespace TP_ControlVehicular.Datos.Repositories
             string? busqueda,
             string? estado,
             DateTime? fechaDesde,
-            DateTime? fechaHasta)
+            DateTime? fechaHasta,
+            string? filtroActivo = null)
         {
             var texto = busqueda?.Trim();
             var patron = string.IsNullOrWhiteSpace(texto) ? null : CrearPatronLike(texto);
             var estadoFiltro = string.IsNullOrWhiteSpace(estado) || estado == "Todos" ? null : estado.Trim();
+
+            var activoFiltro = string.IsNullOrWhiteSpace(filtroActivo) || filtroActivo == "Todos" ? null : filtroActivo.Trim();
 
             if (patron != null)
             {
@@ -154,6 +157,14 @@ namespace TP_ControlVehicular.Datos.Repositories
                 query = query.Where(r => r.Fecha.Date <= fh);
             }
 
+            if (activoFiltro != null)
+            {
+                if (string.Equals(activoFiltro, "Activos", StringComparison.OrdinalIgnoreCase))
+                    query = query.Where(r => r.Activo);
+                else if (string.Equals(activoFiltro, "Inactivos", StringComparison.OrdinalIgnoreCase))
+                    query = query.Where(r => !r.Activo);
+            }
+
             return query;
         }
 
@@ -165,12 +176,13 @@ namespace TP_ControlVehicular.Datos.Repositories
             string? busqueda,
             string? estado,
             DateTime? fechaDesde,
-            DateTime? fechaHasta)
+            DateTime? fechaHasta,
+            string? filtroActivo = null)
         {
             await using var ctx = CrearContexto();
             var query = AplicarFiltros(
                 BasePaginado(ctx.RegistroServicios.AsNoTracking().AsQueryable()),
-                busqueda, estado, fechaDesde, fechaHasta);
+                busqueda, estado, fechaDesde, fechaHasta, filtroActivo);
 
             return await query.OrderByDescending(r => r.Id).ToListAsync();
         }
@@ -181,13 +193,14 @@ namespace TP_ControlVehicular.Datos.Repositories
             DateTime? fechaDesde,
             DateTime? fechaHasta,
             int pagina,
-            int tamanoPagina)
+            int tamanoPagina,
+            string? filtroActivo = null)
         {
             return await GetPaginadoAsync(
                 pagina,
                 tamanoPagina,
                 null,
-                q => AplicarFiltros(BasePaginado(q), busqueda, estado, fechaDesde, fechaHasta),
+                q => AplicarFiltros(BasePaginado(q), busqueda, estado, fechaDesde, fechaHasta, filtroActivo),
                 q => q.OrderByDescending(r => r.Id));
         }
 

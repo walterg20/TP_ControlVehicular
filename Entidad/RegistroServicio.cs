@@ -16,6 +16,7 @@ namespace TP_ControlVehicular.Entidad
         public DateTime Fecha { get; set; } = DateTime.Now;
         public int KmIngreso { get; set; }
         public string Estado { get; set; } = EstadoEnProceso;
+        public bool Activo { get; set; } = true;
 
         public Vehiculo Vehiculo { get; set; } = null!;
         public Taller Taller { get; set; } = null!;

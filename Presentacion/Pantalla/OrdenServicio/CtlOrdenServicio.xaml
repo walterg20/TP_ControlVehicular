@@ -52,6 +52,8 @@
                         <ColumnDefinition Width="1.1*"/>
                         <ColumnDefinition Width="12"/>
                         <ColumnDefinition Width="1.2*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="1.2*"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- 1. BUSCAR -->
@@ -98,6 +100,16 @@
                             <ComboBoxItem Content="Completada"/>
                             <ComboBoxItem Content="Pagada"/>
                             <ComboBoxItem Content="Cancelada"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- 5. ACTIVO -->
+                    <StackPanel Grid.Column="8" Visibility="{Binding PuedeVerFiltroActivo, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Activo" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
+                        <ComboBox ItemsSource="{Binding EstadosActivosDisponibles}"
+                                  SelectedItem="{Binding FiltroActivo, Mode=TwoWay}"
+                                  SelectionChanged="CmbFiltroActivo_SelectionChanged"
+                                  Height="34" VerticalContentAlignment="Center">
                         </ComboBox>
                     </StackPanel>
                 </Grid>
@@ -191,6 +203,16 @@
                         <Setter Property="Padding" Value="8,6"/>
                     </Style>
                 </DataGrid.Resources>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Activo}" Value="False">
+                                <Setter Property="Foreground" Value="#C0392B"/>
+                                <Setter Property="Background" Value="#FDECEA"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="N°" Binding="{Binding Id}" Width="60"/>
                     <DataGridTextColumn Header="Fecha" Binding="{Binding Fecha, StringFormat=dd/MM/yyyy HH:mm}" Width="130"/>

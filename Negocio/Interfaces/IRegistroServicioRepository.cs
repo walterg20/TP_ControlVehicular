@@ -18,7 +18,8 @@ namespace TP_ControlVehicular.Negocio.Interfaces
             string? busqueda,
             string? estado,
             DateTime? fechaDesde,
-            DateTime? fechaHasta);
+            DateTime? fechaHasta,
+            string? filtroActivo = null);
 
         /// <summary>
         /// Recupera una pagina de ordenes de servicio aplicando los filtros en la base de datos.
@@ -29,7 +30,8 @@ namespace TP_ControlVehicular.Negocio.Interfaces
             DateTime? fechaDesde,
             DateTime? fechaHasta,
             int pagina,
-            int tamanoPagina);
+            int tamanoPagina,
+            string? filtroActivo = null);
 
         /// <summary>
         /// Recupera una pagina de ordenes que tienen tareas asignadas al mecanico indicado,

@@ -34,9 +34,10 @@ namespace TP_ControlVehicular.Negocio.Services
             string? busqueda,
             string? estado,
             DateTime? fechaDesde,
-            DateTime? fechaHasta)
+            DateTime? fechaHasta,
+            string? filtroActivo = null)
         {
-            var registros = await _repository.GetFiltradoAsync(busqueda, estado, fechaDesde, fechaHasta);
+            var registros = await _repository.GetFiltradoAsync(busqueda, estado, fechaDesde, fechaHasta, filtroActivo);
             return _mapper.Map<IEnumerable<RegistroServicioDto>>(registros);
         }
 
@@ -49,10 +50,11 @@ namespace TP_ControlVehicular.Negocio.Services
             DateTime? fechaDesde,
             DateTime? fechaHasta,
             int pagina,
-            int tamanoPagina)
+            int tamanoPagina,
+            string? filtroActivo = null)
         {
             var (registros, total) = await _repository.GetPaginadoAsync(
-                busqueda, estado, fechaDesde, fechaHasta, pagina, tamanoPagina);
+                busqueda, estado, fechaDesde, fechaHasta, pagina, tamanoPagina, filtroActivo);
 
             return (_mapper.Map<IEnumerable<RegistroServicioDto>>(registros), total);
         }

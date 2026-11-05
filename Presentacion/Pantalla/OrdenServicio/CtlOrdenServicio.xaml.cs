@@ -26,6 +26,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     vmOrdenServicio.MostrarComprobanteOrdenRequested += Vm_MostrarComprobanteOrdenRequested;
                     vmOrdenServicio.MostrarComprobantePagoRequested -= Vm_MostrarComprobantePagoRequested;
                     vmOrdenServicio.MostrarComprobantePagoRequested += Vm_MostrarComprobantePagoRequested;
+                    vmOrdenServicio.NotificarPermisos();
                     await vmOrdenServicio.LoadAsync();
                 }
             }
@@ -200,6 +201,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         {
             if (!IsLoaded || DataContext is not OrdenServicioViewModel vmOrdenServicio) return;
             vmOrdenServicio.ProgramarBusqueda();
+        }
+
+        private void CmbFiltroActivo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // El setter de FiltroActivo ya recarga el listado; nada mas que hacer.
         }
     }
 }

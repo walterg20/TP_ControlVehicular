@@ -526,6 +526,24 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _estadoFiltro = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
 
+        private string _filtroActivo = "Todos";
+        public string FiltroActivo
+        {
+            get => _filtroActivo;
+            set
+            {
+                if (_filtroActivo == value) return;
+                _filtroActivo = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroActivo => PuedeEliminar;
+
+        public List<string> EstadosActivosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
         private string _mensajeValidacionFechas = string.Empty;
         public string MensajeValidacionFechas
         {
@@ -571,7 +589,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 TextoBusqueda.Trim(),
                 EstadoFiltro,
                 FechaDesde,
-                FechaHasta)).ToList();
+                FechaHasta,
+                PuedeVerFiltroActivo ? FiltroActivo : "Activos")).ToList();
 
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ListadoOrdenes_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
 
@@ -719,6 +738,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public new bool PuedeEliminar => TienePermiso("OrdenServicio.Eliminar") && OrdenSeleccionada != null;
         public bool PuedeImprimirRecepcion => !EsMecanico && OrdenSeleccionada != null;
 
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroActivo));
+        }
+
         private RegistroServicioDto? _ordenSeleccionada;
         public RegistroServicioDto? OrdenSeleccionada
         {
@@ -855,7 +880,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     FechaDesde,
                     FechaHasta,
                     PaginaActual,
-                    TamanoPagina);
+                    TamanoPagina,
+                    PuedeVerFiltroActivo ? FiltroActivo : "Activos");
 
                 Ordenes.Clear();
                 foreach (var orden in items)
@@ -889,6 +915,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Fecha = OrdenSeleccionada.Fecha,
                 KmIngreso = OrdenSeleccionada.KmIngreso,
                 Estado = Entidad.RegistroServicio.EstadoCancelada,
+                Activo = false,
                 Detalles = OrdenSeleccionada.Detalles?.Select(d => new Entidad.DetalleServicio
                 {
                     Id = d.Id,
@@ -941,6 +968,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Fecha = Fecha,
                 KmIngreso = KmIngreso,
                 Estado = Estado,
+                Activo = OrdenSeleccionada?.Activo ?? true,
                 Detalles = DetallesOrdenActual.Select(d => new Entidad.DetalleServicio
                 {
                     Id = d.Id,

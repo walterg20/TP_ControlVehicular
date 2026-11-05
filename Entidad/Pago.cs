@@ -25,5 +25,7 @@ namespace TP_ControlVehicular.Entidad
 
         [ForeignKey("MetodoPagoId")]
         public MetodoPago MetodoPago { get; set; } = null!;
+
+        public bool Activo { get; set; } = true;
     }
 }
