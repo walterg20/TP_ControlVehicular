@@ -54,6 +54,7 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<(IEnumerable<Usuario> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina)
         {
@@ -68,10 +69,31 @@ namespace TP_ControlVehicular.Datos.Repositories
                           || EF.Functions.Like(u.Rol.Nombre, patron);
             }
 
+            Expression<Func<Usuario, bool>>? filtroEstadoExpr = null;
+            var estado = (filtroEstado ?? "Todos").Trim();
+            if (string.Equals(estado, "Activos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = u => u.Activo;
+            else if (string.Equals(estado, "Inactivos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = u => !u.Activo;
+
+            Expression<Func<Usuario, bool>>? filtroFinal = null;
+            if (filtro != null && filtroEstadoExpr != null)
+            {
+                var param = Expression.Parameter(typeof(Usuario), "u");
+                var body = Expression.AndAlso(
+                    Expression.Invoke(filtro, param),
+                    Expression.Invoke(filtroEstadoExpr, param));
+                filtroFinal = Expression.Lambda<Func<Usuario, bool>>(body, param);
+            }
+            else if (filtro != null)
+                filtroFinal = filtro;
+            else if (filtroEstadoExpr != null)
+                filtroFinal = filtroEstadoExpr;
+
             return await GetPaginadoAsync(
                 pagina,
                 tamanoPagina,
-                filtro,
+                filtroFinal,
                 q => q.Include(u => u.Rol).ThenInclude(r => r.Permisos).AsSplitQuery(),
                 q => q.OrderBy(u => u.Id));
         }

@@ -14,10 +14,11 @@ namespace TP_ControlVehicular.Negocio.Interfaces
 
         /// <summary>
         /// Recupera una pagina de usuarios (con su rol) aplicando la busqueda textual
-        /// en la base de datos.
+        /// y el filtro de estado (Todos / Activos / Inactivos) en la base de datos.
         /// </summary>
         Task<(IEnumerable<Usuario> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina);
     }

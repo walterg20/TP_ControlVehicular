@@ -27,7 +27,7 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<(IEnumerable<Taller> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,
-            bool incluirInactivos,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina)
         {
@@ -39,17 +39,32 @@ namespace TP_ControlVehicular.Datos.Repositories
                 filtro = t => EF.Functions.Like(t.Nombre, patron);
             }
 
-            Expression<Func<Taller, bool>>? soloActivos = null;
-            if (!incluirInactivos)
+            Expression<Func<Taller, bool>>? filtroEstadoExpr = null;
+            var estado = (filtroEstado ?? "Todos").Trim();
+            if (string.Equals(estado, "Activos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = t => t.Activo;
+            else if (string.Equals(estado, "Inactivos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = t => !t.Activo;
+
+            Expression<Func<Taller, bool>>? filtroFinal = null;
+            if (filtro != null && filtroEstadoExpr != null)
             {
-                soloActivos = t => t.Activo;
+                var param = Expression.Parameter(typeof(Taller), "t");
+                var body = Expression.AndAlso(
+                    Expression.Invoke(filtro, param),
+                    Expression.Invoke(filtroEstadoExpr, param));
+                filtroFinal = Expression.Lambda<Func<Taller, bool>>(body, param);
             }
+            else if (filtro != null)
+                filtroFinal = filtro;
+            else if (filtroEstadoExpr != null)
+                filtroFinal = filtroEstadoExpr;
 
             return await GetPaginadoAsync(
                 pagina,
                 tamanoPagina,
-                filtro,
-                q => soloActivos is null ? q : q.Where(soloActivos),
+                filtroFinal,
+                null,
                 q => q.OrderBy(t => t.Id));
         }
     }

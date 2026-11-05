@@ -8,7 +8,6 @@ using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.Interfaces;
 
-
 namespace TP_ControlVehicular.Datos.Repositories
 {
     public class ClienteRepository : Repository<Cliente>, IClienteRepository
@@ -28,7 +27,7 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<(IEnumerable<Cliente> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,
-            bool incluirInactivos,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina)
         {
@@ -42,17 +41,32 @@ namespace TP_ControlVehicular.Datos.Repositories
                           || EF.Functions.Like(c.Dni, patron);
             }
 
-            Expression<Func<Cliente, bool>>? soloActivos = null;
-            if (!incluirInactivos)
+            Expression<Func<Cliente, bool>>? filtroEstadoExpr = null;
+            var estado = (filtroEstado ?? "Todos").Trim();
+            if (string.Equals(estado, "Activos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = c => c.Activo;
+            else if (string.Equals(estado, "Inactivos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = c => !c.Activo;
+
+            Expression<Func<Cliente, bool>>? filtroFinal = null;
+            if (filtro != null && filtroEstadoExpr != null)
             {
-                soloActivos = c => c.Activo;
+                var param = Expression.Parameter(typeof(Cliente), "c");
+                var body = Expression.AndAlso(
+                    Expression.Invoke(filtro, param),
+                    Expression.Invoke(filtroEstadoExpr, param));
+                filtroFinal = Expression.Lambda<Func<Cliente, bool>>(body, param);
             }
+            else if (filtro != null)
+                filtroFinal = filtro;
+            else if (filtroEstadoExpr != null)
+                filtroFinal = filtroEstadoExpr;
 
             return await GetPaginadoAsync(
                 pagina,
                 tamanoPagina,
-                filtro,
-                q => soloActivos is null ? q : q.Where(soloActivos),
+                filtroFinal,
+                null,
                 q => q.OrderBy(c => c.Id));
         }
     }

@@ -48,9 +48,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                           ?? UserSession.CurrentUser;
             if (usuario == null)
                 return false;
-            if (usuario.Permisos == null)
-                return usuario.IdRol == 1;
-            return usuario.Permisos.Contains(permiso);
+            if (usuario.IdRol == 1)
+                return true;
+            return usuario.Permisos != null && usuario.Permisos.Contains(permiso);
         }
 
         public void NotificarPermisos()

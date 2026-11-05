@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -38,6 +39,36 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
 
         public ObservableCollection<ClienteDto> Clientes { get; set; }
+
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public bool MostrarInactivos
+        {
+            get => FiltroEstado != "Activos";
+            set => FiltroEstado = value ? "Todos" : "Activos";
+        }
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
 
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
@@ -110,22 +141,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _activo = value; OnPropertyChanged(); }
         }
 
-        private bool _mostrarInactivos;
-        public bool MostrarInactivos
-        {
-            get => _mostrarInactivos;
-            set
-            {
-                if (_mostrarInactivos != value)
-                {
-                    _mostrarInactivos = value;
-                    OnPropertyChanged(nameof(MostrarInactivos));
-                    // El filtro cambio: el listado vuelve a la primera pagina.
-                    ReiniciarPagina();
-                }
-            }
-        }
-
         public ClienteDto? ClienteSeleccionado { get; set; }
         public ICommand RegistrarCommand { get; }
 
@@ -168,9 +183,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
                 var (items, total) = await _clienteRepository.GetPaginadoAsync(
                     TextoBusqueda.Trim(),
-                    MostrarInactivos,
+                    estado,
                     PaginaActual,
                     TamanoPagina);
 
@@ -193,22 +209,38 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        public async Task DeleteClienteAsync(int id)
+        public async Task<bool> DeleteClienteAsync(int id)
         {
-            var entity = await _clienteRepository.GetByIdAsync(id);
-            if (entity == null) return;
-            entity.Activo = false;
-            await _clienteRepository.UpdateAsync(entity);
-            await LoadAsync();
+            try
+            {
+                var entity = await _clienteRepository.GetByIdAsync(id);
+                if (entity == null) return false;
+                entity.Activo = false;
+                await _clienteRepository.UpdateAsync(entity);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
-        public async Task ReactivarClienteAsync(int id)
+        public async Task<bool> ReactivarClienteAsync(int id)
         {
-            var entity = await _clienteRepository.GetByIdAsync(id);
-            if (entity == null) return;
-            entity.Activo = true;
-            await _clienteRepository.UpdateAsync(entity);
-            await LoadAsync();
+            try
+            {
+                var entity = await _clienteRepository.GetByIdAsync(id);
+                if (entity == null) return false;
+                entity.Activo = true;
+                await _clienteRepository.UpdateAsync(entity);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<bool> RegistrarClienteAsync()

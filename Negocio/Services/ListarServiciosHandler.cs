@@ -25,15 +25,15 @@ namespace TP_ControlVehicular.Negocio.Services
         }
 
         /// <summary>
-        /// Recupera una pagina de servicios con la busqueda aplicada en la base de datos.
+        /// Recupera una pagina de servicios con la busqueda y el filtro de estado aplicados en la base de datos.
         /// </summary>
         public async Task<(IEnumerable<ServicioDto> Items, int TotalRegistros)> HandlePaginadoAsync(
             string? busqueda,
-            bool incluirInactivos,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina)
         {
-            var (entities, total) = await _servicioRepository.GetPaginadoAsync(busqueda, incluirInactivos, pagina, tamanoPagina);
+            var (entities, total) = await _servicioRepository.GetPaginadoAsync(busqueda, filtroEstado, pagina, tamanoPagina);
             return (_mapper.Map<List<ServicioDto>>(entities), total);
         }
     }

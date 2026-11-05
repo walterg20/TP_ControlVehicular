@@ -7,7 +7,7 @@ namespace TP_ControlVehicular.Negocio.Services
 {
     /// <summary>
     /// CASO DE USO: Consulta y Listado General de Usuarios.
-    /// Recupera la totalidad de los usuarios registrados (activos e inactivos) con su rol asociado para ser mostrados en la interfaz.
+    /// Recupera los usuarios registrados con su rol asociado para ser mostrados en la interfaz.
     /// </summary>
     public class ListarUsuariosHandler
     {
@@ -26,22 +26,20 @@ namespace TP_ControlVehicular.Negocio.Services
         /// <returns>Lista de UsuarioDto para el DataGrid del módulo de usuarios.</returns>
         public async Task<List<UsuarioDto>> HandleAsync()
         {
-            // 1. Consulta el repositorio pidiendo todos los usuarios e incluyendo su Rol (GetWithRolAsync)
             var entities = await _usuarioRepository.GetWithRolAsync();
-
-            // 2. Mapea la colección de entidades a la colección de DTOs
             return _mapper.Map<List<UsuarioDto>>(entities);
         }
 
         /// <summary>
-        /// Recupera una pagina de usuarios con la busqueda aplicada en la base de datos.
+        /// Recupera una pagina de usuarios con la busqueda y el filtro de estado aplicados en la base de datos.
         /// </summary>
         public async Task<(IEnumerable<UsuarioDto> Items, int TotalRegistros)> HandlePaginadoAsync(
             string? busqueda,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina)
         {
-            var (entities, total) = await _usuarioRepository.GetPaginadoAsync(busqueda, pagina, tamanoPagina);
+            var (entities, total) = await _usuarioRepository.GetPaginadoAsync(busqueda, filtroEstado, pagina, tamanoPagina);
             return (_mapper.Map<List<UsuarioDto>>(entities), total);
         }
     }

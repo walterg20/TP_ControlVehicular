@@ -58,18 +58,34 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { SetProperty(ref _activo, value); }
         }
 
-        private bool _mostrarInactivos;
-        public bool MostrarInactivos
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
         {
-            get => _mostrarInactivos;
+            get => _filtroEstado;
             set
             {
-                if (SetProperty(ref _mostrarInactivos, value))
-                {
-                    // El filtro cambio: el listado vuelve a la primera pagina.
-                    ReiniciarPagina();
-                }
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
             }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
+
+        public bool MostrarInactivos
+        {
+            get => FiltroEstado != "Activos";
+            set => FiltroEstado = value ? "Todos" : "Activos";
         }
 
         private string _textoBusqueda = string.Empty;
@@ -140,9 +156,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
                 var (items, total) = await _listarServiciosHandler.HandlePaginadoAsync(
                     TextoBusqueda.Trim(),
-                    MostrarInactivos,
+                    estado,
                     PaginaActual,
                     TamanoPagina);
 

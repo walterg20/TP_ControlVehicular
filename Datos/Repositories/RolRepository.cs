@@ -27,7 +27,7 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<(IEnumerable<Rol> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,
-            bool incluirInactivos,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina)
         {
@@ -39,21 +39,33 @@ namespace TP_ControlVehicular.Datos.Repositories
                 filtro = r => EF.Functions.Like(r.Nombre, patron);
             }
 
-            Expression<Func<Rol, bool>>? soloActivos = null;
-            if (!incluirInactivos)
+            Expression<Func<Rol, bool>>? filtroEstadoExpr = null;
+            var estado = (filtroEstado ?? "Todos").Trim();
+            if (string.Equals(estado, "Activos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = r => r.Activo;
+            else if (string.Equals(estado, "Inactivos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = r => !r.Activo;
+
+            Expression<Func<Rol, bool>>? filtroFinal = null;
+            if (filtro != null && filtroEstadoExpr != null)
             {
-                soloActivos = r => r.Activo;
+                var param = Expression.Parameter(typeof(Rol), "r");
+                var body = Expression.AndAlso(
+                    Expression.Invoke(filtro, param),
+                    Expression.Invoke(filtroEstadoExpr, param));
+                filtroFinal = Expression.Lambda<Func<Rol, bool>>(body, param);
             }
+            else if (filtro != null)
+                filtroFinal = filtro;
+            else if (filtroEstadoExpr != null)
+                filtroFinal = filtroEstadoExpr;
 
             return await GetPaginadoAsync(
                 pagina,
                 tamanoPagina,
-                filtro,
+                filtroFinal,
                 // Los permisos del rol los usa FrmRolPermiso al abrir el rol seleccionado.
-                q => (soloActivos is null
-                        ? q.Include(r => r.Permisos)
-                        : q.Include(r => r.Permisos).Where(soloActivos))
-                      .AsSplitQuery(),
+                q => q.Include(r => r.Permisos).AsSplitQuery(),
                 q => q.OrderBy(r => r.Id));
         }
     }

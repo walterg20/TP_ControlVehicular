@@ -9,6 +9,8 @@ namespace TP_ControlVehicular.Presentacion.Usuario
 {
     public partial class CtlUsuario : UserControl
     {
+        public UsuarioViewModel? ViewModel => DataContext as UsuarioViewModel;
+
         public CtlUsuario()
         {
             InitializeComponent();
@@ -18,13 +20,23 @@ namespace TP_ControlVehicular.Presentacion.Usuario
                 if (vmUsuario is not null)
                 {
                     this.DataContext = vmUsuario;
-                    this.Loaded += async (s, e) => { await vmUsuario.LoadAsync(); };
+                    this.Loaded += async (s, e) =>
+                    {
+                        vmUsuario.NotificarPermisos();
+                        await vmUsuario.LoadAsync();
+                    };
                 }
             }
             catch
             {
                 // Ignorar si DI no está listo
             }
+        }
+
+        public CtlUsuario(UsuarioViewModel viewModel) : this()
+        {
+            DataContext = viewModel;
+            ViewModel?.NotificarPermisos();
         }
 
         /// <summary>
@@ -65,9 +77,9 @@ namespace TP_ControlVehicular.Presentacion.Usuario
         }
 
         /// <summary>
-        /// Cambiar la visibilidad de los registros inactivos recarga el listado.
+        /// Cambiar el filtro de estado recarga el listado.
         /// </summary>
-        private async void ChkMostrarInactivos_Click(object sender, RoutedEventArgs e)
+        private async void CmbFiltroEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (this.DataContext is UsuarioViewModel vmUsuario)
             {
@@ -76,21 +88,45 @@ namespace TP_ControlVehicular.Presentacion.Usuario
             }
         }
 
+        private void DgUsuarios_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (ViewModel is UsuarioViewModel vmUsuario && !vmUsuario.PuedeEditar)
+            {
+                return;
+            }
+            BtnEditar_Click(sender, e);
+        }
+
         private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            var frm = new FrmUsuario();
-            frm.Owner = Window.GetWindow(this);
-            var ok = frm.ShowDialog();
-            if (ok == true && this.DataContext is UsuarioViewModel vmUsuario)
+            if (ViewModel is UsuarioViewModel vmUsuario)
             {
-                await vmUsuario.LoadAsync();
+                if (!vmUsuario.PuedeCrear)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para registrar nuevos usuarios.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
+                var frm = new FrmUsuario();
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmUsuario.LoadAsync();
+                }
             }
         }
 
-        private async void BtnModificar_Click(object sender, RoutedEventArgs e)
+        private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is UsuarioViewModel vmUsuario)
             {
+                if (!vmUsuario.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para modificar usuarios.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmUsuario.UsuarioSeleccionado == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un usuario.", "Aviso", Window.GetWindow(this));
@@ -107,21 +143,50 @@ namespace TP_ControlVehicular.Presentacion.Usuario
             }
         }
 
-        private async void BtnBaja_Click(object sender, RoutedEventArgs e)
+        private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
         {
             if (this.DataContext is UsuarioViewModel vmUsuario)
             {
+                if (!vmUsuario.PuedeEliminar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para eliminar usuarios.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmUsuario.UsuarioSeleccionado == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un usuario.", "Aviso", Window.GetWindow(this));
                     return;
                 }
 
-                if (!FrmConfirmacion.Mostrar("¿Cambiar el estado del usuario seleccionado?", "Confirmar cambio", Window.GetWindow(this)))
+                if (!FrmConfirmacion.Mostrar($"¿Está seguro de marcar como inactivo al usuario '{vmUsuario.UsuarioSeleccionado.Nombre} {vmUsuario.UsuarioSeleccionado.Apellido}'?", "Confirmar baja", Window.GetWindow(this)))
                     return;
 
-                await vmUsuario.ToggleActivoAsync();
-                await vmUsuario.LoadAsync();
+                await vmUsuario.EliminarUsuarioAsync(vmUsuario.UsuarioSeleccionado.IdUsuario);
+            }
+        }
+
+        private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is UsuarioViewModel vmUsuario)
+            {
+                if (!vmUsuario.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para reactivar usuarios.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
+                if (vmUsuario.UsuarioSeleccionado == null)
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor, selecciona primero un usuario.", "Aviso", Window.GetWindow(this));
+                    return;
+                }
+
+                var ok = await vmUsuario.ReactivarUsuarioAsync(vmUsuario.UsuarioSeleccionado.IdUsuario);
+                if (ok)
+                {
+                    FrmConfirmacion.MostrarAviso("Usuario reactivado correctamente.", "Reactivar", Window.GetWindow(this));
+                }
             }
         }
     }
