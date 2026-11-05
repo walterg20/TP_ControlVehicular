@@ -6,7 +6,12 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 > **Fuente canónica de reglas: `AGENTS.md`.** El conocimiento de dominio está en `docs/referencia/` (reportes, dashboard, BD y estados, Mis Trabajos). Este archivo NO duplica convenciones.
 
 ## Estado actual (verificar con `git`)
-- Rama de trabajo: `feature/busqueda-universal-alta-unificada`. Spec `busqueda-universal-alta-unificada` implementada y testeada (144 tests unitarios en verde; los 6 E2E de paginación fallan por falta de SQL Server, igual que antes del cambio).
+- Rama de trabajo: `feature/recuperacion-base-datos`. Spec `recuperacion-base-datos-doble-factor` implementada (build sin errores; los 6 E2E de paginación fallan por falta de SQL Server, igual que antes del cambio).
+- **Recuperación de base de datos con doble factor (spec `recuperacion-base-datos-doble-factor`)**:
+  - Nuevo método `RestaurarAsync(archivoBak, dniAutorizador, contrasenaAutorizador)` en `IDatabaseBackupService`/`DatabaseBackupService`. Valida segundo factor (usuario distinto, activo, contraseña correcta, rol con permiso `Configuracion.Backup.Gestionar`) y restaura la BD productiva conectándose a `master`, con `SINGLE_USER` → `RESTORE ... WITH REPLACE, RECOVERY` → `MULTI_USER`.
+  - `BackupViewModel`: propiedad `PuedeRestaurar`, comando `RestaurarBackupCommand`, método `RestaurarBackupAsync()` (confirmación + modal + servicio + resultado).
+  - Nuevo modal `FrmAutorizacionBackup` (`Presentacion/Pantalla/Configuracion/`) para DNI + contraseña del autorizador.
+  - Botón "🔁 Restaurar Backup" (rojo) en `CtlBackup.xaml`.
 - **Buscador universal + alta unificada en Orden de Servicio (spec `busqueda-universal-alta-unificada`)**:
   - El selector de cliente de `CtlOrdenServicioForm` se reemplazó por `CtlBuscadorUniversal` (`Presentacion/Pantalla/OrdenServicio/`), un control `TextBox` + `Popup`/`ListBox` (no un `ComboBox` editable: sus semánticas de texto/foco son frágiles). Filtra desde **3 caracteres** por DNI, apellido, nombre y patente a la vez (`OrdenServicioViewModel.FiltrarBusquedaUniversal`), con debounce de 250 ms.
   - Fila del desplegable: `[Patente] - Apellido, Nombre (DNI) - Vehiculo` (`DisplayText` del DTO `Negocio/DTOs/BusquedaClienteVehiculoDto.cs`); el campo de texto queda con el nombre del dueño (`TextMostrar`).
