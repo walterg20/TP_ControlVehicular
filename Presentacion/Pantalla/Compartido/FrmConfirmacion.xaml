@@ -5,12 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Confirmar Acción" 
-        Height="210" Width="440"
+        Width="440"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        SizeToContent="Height">
 
     <Border Background="White" CornerRadius="12" BorderBrush="#BDC3C7" BorderThickness="1">
         <Border.Effect>
@@ -21,8 +22,8 @@
             <Grid.RowDefinitions>
                 <!-- Row 0: Encabezado -->
                 <RowDefinition Height="Auto"/>
-                <!-- Row 1: Mensaje -->
-                <RowDefinition Height="*"/>
+                <!-- Row 1: Mensaje (altura se ajusta al contenido) -->
+                <RowDefinition Height="Auto"/>
                 <!-- Row 2: Botones -->
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
