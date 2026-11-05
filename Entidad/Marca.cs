@@ -5,6 +5,7 @@ namespace TP_ControlVehicular.Entidad
     {
         public int Id { get; set; }
         public string NombreMarca { get; set; } = string.Empty;
+        public bool Activo { get; set; } = true;
 
         public ICollection<Modelo> Modelos { get; set; } = new List<Modelo>();
     }

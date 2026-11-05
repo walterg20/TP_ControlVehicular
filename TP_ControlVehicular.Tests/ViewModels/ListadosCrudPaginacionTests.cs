@@ -33,9 +33,9 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Marca_LoadAsync_CargaPrimeraPaginaYPropagaElTotal()
         {
             var repo = new Mock<IMarcaRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, int p, int t) => (
-                    new List<Marca> { new Marca { Id = 1, NombreMarca = "Toyota" } }, 42));
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (
+                    new List<Marca> { new Marca { Id = 1, NombreMarca = "Toyota", Activo = true } }, 42));
 
             var mapper = CrearMapper();
             var vm = new MarcaViewModel(
@@ -46,7 +46,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             await vm.LoadAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("", 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("", "Activos", 1, 10), Times.Once);
             Assert.Equal(1, vm.PaginaActual);
             Assert.Equal(42, vm.TotalRegistros);
             Assert.Equal(5, vm.TotalPaginas); // ceil(42 / 10)
@@ -57,8 +57,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Marca_BuscarAsync_EnviaElTerminoRecortadoAlRepositorio()
         {
             var repo = new Mock<IMarcaRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, int p, int t) => (Enumerable.Empty<Marca>(), 0));
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (Enumerable.Empty<Marca>(), 0));
 
             var mapper = CrearMapper();
             var vm = new MarcaViewModel(
@@ -70,7 +70,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             vm.TextoBusqueda = "  toyota  ";
             await vm.BuscarAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("toyota", 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("toyota", "Activos", 1, 10), Times.Once);
         }
 
         // ------------------------------------------------------------------

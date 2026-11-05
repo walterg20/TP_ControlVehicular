@@ -38,6 +38,30 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public ObservableCollection<MarcaDto> Marcas { get; set; }
 
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
+
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
         {
@@ -114,8 +138,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
                 var (items, total) = await _listarMarcaHandler.HandlePaginadoAsync(
                     TextoBusqueda.Trim(),
+                    estado,
                     PaginaActual,
                     TamanoPagina);
 
@@ -147,7 +173,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             var marca = new Entidad.Marca
             {
                 Id = marcaSeleccionada?.Id ?? 0,
-                NombreMarca = NombreMarca.Trim()
+                NombreMarca = NombreMarca.Trim(),
+                Activo = marcaSeleccionada?.Activo ?? true
             };
 
             try
@@ -176,6 +203,20 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 await _eliminarMarcaHandler.HandleAsync(id);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarMarcaAsync(int id)
+        {
+            try
+            {
+                await _eliminarMarcaHandler.ReactivarAsync(id);
                 await CargarPaginaAsync();
                 return true;
             }

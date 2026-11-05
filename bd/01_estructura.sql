@@ -61,6 +61,13 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID(N'[dbo].[Marca]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Marca]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Marca] ADD [Activo] bit NOT NULL CONSTRAINT DF_Marca_Activo DEFAULT (1);
+END
+GO
+
 -- ----------------------------------------------------------------------------
 -- Asegurar columna OrdenEjecucion en DetalleServicio
 -- ----------------------------------------------------------------------------
@@ -167,6 +174,7 @@ BEGIN
     CREATE TABLE [dbo].[Marca] (
         [Id] int NOT NULL IDENTITY,
         [NombreMarca] nvarchar(100) NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Marca_Activo] DEFAULT (1),
         CONSTRAINT [PK_Marca] PRIMARY KEY ([Id])
     );
 END

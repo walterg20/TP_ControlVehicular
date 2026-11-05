@@ -86,12 +86,28 @@ namespace TP_ControlVehicular.Presentacion.Marca
         /// <summary>
         /// Cambiar la visibilidad de los registros inactivos recarga el listado.
         /// </summary>
-        private async void ChkMostrarInactivos_Click(object sender, RoutedEventArgs e)
+        private async void CmbFiltroEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (this.DataContext is MarcaViewModel vmMarca)
             {
                 vmMarca.CancelarBusquedaProgramada();
                 await vmMarca.BuscarAsync();
+            }
+        }
+
+        private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MarcaViewModel vmMarca && vmMarca.MarcaSeleccionada != null)
+            {
+                var ok = await vmMarca.ReactivarMarcaAsync(vmMarca.MarcaSeleccionada.Id);
+                if (ok)
+                {
+                    Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso("Marca reactivada correctamente.", "Reactivar", Window.GetWindow(this));
+                }
+            }
+            else
+            {
+                Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso("Por favor, seleccione una marca.", "Aviso", Window.GetWindow(this));
             }
         }
 

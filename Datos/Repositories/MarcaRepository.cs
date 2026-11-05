@@ -20,6 +20,15 @@ namespace TP_ControlVehicular.Datos.Repositories
             _contextFactory = contextFactory;
         }
 
+        public async Task<List<Marca>> GetActivosAsync()
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Marcas.AsNoTracking()
+                .Where(m => m.Activo)
+                .OrderBy(m => m.NombreMarca)
+                .ToListAsync();
+        }
+
         public async Task<Marca?> GetByNombreAsync(string nombre)
         {
             await using var ctx = CrearContexto();
@@ -30,6 +39,7 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<(IEnumerable<Marca> Items, int TotalRegistros)> GetPaginadoAsync(
             string? busqueda,
+            string? filtroEstado,
             int pagina,
             int tamanoPagina)
         {
@@ -41,7 +51,30 @@ namespace TP_ControlVehicular.Datos.Repositories
                 filtro = m => EF.Functions.Like(m.NombreMarca, patron);
             }
 
-            return await GetPaginadoAsync(pagina, tamanoPagina, filtro, null, q => q.OrderBy(m => m.Id));
+            // Filtro por estado
+            Expression<Func<Marca, bool>>? filtroEstadoExpr = null;
+            var estado = (filtroEstado ?? "Todos").Trim();
+            if (string.Equals(estado, "Activos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = m => m.Activo;
+            else if (string.Equals(estado, "Inactivos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = m => !m.Activo;
+
+            // Combinar filtros
+            Expression<Func<Marca, bool>>? filtroFinal = null;
+            if (filtro != null && filtroEstadoExpr != null)
+            {
+                var param = Expression.Parameter(typeof(Marca), "m");
+                var body = Expression.AndAlso(
+                    Expression.Invoke(filtro, param),
+                    Expression.Invoke(filtroEstadoExpr, param));
+                filtroFinal = Expression.Lambda<Func<Marca, bool>>(body, param);
+            }
+            else if (filtro != null)
+                filtroFinal = filtro;
+            else if (filtroEstadoExpr != null)
+                filtroFinal = filtroEstadoExpr;
+
+            return await GetPaginadoAsync(pagina, tamanoPagina, filtroFinal, null, q => q.OrderBy(m => m.Id));
         }
     }
 }
