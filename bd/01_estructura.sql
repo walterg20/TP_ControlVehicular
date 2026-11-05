@@ -68,6 +68,13 @@ BEGIN
 END
 GO
 
+IF OBJECT_ID(N'[dbo].[Modelo]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Modelo]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Modelo] ADD [Activo] bit NOT NULL CONSTRAINT DF_Modelo_Activo DEFAULT (1);
+END
+GO
+
 -- ----------------------------------------------------------------------------
 -- Asegurar columna OrdenEjecucion en DetalleServicio
 -- ----------------------------------------------------------------------------
@@ -249,6 +256,7 @@ BEGIN
         [Id] int NOT NULL IDENTITY,
         [MarcaId] int NOT NULL,
         [NombreModelo] nvarchar(100) NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Modelo_Activo] DEFAULT (1),
         CONSTRAINT [PK_Modelo] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Modelo_Marca_MarcaId] FOREIGN KEY ([MarcaId]) REFERENCES [dbo].[Marca] ([Id]) ON DELETE CASCADE
     );

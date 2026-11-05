@@ -43,6 +43,30 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public ObservableCollection<ModeloDto> Modelos { get; set; }
         public ObservableCollection<MarcaDto> MarcasDisponibles { get; set; }
 
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
+
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
         {
@@ -164,8 +188,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
                 var (items, total) = await _listarModelosHandler.HandlePaginadoAsync(
                     TextoBusqueda.Trim(),
+                    estado,
                     PaginaActual,
                     TamanoPagina);
 
@@ -198,7 +224,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 Id = modeloSeleccionado?.Id ?? 0,
                 MarcaId = IdMarca,
-                NombreModelo = NombreModelo.Trim()
+                NombreModelo = NombreModelo.Trim(),
+                Activo = modeloSeleccionado?.Activo ?? true
             };
 
             try
@@ -227,6 +254,20 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 await _eliminarModeloHandler.HandleAsync(id);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarModeloAsync(int id)
+        {
+            try
+            {
+                await _eliminarModeloHandler.ReactivarAsync(id);
                 await CargarPaginaAsync();
                 return true;
             }

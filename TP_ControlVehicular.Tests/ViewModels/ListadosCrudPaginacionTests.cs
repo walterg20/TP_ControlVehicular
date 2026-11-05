@@ -81,12 +81,12 @@ namespace TP_ControlVehicular.Tests.ViewModels
         public async Task Modelo_LoadAsync_CargaPrimeraPaginaYPropagaElTotal()
         {
             var repo = new Mock<IModeloRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, int p, int t) => (
-                    new List<Modelo> { new Modelo { Id = 1, NombreModelo = "Corolla", Marca = new Marca { Id = 1, NombreMarca = "Toyota" } } }, 12));
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? b, string? f, int p, int t) => (
+                    new List<Modelo> { new Modelo { Id = 1, NombreModelo = "Corolla", Marca = new Marca { Id = 1, NombreMarca = "Toyota" }, Activo = true } }, 12));
 
             var marcaRepo = new Mock<IMarcaRepository>();
-            marcaRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Marca>());
+            marcaRepo.Setup(r => r.GetActivosAsync()).ReturnsAsync(new List<Marca>());
 
             var mapper = CrearMapper();
             var vm = new ModeloViewModel(
@@ -98,7 +98,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             await vm.LoadAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("", 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("", "Activos", 1, 10), Times.Once);
             Assert.Equal(12, vm.TotalRegistros);
             Assert.Equal(2, vm.TotalPaginas);
             Assert.Single(vm.Modelos);

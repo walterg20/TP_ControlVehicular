@@ -86,12 +86,28 @@ namespace TP_ControlVehicular.Presentacion.Modelo
         /// <summary>
         /// Cambiar la visibilidad de los registros inactivos recarga el listado.
         /// </summary>
-        private async void ChkMostrarInactivos_Click(object sender, RoutedEventArgs e)
+        private async void CmbFiltroEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (this.DataContext is ModeloViewModel vmModelo)
             {
                 vmModelo.CancelarBusquedaProgramada();
                 await vmModelo.BuscarAsync();
+            }
+        }
+
+        private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is ModeloViewModel vmModelo && vmModelo.ModeloSeleccionado != null)
+            {
+                var ok = await vmModelo.ReactivarModeloAsync(vmModelo.ModeloSeleccionado.Id);
+                if (ok)
+                {
+                    Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso("Modelo reactivado correctamente.", "Reactivar", Window.GetWindow(this));
+                }
+            }
+            else
+            {
+                Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso("Por favor, seleccione un modelo.", "Aviso", Window.GetWindow(this));
             }
         }
 

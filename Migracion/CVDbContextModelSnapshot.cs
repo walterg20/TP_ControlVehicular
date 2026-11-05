@@ -300,6 +300,9 @@ namespace TP_ControlVehicular.Migracion
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
                     b.Property<int>("MarcaId")
                         .HasColumnType("int");
 
