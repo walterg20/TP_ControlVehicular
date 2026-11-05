@@ -7,6 +7,7 @@ using AutoMapper;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TP_ControlVehicular.Entidad;
+using TP_ControlVehicular.Negocio.Context;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Mappers;
@@ -17,7 +18,10 @@ using Xunit;
 namespace TP_ControlVehicular.Tests.ViewModels
 {
     /// <summary>
-    /// Pruebas del piloto de paginacion en base de datos: la grilla de clientes.
+    /// Pruebas unitarias para la paginación y búsqueda en ClienteViewModel.
+    /// Valida que el ViewModel traduzca las acciones del usuario a parámetros de
+    /// consulta correctos (página, tamaño, búsqueda, inactivos) y exponga el
+    /// estado de navegación adecuado (páginas totales, botones habilitados).
     /// </summary>
     public class ClientePaginacionTests
     {
@@ -38,8 +42,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
         {
             var repo = new Mock<IClienteRepository>();
 
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? busqueda, bool incluirInactivos, int pagina, int tamanoPagina) =>
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? busqueda, string? filtroEstado, int pagina, int tamanoPagina) =>
                 {
                     var items = CrearClientes(Math.Min(registrosPorPagina, 3));
                     return (items, totalRegistros);
@@ -59,7 +63,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             await vm.LoadAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), 1, 10), Times.Once);
             Assert.Equal(1, vm.PaginaActual);
             Assert.Equal(25, vm.TotalRegistros);
             Assert.Equal(3, vm.TotalPaginas); // ceil(25 / 10)
@@ -74,7 +78,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             vm.TextoBusqueda = "  juan  ";
             await vm.BuscarAsync();
 
-            repo.Verify(r => r.GetPaginadoAsync("juan", It.IsAny<bool>(), 1, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync("juan", It.IsAny<string?>(), 1, 10), Times.Once);
         }
 
         [Fact]
@@ -85,7 +89,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             await vm.LoadAsync();
             await vm.CambiarPaginaAsync(2);
 
-            repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), 2, 10), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), 2, 10), Times.Once);
             Assert.Equal(2, vm.PaginaActual);
         }
 
@@ -104,16 +108,24 @@ namespace TP_ControlVehicular.Tests.ViewModels
         [Fact]
         public async Task CambiarMostrarInactivos_ReiniciaElListadoEnLaPagina1()
         {
-            var (vm, repo) = CrearViewModel();
-            await vm.LoadAsync();
-            await vm.CambiarPaginaAsync(2);
+            UserSession.CurrentUser = new UsuarioDto { IdRol = 1 };
+            try
+            {
+                var (vm, repo) = CrearViewModel();
+                await vm.LoadAsync();
+                await vm.CambiarPaginaAsync(2);
 
-            vm.MostrarInactivos = true;
+                vm.FiltroEstado = "Inactivos";
 
-            Assert.Equal(1, vm.PaginaActual);
+                Assert.Equal(1, vm.PaginaActual);
 
-            await vm.BuscarAsync();
-            repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), true, 1, 10), Times.Once);
+                await vm.BuscarAsync();
+                repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), "Inactivos", 1, 10), Times.AtLeastOnce());
+            }
+            finally
+            {
+                UserSession.CurrentUser = null;
+            }
         }
 
         [Fact]
@@ -126,15 +138,15 @@ namespace TP_ControlVehicular.Tests.ViewModels
             vm.TamanoPagina = 20;
 
             Assert.Equal(1, vm.PaginaActual);
-            repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), 1, 20), Times.Once);
+            repo.Verify(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), 1, 20), Times.Once);
         }
 
         [Fact]
         public async Task SinResultados_LaGrillaQuedaVaciaYElTotalEsCero()
         {
             var repo = new Mock<IClienteRepository>();
-            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<bool>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? busqueda, bool incluirInactivos, int pagina, int tamanoPagina) =>
+            repo.Setup(r => r.GetPaginadoAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>()))
+                .ReturnsAsync((string? busqueda, string? filtroEstado, int pagina, int tamanoPagina) =>
                     (Enumerable.Empty<Cliente>(), 0));
 
             var mapper = CrearMapper();
