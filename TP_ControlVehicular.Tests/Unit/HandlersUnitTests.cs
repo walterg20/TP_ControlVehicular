@@ -401,7 +401,7 @@ namespace TP_ControlVehicular.Tests.Unit
             };
 
             var repo = new Mock<IModeloRepository>();
-            repo.Setup(r => r.GetAllAsync()).ReturnsAsync(modelos);
+            repo.Setup(r => r.GetActivosAsync()).ReturnsAsync(modelos);
             var handler = new ListarModelosHandler(repo.Object, CrearMapper());
 
             // Act
@@ -414,7 +414,7 @@ namespace TP_ControlVehicular.Tests.Unit
             Assert.Equal("Corolla", resultado[0].NombreModelo);
             Assert.Equal("Toyota", resultado[1].MarcaNombre);
             Assert.Equal("Hilux", resultado[1].NombreModelo);
-            repo.Verify(r => r.GetAllAsync(), Times.Once);
+            repo.Verify(r => r.GetActivosAsync(), Times.Once);
         }
 
         [Fact]
@@ -557,7 +557,9 @@ namespace TP_ControlVehicular.Tests.Unit
             repoMock.Setup(r => r.UpdateAsync(It.IsAny<RegistroServicio>())).Returns(Task.CompletedTask);
             repoMock.Setup(r => r.GetReporteCompletoAsync(null)).ReturnsAsync(new List<RegistroServicio> { orden });
 
-            var handler = new ModificarRegistroServicioHandler(repoMock.Object, CrearMapper());
+            var facturaRepoMock = new Mock<IFacturaRepository>();
+
+            var handler = new ModificarRegistroServicioHandler(repoMock.Object, facturaRepoMock.Object, CrearMapper());
 
             // Act
             var resultado = await handler.HandleAsync(orden);
@@ -588,7 +590,9 @@ namespace TP_ControlVehicular.Tests.Unit
             repoMock.Setup(r => r.UpdateAsync(It.IsAny<RegistroServicio>())).Returns(Task.CompletedTask);
             repoMock.Setup(r => r.GetReporteCompletoAsync(null)).ReturnsAsync(new List<RegistroServicio> { orden });
 
-            var handler = new ModificarRegistroServicioHandler(repoMock.Object, CrearMapper());
+            var facturaRepoMock = new Mock<IFacturaRepository>();
+
+            var handler = new ModificarRegistroServicioHandler(repoMock.Object, facturaRepoMock.Object, CrearMapper());
 
             // Act
             var resultado = await handler.HandleAsync(orden);

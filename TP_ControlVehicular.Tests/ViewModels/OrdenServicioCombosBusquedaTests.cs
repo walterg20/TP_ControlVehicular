@@ -21,7 +21,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             var mockListar = new Mock<ListarRegistroServiciosHandler>(mockRepoReg.Object, mockMapper.Object);
             var mockRegistrar = new Mock<RegistrarRegistroServicioHandler>(mockRepoReg.Object, mockMapper.Object);
-            var mockModificar = new Mock<ModificarRegistroServicioHandler>(mockRepoReg.Object, mockMapper.Object);
+            var mockModificar = new Mock<ModificarRegistroServicioHandler>(mockRepoReg.Object, new Mock<IFacturaRepository>().Object, mockMapper.Object);
             var mockVehiculoRepo = new Mock<IVehiculoRepository>();
             var mockTallerRepo = new Mock<ITallerRepository>();
             var mockServicioRepo = new Mock<IServicioRepository>();

@@ -35,7 +35,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             var vm = new OrdenServicioViewModel(
                 new ListarRegistroServiciosHandler(mockRepoReg.Object, mapper),
                 new RegistrarRegistroServicioHandler(mockRepoReg.Object, mapper),
-                new ModificarRegistroServicioHandler(mockRepoReg.Object, mapper),
+                new ModificarRegistroServicioHandler(mockRepoReg.Object, new Mock<IFacturaRepository>().Object, mapper),
                 repoVehiculos.Object,
                 new Mock<ITallerRepository>().Object,
                 new Mock<IServicioRepository>().Object,

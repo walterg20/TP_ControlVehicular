@@ -40,5 +40,23 @@ namespace TP_ControlVehicular.Datos.Repositories
                 .Include(f => f.RegistroServicio)
                 .FirstOrDefaultAsync(f => f.RegistroServicioId == RegistroServicioId);
         }
+
+        public async Task DesactivarPorRegistroServicioAsync(int idRegistroServicio)
+        {
+            await using var ctx = _contextFactory.CreateDbContext();
+            var factura = await ctx.Facturas
+                .Include(f => f.Pagos)
+                .FirstOrDefaultAsync(f => f.RegistroServicioId == idRegistroServicio);
+
+            if (factura == null) return;
+
+            factura.Activo = false;
+            foreach (var pago in factura.Pagos)
+            {
+                pago.Activo = false;
+            }
+
+            await ctx.SaveChangesAsync();
+        }
     }
 }

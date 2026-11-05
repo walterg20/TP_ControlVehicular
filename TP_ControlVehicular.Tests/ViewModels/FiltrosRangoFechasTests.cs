@@ -28,8 +28,8 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             mockRepoReg.Setup(r => r.GetPaginadoAsync(
                     It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<DateTime?>(),
-                    It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<int>()))
-                .ReturnsAsync((string? b, string? e, DateTime? fd, DateTime? fh, int p, int t) =>
+                    It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()))
+                .ReturnsAsync((string? b, string? e, DateTime? fd, DateTime? fh, int p, int t, string? fa) =>
                     (Enumerable.Empty<RegistroServicio>(), 0));
 
             mockMapper.Setup(m => m.Map<IEnumerable<RegistroServicioDto>>(It.IsAny<object>()))
@@ -44,7 +44,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
 
             var mockListar = new Mock<ListarRegistroServiciosHandler>(mockRepoReg.Object, mockMapper.Object);
             var mockRegistrar = new Mock<RegistrarRegistroServicioHandler>(mockRepoReg.Object, mockMapper.Object);
-            var mockModificar = new Mock<ModificarRegistroServicioHandler>(mockRepoReg.Object, mockMapper.Object);
+            var mockModificar = new Mock<ModificarRegistroServicioHandler>(mockRepoReg.Object, new Mock<IFacturaRepository>().Object, mockMapper.Object);
             var mockVehiculoRepo = new Mock<IVehiculoRepository>();
             var mockTallerRepo = new Mock<ITallerRepository>();
             var mockServicioRepo = new Mock<IServicioRepository>();
@@ -93,7 +93,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             repo.Verify(r => r.GetPaginadoAsync(
                 It.IsAny<string?>(), It.IsAny<string?>(),
                 new DateTime(2026, 5, 1), new DateTime(2026, 5, 31),
-                1, 10), Times.Once);
+                1, 10, It.IsAny<string?>()), Times.Once);
         }
 
         [Fact]
@@ -110,7 +110,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             repo.Verify(r => r.GetPaginadoAsync(
                 It.IsAny<string?>(), "Completada",
                 new DateTime(2026, 5, 1), new DateTime(2026, 5, 31),
-                1, 10), Times.Once);
+                1, 10, It.IsAny<string?>()), Times.Once);
         }
 
         [Fact]
@@ -126,7 +126,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             Assert.Contains("La fecha 'Desde' no puede ser posterior a 'Hasta'", vm.MensajeValidacionFechas);
             repo.Verify(r => r.GetPaginadoAsync(
                 It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<DateTime?>(),
-                It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>()), Times.Never);
         }
 
         [Fact]

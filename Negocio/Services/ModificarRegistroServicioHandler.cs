@@ -9,11 +9,13 @@ namespace TP_ControlVehicular.Negocio.Services
     public class ModificarRegistroServicioHandler
     {
         private readonly IRegistroServicioRepository _repository;
+        private readonly IFacturaRepository _facturaRepository;
         private readonly IMapper _mapper;
 
-        public ModificarRegistroServicioHandler(IRegistroServicioRepository repository, IMapper mapper)
+        public ModificarRegistroServicioHandler(IRegistroServicioRepository repository, IFacturaRepository facturaRepository, IMapper mapper)
         {
             _repository = repository;
+            _facturaRepository = facturaRepository;
             _mapper = mapper;
         }
 
@@ -44,6 +46,11 @@ namespace TP_ControlVehicular.Negocio.Services
                         }
                     }
                 }
+            }
+
+            if (registro.Activo == false || registro.Estado == RegistroServicio.EstadoCancelada)
+            {
+                await _facturaRepository.DesactivarPorRegistroServicioAsync(registro.Id);
             }
 
             await _repository.UpdateAsync(registro);
