@@ -17,7 +17,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
   - Creación de 8 clientes y 8 vehículos vinculados (`PropietarioVehiculo`).
   - Generación de 15 órdenes de servicio con asignaciones de 1 mecánico (órdenes 1 a 5), 2 mecánicos colaborando en paralelo (órdenes 6 a 10) y 3 mecánicos atendiendo distintas tareas (órdenes 11 a 15).
   - Cobertura de estados canónicos (`Abierta`, `En Proceso`, `Completada`, `Pagada`, `Cancelada`).
-  - Facturación y cobro real con `IBillingService` (`Factura` + `Pago` con vuelto para efectivo y pago exacto para tarjeta).
+  - Facturación y cobro real con `IFacturacionService` (`Factura` + `Pago` con vuelto para efectivo y pago exacto para tarjeta).
   - Limpieza automática idempotente con prefijo `SIM-` en orden FK-safe.
 
 - Rama de trabajo: `feature/alineacion-estilos-crud`. Spec `alineacion-estilos-crud` implementada (build con 0 errores; 147 tests unitarios en verde).

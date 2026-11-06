@@ -20,7 +20,7 @@ namespace TP_ControlVehicular.Tests.EndToEnd
     /// - Creación de clientes con sus vehículos vinculados.
     /// - Creación de 15 órdenes de servicio distribuidas en asignaciones de 1, 2 y 3 mecánicos.
     /// - Transición a través de los diversos estados canónicos (Abierta, En Proceso, Completada, Pagada, Cancelada).
-    /// - Emisión de factura y procesamiento de pagos con cálculo de vuelto a través de IBillingService.
+    /// - Emisión de factura y procesamiento de pagos con cálculo de vuelto a través de IFacturacionService.
     /// </summary>
     [Collection("e2e-sql")]
     public class SimulacionOrdenesServicioTests : IAsyncLifetime
@@ -242,7 +242,7 @@ namespace TP_ControlVehicular.Tests.EndToEnd
             var facturaRepo = new FacturaRepository(_factory);
             var pagoRepo = new PagoRepository(_factory);
             var metodoRepo = new MetodoPagoRepository(_factory);
-            var billingService = new BillingService(_factory, facturaRepo, pagoRepo, metodoRepo);
+            var facturacionService = new FacturacionService(_factory, facturaRepo, pagoRepo, metodoRepo);
 
             var ordenesCreadas = new List<RegistroServicio>();
 
@@ -284,8 +284,8 @@ namespace TP_ControlVehicular.Tests.EndToEnd
                     (servicioAceite, mecanico3, DetalleServicio.EstadoFinalizada),
                     (servicioDiagnostico, mecanico3, DetalleServicio.EstadoFinalizada)
                 });
-            var factura4 = await billingService.GenerarFactura(orden4.Id);
-            await billingService.RegistrarPago(factura4.Id, metodoEfectivo.Id, factura4.Total + 5000m);
+            var factura4 = await facturacionService.GenerarFactura(orden4.Id);
+            await facturacionService.RegistrarPago(factura4.Id, metodoEfectivo.Id, factura4.Total + 5000m);
             ordenesCreadas.Add(orden4);
 
             // Orden 5: 1 mecánico (mecanico2), 1 servicio, Estado Cancelada
@@ -337,8 +337,8 @@ namespace TP_ControlVehicular.Tests.EndToEnd
                     (servicioAceite, mecanico1, DetalleServicio.EstadoFinalizada),
                     (servicioAlineacion, mecanico2, DetalleServicio.EstadoFinalizada)
                 });
-            var factura9 = await billingService.GenerarFactura(orden9.Id);
-            await billingService.RegistrarPago(factura9.Id, metodoTarjeta.Id, factura9.Total);
+            var factura9 = await facturacionService.GenerarFactura(orden9.Id);
+            await facturacionService.RegistrarPago(factura9.Id, metodoTarjeta.Id, factura9.Total);
             ordenesCreadas.Add(orden9);
 
             // Orden 10: 2 mecánicos (mecanico2 y mecanico3), 2 servicios, Estado Cancelada
@@ -396,8 +396,8 @@ namespace TP_ControlVehicular.Tests.EndToEnd
                     (servicioFrenos, mecanico3, DetalleServicio.EstadoFinalizada),
                     (servicioDiagnostico, mecanico1, DetalleServicio.EstadoFinalizada)
                 });
-            var factura14 = await billingService.GenerarFactura(orden14.Id);
-            var resPago14 = await billingService.RegistrarPago(factura14.Id, metodoEfectivo.Id, factura14.Total + 10000m);
+            var factura14 = await facturacionService.GenerarFactura(orden14.Id);
+            var resPago14 = await facturacionService.RegistrarPago(factura14.Id, metodoEfectivo.Id, factura14.Total + 10000m);
             Assert.True(resPago14.vuelto == 10000m, "El vuelto calculado para el pago en efectivo debe ser exactamente 10000.");
             ordenesCreadas.Add(orden14);
 
@@ -410,8 +410,8 @@ namespace TP_ControlVehicular.Tests.EndToEnd
                     (servicioFrenos, mecanico2, DetalleServicio.EstadoFinalizada),
                     (servicioDiagnostico, mecanico3, DetalleServicio.EstadoFinalizada)
                 });
-            var factura15 = await billingService.GenerarFactura(orden15.Id);
-            await billingService.RegistrarPago(factura15.Id, metodoTarjeta.Id, factura15.Total);
+            var factura15 = await facturacionService.GenerarFactura(orden15.Id);
+            await facturacionService.RegistrarPago(factura15.Id, metodoTarjeta.Id, factura15.Total);
             ordenesCreadas.Add(orden15);
 
             // -----------------------------------------------------------------

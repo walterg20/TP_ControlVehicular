@@ -9,14 +9,14 @@ using TP_ControlVehicular.Negocio.Interfaces;
 
 namespace TP_ControlVehicular.Negocio.Services
 {
-    public class BillingService : IBillingService
+    public class FacturacionService : IFacturacionService
     {
         private readonly IDbContextFactory<CVDbContext> _contextFactory;
         private readonly IFacturaRepository _facturaRepo;
         private readonly IPagoRepository _pagoRepo;
         private readonly IMetodoPagoRepository _metodoRepo;
 
-        public BillingService(
+        public FacturacionService(
             IDbContextFactory<CVDbContext> contextFactory,
             IFacturaRepository facturaRepo,
             IPagoRepository pagoRepo,
