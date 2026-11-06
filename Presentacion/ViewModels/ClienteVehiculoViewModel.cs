@@ -93,7 +93,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             Telefono = clienteExistente?.Telefono ?? string.Empty;
 
             Patente = string.Empty;
-            Motor = string.Empty;
             Anio = DateTime.Now.Year;
             IdMarca = 0;
             IdModelo = 0;
@@ -175,17 +174,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _anio = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
-        /// <summary>
-        /// Cilindrada del motor. Es un dato opcional que se captura en el formulario para
-        /// no demorar la recepcion, pero que no se persiste: la tabla Vehiculo no tiene
-        /// una columna para el motor y esta funcionalidad no agrega cambios de esquema.
-        /// </summary>
-        private string _motor = string.Empty;
-        public string Motor
-        {
-            get => _motor;
-            set { _motor = value; OnPropertyChanged(); }
-        }
+
 
         #endregion
 

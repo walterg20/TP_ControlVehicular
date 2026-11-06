@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Registrar Cliente y Vehículo" Height="520" Width="760"
+        Title="Registrar Cliente y Vehículo" Height="580" Width="760"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         FocusManager.FocusedElement="{Binding ElementName=txtPatente}">
@@ -37,19 +37,12 @@
 
                 <!-- COLUMNA IZQUIERDA: DATOS DEL CLIENTE -->
                 <Border Grid.Column="0" Background="#F8F9F9" CornerRadius="8" Padding="15">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Datos del Cliente" FontSize="15" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Datos del Cliente" FontSize="15" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="DNI / CUIT:" FontWeight="Bold" Margin="0,0,0,2"/>
-                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,12">
+                        <!-- DNI / CUIT -->
+                        <TextBlock Text="DNI / CUIT:" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <StackPanel Margin="0,0,0,10">
                             <TextBox x:Name="txtDni" Height="30"
                                      IsEnabled="{Binding PuedeEditarCliente}"
                                      Text="{Binding Dni, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
@@ -58,20 +51,31 @@
                                        Visibility="{Binding (Validation.HasError), ElementName=txtDni, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Apellido y Nombre:" FontWeight="Bold" Margin="0,0,0,2"/>
-                        <StackPanel Grid.Row="4" Grid.Column="0">
-                            <TextBox x:Name="txtApellido" Height="30" Margin="0,0,0,8"
+                        <!-- Apellido -->
+                        <TextBlock Text="Apellido:" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBox x:Name="txtApellido" Height="30"
                                      IsEnabled="{Binding PuedeEditarCliente}"
                                      Text="{Binding Apellido, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtApellido, FallbackValue=''}"
-                                       Foreground="#E74C3C" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"
+                                       Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                        Visibility="{Binding (Validation.HasError), ElementName=txtApellido, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
-                            <TextBox x:Name="txtNombre" Height="30" Margin="0,0,0,8"
+                        </StackPanel>
+
+                        <!-- Nombre -->
+                        <TextBlock Text="Nombre:" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBox x:Name="txtNombre" Height="30"
                                      IsEnabled="{Binding PuedeEditarCliente}"
                                      Text="{Binding Nombre, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtNombre, FallbackValue=''}"
-                                       Foreground="#E74C3C" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"
+                                       Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                        Visibility="{Binding (Validation.HasError), ElementName=txtNombre, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+                        </StackPanel>
+
+                        <!-- Teléfono -->
+                        <TextBlock Text="Teléfono:" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <StackPanel Margin="0,0,0,4">
                             <TextBox x:Name="txtTelefono" Height="30"
                                      IsEnabled="{Binding PuedeEditarCliente}"
                                      Text="{Binding Telefono, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
@@ -79,26 +83,17 @@
                                        Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                        Visibility="{Binding (Validation.HasError), ElementName=txtTelefono, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                         </StackPanel>
-                    </Grid>
+                    </StackPanel>
                 </Border>
 
                 <!-- COLUMNA DERECHA: DATOS DEL VEHÍCULO -->
                 <Border Grid.Column="2" Background="#F8F9F9" CornerRadius="8" Padding="15">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Datos del Vehículo" FontSize="15" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Datos del Vehículo" FontSize="15" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
-
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Patente / Dominio:" FontWeight="Bold" Margin="0,0,0,2"/>
-                        <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,12">
+                        <!-- Patente / Dominio -->
+                        <TextBlock Text="Patente / Dominio:" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <StackPanel Margin="0,0,0,10">
                             <TextBox x:Name="txtPatente" Height="30"
                                      Text="{Binding Patente, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtPatente, FallbackValue=''}"
@@ -106,14 +101,20 @@
                                        Visibility="{Binding (Validation.HasError), ElementName=txtPatente, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Marca y Modelo:" FontWeight="Bold" Margin="0,0,0,2"/>
-                        <StackPanel Grid.Row="4" Grid.Column="0" Margin="0,0,0,12">
-                            <ComboBox x:Name="cmbMarca" Height="30" Margin="0,0,0,8"
+                        <!-- Marca -->
+                        <TextBlock Text="Marca:" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <StackPanel Margin="0,0,0,10">
+                            <ComboBox x:Name="cmbMarca" Height="30"
                                       ItemsSource="{Binding MarcasDisponibles}" DisplayMemberPath="NombreMarca" SelectedValuePath="Id"
                                       SelectedValue="{Binding IdMarca, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
                             <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=cmbMarca, FallbackValue=''}"
-                                       Foreground="#E74C3C" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"
+                                       Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
                                        Visibility="{Binding (Validation.HasError), ElementName=cmbMarca, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+                        </StackPanel>
+
+                        <!-- Modelo -->
+                        <TextBlock Text="Modelo:" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <StackPanel Margin="0,0,0,10">
                             <ComboBox x:Name="cmbModelo" Height="30"
                                       ItemsSource="{Binding ModelosDisponibles}" DisplayMemberPath="NombreModelo" SelectedValuePath="Id"
                                       SelectedValue="{Binding IdModelo, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
@@ -122,20 +123,16 @@
                                        Visibility="{Binding (Validation.HasError), ElementName=cmbModelo, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Año / Motor (opcionales):" FontWeight="Bold" Margin="0,0,0,2"/>
-                        <Grid Grid.Row="6" Grid.Column="0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox x:Name="txtAnio" Grid.Column="0" Height="30"
+                        <!-- Año -->
+                        <TextBlock Text="Año (opcional):" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <StackPanel Margin="0,0,0,4">
+                            <TextBox x:Name="txtAnio" Height="30"
                                      Text="{Binding Anio, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
-                            <TextBox x:Name="txtMotor" Grid.Column="2" Height="30"
-                                     ToolTip="Cilindrada del motor. Dato opcional informative: no se persiste."
-                                     Text="{Binding Motor, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
-                        </Grid>
-                    </Grid>
+                            <TextBlock Text="{Binding (Validation.Errors)[0].ErrorContent, ElementName=txtAnio, FallbackValue=''}"
+                                       Foreground="#E74C3C" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                                       Visibility="{Binding (Validation.HasError), ElementName=txtAnio, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
             </Grid>
         </ScrollViewer>
