@@ -83,7 +83,7 @@ namespace TP_ControlVehicular
             services.AddScoped<IFacturaRepository, FacturaRepository>();
             services.AddScoped<IPagoRepository, PagoRepository>();
             services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
-            services.AddScoped<IBillingService, BillingService>();
+            services.AddScoped<IFacturacionService, FacturacionService>();
 
             // Handlers
             services.AddScoped<RegistrarClienteHandler>();

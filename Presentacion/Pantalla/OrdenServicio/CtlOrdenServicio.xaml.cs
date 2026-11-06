@@ -120,8 +120,8 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 
                 decimal total = System.Linq.Enumerable.Sum(vmOrdenServicio.OrdenSeleccionada.Detalles ?? new System.Collections.Generic.List<Negocio.DTOs.DetalleServicioDto>(), d => d.Precio * d.Cantidad);
 
-                var billingService = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Negocio.Interfaces.IBillingService>(App.ServiceProvider);
-                var frmPago = new FrmPago(billingService, vmOrdenServicio.OrdenSeleccionada.Id, total);
+                var facturacionService = Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<Negocio.Interfaces.IFacturacionService>(App.ServiceProvider);
+                var frmPago = new FrmPago(facturacionService, vmOrdenServicio.OrdenSeleccionada.Id, total);
                 frmPago.Owner = Window.GetWindow(this);
                 if (frmPago.ShowDialog() == true)
                 {

@@ -112,7 +112,7 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server. Ca
 - No modificar AGENTS.md de plantilla; no tocar plantillas de referencia.
 - No asumir patrones genéricos: confía en fuentes ejecutables (config, scripts, código real) sobre prosa.
 - No agregar dependencias sin avisar.
-- No usar `ProcesarPagoHandler` (código muerto: `HandleAsync` lanza `NotImplementedException`); el cobro real se realiza con `IBillingService.RegistrarPago`.
+- No usar `ProcesarPagoHandler` (código muerto: `HandleAsync` lanza `NotImplementedException`); el cobro real se realiza con `IFacturacionService.RegistrarPago`.
 - Commits atómicos en convención Conventional Commits; monorepo único.
 - No subir secretos: credenciales solo por variables de entorno / perfiles.
 - El estado real del proyecto se verifica contra `git log` / `git status`, nunca contra `MEMORY.md`. La memoria es una pista; el repositorio es la evidencia. Si discrepan, el repositorio gana y la memoria se corrige.
