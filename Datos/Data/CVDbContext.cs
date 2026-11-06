@@ -1,6 +1,7 @@
 // walterg20
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Entidad;
+using TP_ControlVehicular.Negocio.DTOs.Reportes;
 
 namespace TP_ControlVehicular.Datos.Data
 {
@@ -29,8 +30,8 @@ namespace TP_ControlVehicular.Datos.Data
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(CVDbContext).Assembly);
 
-            modelBuilder.Entity<TP_ControlVehicular.Negocio.DTOs.Reportes.ReporteIngresosDto>().HasNoKey();
-            modelBuilder.Entity<TP_ControlVehicular.Negocio.DTOs.Reportes.ReporteTiemposResolucionDto>().HasNoKey();
+            modelBuilder.Entity<ReporteIngresosDto>().HasNoKey();
+            modelBuilder.Entity<ReporteTiemposResolucionDto>().HasNoKey();
 
 
             modelBuilder.Entity<Permiso>().ToTable("Permisos").HasKey(p => p.IdPermiso);

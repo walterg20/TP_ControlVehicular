@@ -1,9 +1,5 @@
 // walterg20
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.Interfaces;

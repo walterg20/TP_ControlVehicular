@@ -92,7 +92,7 @@
                         <TextBlock Text="Datos del Vehículo" FontSize="15" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
 
                         <!-- Patente / Dominio -->
-                        <TextBlock Text="Patente / Dominio:" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <TextBlock Text="Patente:" FontWeight="Bold" Margin="0,0,0,2"/>
                         <StackPanel Margin="0,0,0,10">
                             <TextBox x:Name="txtPatente" Height="30"
                                      Text="{Binding Patente, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>
@@ -124,7 +124,7 @@
                         </StackPanel>
 
                         <!-- Año -->
-                        <TextBlock Text="Año (opcional):" FontWeight="Bold" Margin="0,0,0,2"/>
+                        <TextBlock Text="Año:" FontWeight="Bold" Margin="0,0,0,2"/>
                         <StackPanel Margin="0,0,0,4">
                             <TextBox x:Name="txtAnio" Height="30"
                                      Text="{Binding Anio, Mode=TwoWay, UpdateSourceTrigger=LostFocus, ValidatesOnNotifyDataErrors=True}"/>

@@ -1,7 +1,4 @@
 // walterg20
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TP_ControlVehicular.Negocio.DTOs.Reportes;
 using TP_ControlVehicular.Negocio.Interfaces;
 

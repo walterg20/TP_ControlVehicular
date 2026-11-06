@@ -1,9 +1,6 @@
 // walterg20
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.DTOs.Reportes;

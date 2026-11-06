@@ -1,7 +1,6 @@
 // walterg20
 using System.IO;
 using QuestPDF.Fluent;
-using QuestPDF.Infrastructure;
 using TP_ControlVehicular.Negocio.Reportes.Documentos;
 
 namespace TP_ControlVehicular.Negocio.Handlers.Reportes

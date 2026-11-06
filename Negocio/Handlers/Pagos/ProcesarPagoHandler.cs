@@ -19,10 +19,5 @@ namespace TP_ControlVehicular.Negocio.Handlers.Pagos
             _facturaRepository = facturaRepository;
             _mapper = mapper;
         }
-
-        public async Task<FacturaDto> HandleAsync(int registroServicioId, decimal total, string metodoPago, decimal montoRecibido, string titular = "")
-        {
-            throw new NotImplementedException("Pending Phase 3 Implementation");
-        }
     }
 }
