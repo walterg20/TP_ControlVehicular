@@ -1,8 +1,5 @@
 // walterg20
-using System;
-using System.Threading.Tasks;
 using TP_ControlVehicular.Negocio.Interfaces;
-using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Entidad;
 using AutoMapper;
 using System.Linq;
