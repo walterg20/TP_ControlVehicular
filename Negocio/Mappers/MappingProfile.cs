@@ -9,7 +9,7 @@ namespace TP_ControlVehicular.Negocio.Mappers
     {
         public MappingProfile()
         {
-            // Cliente â†’ ClienteDto
+            // Cliente -> ClienteDto
             CreateMap<Cliente, ClienteDto>()
                 .ForMember(dest => dest.IdCliente, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FechaNac, opt => opt.MapFrom(src => src.FechaNacimiento));

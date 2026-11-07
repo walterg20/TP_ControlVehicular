@@ -1,5 +1,6 @@
 // walterg20
 using AutoMapper;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -31,6 +32,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly AsignarVehiculoPorPatenteHandler _asignarVehiculoPorPatenteHandler;
         private readonly IMapper _mapper;
         private readonly Debouncer _debouncer;
+        private readonly IAyudaService? _ayudaService;
+        private int _idRolActual;
 
         public OrdenServicioViewModel(
             ListarRegistroServiciosHandler listarHandler,
@@ -44,7 +47,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler generarComprobanteOrdenHandler,
             TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler generarComprobantePagoHandler,
             AsignarVehiculoPorPatenteHandler asignarVehiculoPorPatenteHandler,
-            IMapper mapper)
+            IMapper mapper,
+            IAyudaService? ayudaService = null)
         {
             _listarHandler = listarHandler;
             _registrarHandler = registrarHandler;
@@ -59,6 +63,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _asignarVehiculoPorPatenteHandler = asignarVehiculoPorPatenteHandler;
             _mapper = mapper;
             _debouncer = new Debouncer();
+            _ayudaService = ayudaService;
 
             Ordenes = new ObservableCollection<RegistroServicioDto>();
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
@@ -207,6 +212,17 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             get => _resultadoBusquedaSeleccionado;
             set { _resultadoBusquedaSeleccionado = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Secciones de ayuda contextual para mostrar en el panel de ayuda.
+        /// Se actualiza dinámicamente cuando cambia el foco entre controles.
+        /// </summary>
+        private IEnumerable<AyudaSeccionDto>? _ayudaActual;
+        public IEnumerable<AyudaSeccionDto>? AyudaActual
+        {
+            get => _ayudaActual;
+            set { _ayudaActual = value; OnPropertyChanged(); }
         }
 
         /// <summary>
@@ -489,6 +505,44 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 ServiciosDisponibles.Add(s);
             }
+        }
+
+        /// <summary>
+        /// Carga dinámicamente la ayuda contextual para un control específico.
+        /// Se llama cuando el usuario cambia el foco a un control en la pantalla.
+        /// </summary>
+        /// <param name="nombreControl">Nombre del control (ej: "TxtCliente", "CmbServicio").</param>
+        public async void CargarAyudaPorControl(string nombreControl)
+        {
+            if (_ayudaService == null) return;
+
+            try
+            {
+                var ayuda = await _ayudaService.ObtenerAyudaAsync(_idRolActual, "OrdenServicio", nombreControl);
+
+                if (ayuda != null)
+                {
+                    AyudaActual = ayuda.Secciones.OrderBy(s => s.Orden).ToList();
+                }
+                else
+                {
+                    AyudaActual = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error al cargar ayuda: {ex.Message}");
+                AyudaActual = null;
+            }
+        }
+
+        /// <summary>
+        /// Establece el rol actual del usuario (requerido para filtrar ayudas).
+        /// Debe llamarse al inicializar la pantalla.
+        /// </summary>
+        public void EstablecerRolActual(int idRol)
+        {
+            _idRolActual = idRol;
         }
 
         private ServicioDto? _servicioBusquedaSeleccionado;

@@ -1,12 +1,8 @@
 // walterg20
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs.Reportes;
 using TP_ControlVehicular.Negocio.Reportes;
-using TP_ControlVehicular.Presentacion.ViewModels;
 using TP_ControlVehicular.Negocio.Reportes.Documentos;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;

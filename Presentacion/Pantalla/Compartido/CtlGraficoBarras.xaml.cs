@@ -1,6 +1,4 @@
 // walterg20
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Negocio.DTOs;
