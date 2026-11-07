@@ -11,6 +11,8 @@ una cadena de scripts numerados donde unos pisan a otros.
 
 | Orden | Archivo | Contenido |
 |---|---|---|
+| 0 | `00_bootstrap.sql` | Crea la base de datos `ControlVehicular` si no existe (ejecutar conectado a `master`). |
+| 0 | `instalar.ps1` | Orquestador: ejecuta bootstrap + estructura + seed + triggers + SPs (solo seed base, sin demo). |
 | 1 | `01_estructura.sql` | Secuencia de facturación, 18 tablas, índices, PK/FK, constraints CHECK y sincronización/guardas defensivas de columnas `Activo` y `OrdenEjecucion`. |
 | 2 | `02_datos.sql` | Datos semilla canónicos (seed para producción / base limpia): 3 roles, 38 permisos, matriz RolPermisos, taller base, configuraciones singleton, usuario Admin bootstrap (`admin@example.com` / `10000001`), catálogo oficial de 15 servicios y catálogo ampliado de 45 marcas y 203 modelos argentinos. |
 | 3 | `03_procedimientos.sql` | 22 procedimientos almacenados oficiales (reportes, comprobantes y consultas paginadas a nivel de BD). |

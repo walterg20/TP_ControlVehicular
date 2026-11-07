@@ -25,6 +25,10 @@ IF NOT EXISTS (SELECT 1 FROM [dbo].[Roles] WHERE [Id] = 3)
     INSERT INTO [dbo].[Roles] ([Id], [Nombre], [Descripcion], [Activo])
     VALUES (3, N'Mecánico', N'Mecanico puede agregar servicio a la orden de servicio y tildar lo que se hizo para que luego le facturen', 1);
 
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Roles] WHERE [Id] = 4)
+    INSERT INTO [dbo].[Roles] ([Id], [Nombre], [Descripcion], [Activo])
+    VALUES (4, N'SuperAdmin', N'Rol exclusivo para validar restauraciones de base de datos (doble factor).', 1);
+
 SET IDENTITY_INSERT [dbo].[Roles] OFF;
 GO
 
@@ -56,11 +60,18 @@ GO
 -- ============================================================================
 DECLARE @Permitidos TABLE ([IdRol] int NOT NULL, [IdPermiso] int NOT NULL);
 
--- Administrador (1): todos menos MisTrabajos.Ver
+-- Administrador (1): todos menos MisTrabajos.Ver y Configuracion.Backup.Gestionar (solo SuperAdmin)
 INSERT INTO @Permitidos ([IdRol], [IdPermiso])
 SELECT 1, p.[IdPermiso]
 FROM [dbo].[Permisos] p
-WHERE p.[Nombre] <> N'MisTrabajos.Ver';
+WHERE p.[Nombre] <> N'MisTrabajos.Ver'
+  AND p.[Nombre] <> N'Configuracion.Backup.Gestionar';
+
+-- SuperAdmin (4): solo Configuracion.Backup.Gestionar
+INSERT INTO @Permitidos ([IdRol], [IdPermiso])
+SELECT 4, p.[IdPermiso]
+FROM [dbo].[Permisos] p
+WHERE p.[Nombre] = N'Configuracion.Backup.Gestionar';
 
 -- Recepcionista (2)
 INSERT INTO @Permitidos ([IdRol], [IdPermiso])
@@ -97,10 +108,10 @@ WHERE NOT EXISTS (
     WHERE rp.[IdRol] = p.[IdRol] AND rp.[IdPermiso] = p.[IdPermiso]
 );
 
--- b) Eliminar concesiones sobrantes (roles 1, 2 y 3)
+-- b) Eliminar concesiones sobrantes (roles 1, 2, 3 y 4)
 DELETE rp
 FROM [dbo].[RolPermisos] rp
-WHERE rp.[IdRol] IN (1, 2, 3)
+WHERE rp.[IdRol] IN (1, 2, 3, 4)
   AND NOT EXISTS (
     SELECT 1 FROM @Permitidos p
     WHERE p.[IdRol] = rp.[IdRol] AND p.[IdPermiso] = rp.[IdPermiso]
