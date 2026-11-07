@@ -1,6 +1,6 @@
 # ERS – Sistema de Control Vehicular y Mantenimiento
 
-> **Versión:** final · **Fecha:** 2026-10-12
+> **Versión:** final · **Fecha:** 2026-11-06 (actualizado para instalador con LocalDB)
 > Documento vigente y **autoritativo**. Describe los requisitos del sistema tal como está implementado.
 > La versión 1 (que referenciaba entidades inexistentes como `CONTACTO`, `PLANTILLA_MANTENIMIENTO` y `AVISO`) quedó archivada en `docs/historico/ERS_v1.md` y **no debe usarse** como referencia.
 
@@ -60,6 +60,8 @@ Aplicación de escritorio **WPF (.NET 10)** con arquitectura **MVVM** y **EF Cor
 - **Seguridad** – Roles y Usuarios (`FrmRolPermiso` asigna permisos).
 - **Configuración** – datos de la empresa (`CtlConfiguracion`) y respaldos (`CtlBackup`, `CtlBackupConfiguracion`).
 - **Confirmaciones** (`FrmConfirmacion`) – diálogos de confirmación y avisos unificados.
+- **Instalación / Configuración inicial** (`FrmSetupInicial`) – first-run: crea el administrador inicial y los datos de empresa cuando la base está vacía.
+- **Respaldo / Restauración** – restauración de base con doble factor (usuario validador con rol SuperAdmin).
 
 ### 2.3 Actores
 | Actor | Descripción |
@@ -94,6 +96,9 @@ Aplicación de escritorio **WPF (.NET 10)** con arquitectura **MVVM** y **EF Cor
 | **RF‑18** | Reportes | Generar reportes por perfil: Órdenes, Operativo, Gerencial y Mecánico (PDF). | Media |
 | **RF‑19** | Configuración de la empresa | Registrar datos de la empresa (nombre, dirección, teléfono, email y logo). | Media |
 | **RF‑20** | Configuración de respaldos | Configurar rutas de respaldo y carpeta de Drive, y ejecutar el respaldo de la base. | Media |
+| **RF‑21** | Configuración inicial (first-run) | Si la base no tiene usuarios, solicitar la contraseña del administrador inicial y los datos de la empresa antes de permitir el uso. | Alta |
+| **RF‑22** | Restauración con doble factor | Restaurar la base de datos validando un segundo usuario (distinto, activo, contraseña correcta, rol SuperAdmin con `Configuracion.Backup.Gestionar`). | Alta |
+| **RF‑23** | Rol SuperAdmin | Rol con permiso exclusivo `Configuracion.Backup.Gestionar` para validar restauraciones y administrar la configuración de respaldos. | Alta |
 
 ---
 
@@ -104,7 +109,7 @@ Aplicación de escritorio **WPF (.NET 10)** con arquitectura **MVVM** y **EF Cor
 - **RNF‑03: Seguridad** → Autenticación de usuarios y control de acceso por roles y permisos (RBAC).
 - **RNF‑04: Integridad referencial** → Claves foráneas, restricciones `CHECK` y triggers que garantizan consistencia (kilometraje, precios, estados).
 - **RNF‑05: Mantenibilidad** → Arquitectura por capas (Datos, Entidad, Migracion, Negocio, Presentacion) con patrón MVVM y EF Core.
-- **RNF‑06: Portabilidad** → Ejecutable de escritorio sobre Windows con SQL Server.
+- **RNF‑06: Portabilidad** → Ejecutable de escritorio sobre Windows; la base se provisiona sobre SQL Server Express LocalDB mediante el instalador (sin requerir un SQL Server completo preinstalado).
 - **RNF‑07: Trazabilidad** → Registro histórico de operaciones (propiedad de vehículos, órdenes y pagos).
 
 ---
@@ -128,6 +133,7 @@ Aplicación de escritorio **WPF (.NET 10)** con arquitectura **MVVM** y **EF Cor
 | **CU‑13** | Generar reporte | Administrador / Recepcionista / Mecánico | Exporta el reporte habilitado para su perfil. |
 | **CU‑14** | Configurar empresa | Administrador | Actualiza datos y logo de la empresa. |
 | **CU‑15** | Configurar y ejecutar respaldo | Administrador | Define rutas y ejecuta (o sube) el respaldo de la base. |
+| **CU‑16** | Configuración inicial | SuperAdmin | Crea el administrador inicial y los datos de la empresa en el primer arranque. |
 
 ---
 
