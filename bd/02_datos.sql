@@ -457,3 +457,12 @@ WHEN NOT MATCHED THEN
 
 DROP TABLE #MarcasCatalogo;
 GO
+
+-- ============================================================================
+-- SchemaVersion (version inicial del esquema)
+-- ============================================================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[SchemaVersion])
+BEGIN
+    INSERT INTO [dbo].[SchemaVersion] ([Version]) VALUES (N'1.0.0');
+END
+GO

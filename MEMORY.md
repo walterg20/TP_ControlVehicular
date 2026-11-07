@@ -6,7 +6,14 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 > **Fuente canónica de reglas: `AGENTS.md`.** El conocimiento de dominio está en `docs/referencia/` (reportes, dashboard, BD y estados, Mis Trabajos). Este archivo NO duplica convenciones.
 
 ## Estado actual (verificar con `git`)
-- Rama de trabajo: `feature/instalador-localdb`. Spec `instalador-localdb` en curso (Fases 0-3 implementadas: DER/ERS actualizados, limpieza, bootstrap SQL + instalar.ps1, rol SuperAdmin, modal first-run FrmSetupInicial). Fases 4-5 (instalador Inno Setup, validación VM) pendientes.
+- Rama de trabajo: `feature/instalador-localdb`. Spec `instalador-localdb` en curso (Fases 0-4 implementadas). Fase 5 (validación VM) pendiente.
+- **Instalador LocalDB (spec `instalador-localdb`)**:
+  - `bd/00_bootstrap.sql` crea la BD si no existe; `bd/instalar.ps1` orquesta bootstrap+estructura+seed+triggers+SPs (solo seed base).
+  - Rol `SuperAdmin` (Id 4) con permiso exclusivo `Configuracion.Backup.Gestionar`; admin operativo ya no lo tiene.
+  - Modal `FrmSetupInicial` (first-run) crea admin + datos de empresa cuando la BD está vacía o el admin sigue con la clave bootstrap.
+  - Dead code `ProcesarPagoHandler` eliminado.
+  - Tabla `SchemaVersion` + entidad + DbSet + check de versión en `App.OnStartup`.
+  - Script Inno Setup `installer/ControlVehicular.iss` (LocalDB + bootstrap + app).
 - **Instalador LocalDB (spec `instalador-localdb`)**:
   - `bd/00_bootstrap.sql` crea la BD si no existe; `bd/instalar.ps1` orquesta bootstrap+estructura+seed+triggers+SPs (solo seed base).
   - Rol `SuperAdmin` (Id 4) con permiso exclusivo `Configuracion.Backup.Gestionar`; admin operativo ya no lo tiene.

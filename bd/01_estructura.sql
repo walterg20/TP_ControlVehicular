@@ -580,3 +580,17 @@ BEGIN
     CREATE UNIQUE INDEX [IX_Factura_RegistroServicioId] ON [dbo].[Factura] ([RegistroServicioId]);
 END
 GO
+
+-- ============================================================================
+-- SchemaVersion (versionado de esquema para actualizaciones del instalador)
+-- ============================================================================
+IF OBJECT_ID(N'[dbo].[SchemaVersion]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[SchemaVersion] (
+        [Id]          int IDENTITY(1,1) NOT NULL,
+        [Version]     nvarchar(50) NOT NULL,
+        [AppliedOn]   datetime2 NOT NULL CONSTRAINT [DF_SchemaVersion_AppliedOn] DEFAULT (GETDATE()),
+        CONSTRAINT [PK_SchemaVersion] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+END
+GO

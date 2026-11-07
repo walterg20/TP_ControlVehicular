@@ -220,6 +220,23 @@ namespace TP_ControlVehicular
                 notifier?.Notify(ex, "App.FirstRun");
             }
 
+            // Verificar version del esquema (para futuras actualizaciones)
+            try
+            {
+                using var vctx = ServiceProvider.GetRequiredService<IDbContextFactory<CVDbContext>>().CreateDbContext();
+                var versionBd = vctx.SchemaVersions.OrderByDescending(v => v.Id).Select(v => v.Version).FirstOrDefault();
+                if (versionBd != "1.0.0")
+                {
+                    var notifier = ServiceProvider.GetService<IErrorNotifier>();
+                    notifier?.Notify(null, "App.SchemaVersion: BD=" + (versionBd ?? "(sin version)") + " App=1.0.0", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                var notifier = ServiceProvider.GetService<IErrorNotifier>();
+                notifier?.Notify(ex, "App.SchemaVersion");
+            }
+
             mainWindow.Show();
         }
         protected override void OnExit(ExitEventArgs e)
