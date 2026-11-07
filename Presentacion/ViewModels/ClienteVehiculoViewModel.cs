@@ -197,8 +197,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
                 FiltrarModelosPorMarca();
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "ClienteVehiculoViewModel");
                 // Silenciar error en carga de combos
             }
         }

@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 {
@@ -64,8 +65,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     _ = vmClienteVehiculo.CargarCombosAsync();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "FrmClienteVehiculo.xaml");
                 // Silenciar si DI no esta disponible
             }
         }

@@ -5,6 +5,7 @@ using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Helpers;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 {
@@ -204,8 +205,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlOrdenServicioForm.xaml");
                 // Ignorar en tiempo de diseño o si falla DI
             }
         }

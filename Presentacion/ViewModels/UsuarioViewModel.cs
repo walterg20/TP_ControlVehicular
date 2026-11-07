@@ -194,8 +194,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     IdRol = nuevoIdRol;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "UsuarioViewModel");
             }
         }
 
@@ -247,8 +248,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
                 ActualizarTotales(total);
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "UsuarioViewModel");
                 Usuarios.Clear();
                 ActualizarTotales(0);
             }
@@ -330,8 +332,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "UsuarioViewModel");
                 return false;
             }
         }
@@ -347,8 +350,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "UsuarioViewModel");
                 return false;
             }
         }

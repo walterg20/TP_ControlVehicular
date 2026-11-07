@@ -1,6 +1,7 @@
 // walterg20
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.Dashboard
 {
@@ -25,8 +26,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Dashboard
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlDashboard.xaml");
                 // Fallback handled gracefully
             }
 

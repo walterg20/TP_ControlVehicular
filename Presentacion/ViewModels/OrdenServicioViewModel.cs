@@ -679,6 +679,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error al abrir PDF: {ex.Message}");
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "OrdenServicioViewModel");
             }
         }
 
@@ -827,7 +828,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "OrdenServicio.LoadCombos");
+            }
         }
 
         public async Task LoadAsync()
@@ -891,8 +895,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
                 ActualizarTotales(total);
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "OrdenServicioViewModel");
                 Ordenes.Clear();
                 ActualizarTotales(0);
             }

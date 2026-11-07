@@ -1,6 +1,7 @@
 // walterg20
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.Reporte
 {
@@ -23,8 +24,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Reporte
                     DataContext = vmReportes;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlReportesRecepcion.xaml");
                 // Silenciar si DI no está listo
             }
         }

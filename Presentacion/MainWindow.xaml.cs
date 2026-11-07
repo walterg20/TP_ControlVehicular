@@ -17,6 +17,7 @@ using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
 using TP_ControlVehicular.Negocio.Handlers.Reportes;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular
 {
@@ -35,6 +36,15 @@ namespace TP_ControlVehicular
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Suscribirse al notificador centralizado de errores
+            if (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) is IErrorNotifier notifier)
+            {
+                notifier.ErrorOccurred += (s, ev) =>
+                {
+                    Dispatcher.Invoke(() => MostrarError(ev.Mensaje, ev.Modal));
+                };
+            }
+
             MostrarPantallaLogin();
         }
 
@@ -118,8 +128,9 @@ namespace TP_ControlVehicular
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MainWindow.xaml");
                 // No bloquear el flujo de login
             }
 
@@ -392,6 +403,21 @@ namespace TP_ControlVehicular
             bdrToast.Visibility = Visibility.Visible;
             await System.Threading.Tasks.Task.Delay(3000);
             bdrToast.Visibility = Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// Muestra un error de forma unificada: toast (no bloqueante) por defecto o modal bloqueante.
+        /// </summary>
+        public void MostrarError(string mensaje, bool modal = false)
+        {
+            if (modal)
+            {
+                Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso(mensaje, "Error", this);
+            }
+            else
+            {
+                MostrarToast($"⚠️ {mensaje}");
+            }
         }
 
         public void AgregarPagina(UserControl userControl)

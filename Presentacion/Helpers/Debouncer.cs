@@ -1,5 +1,6 @@
 // walterg20
 using System.Diagnostics;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Helpers
 {
@@ -93,6 +94,7 @@ namespace TP_ControlVehicular.Presentacion.Helpers
             catch (Exception ex)
             {
                 Debug.WriteLine($"[Debouncer] Error al ejecutar la accion diferida: {ex.Message}");
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "Debouncer");
             }
         }
     }

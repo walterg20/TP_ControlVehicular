@@ -233,8 +233,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await LoadAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "ServicioViewModel");
                 return false;
             }
         }

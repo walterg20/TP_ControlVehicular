@@ -139,6 +139,7 @@ namespace TP_ControlVehicular
 
             // Servicios Especiales
             services.AddTransient<IReporteService, QuestPdfReporteService>();
+            services.AddScoped<IErrorNotifier, ErrorNotifierService>();
 
             // ViewModels
             services.AddScoped<ClienteViewModel>();

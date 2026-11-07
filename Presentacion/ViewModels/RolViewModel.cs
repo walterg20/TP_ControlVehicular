@@ -164,8 +164,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
                 ActualizarTotales(total);
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "RolViewModel");
                 // Silenciar error en carga inicial
                 Roles.Clear();
                 ActualizarTotales(0);
@@ -230,8 +231,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "RolViewModel");
                 return false;
             }
         }
@@ -244,8 +246,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "RolViewModel");
                 return false;
             }
         }
