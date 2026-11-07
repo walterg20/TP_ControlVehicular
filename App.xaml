@@ -3,7 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:TP_ControlVehicular">
     <Application.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Presentacion/Recursos/AyudaRecursos.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
         <ControlTemplate x:Key="ErrorBorderTemplate">
             <Border BorderBrush="#E74C3C" BorderThickness="1.5" CornerRadius="3">
@@ -164,5 +169,7 @@
             <Setter Property="BorderBrush" Value="#BDC3C7"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
+
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

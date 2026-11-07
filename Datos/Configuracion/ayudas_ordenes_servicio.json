@@ -1,0 +1,121 @@
+{
+  "roles": [
+    {
+      "idRol": 1,
+      "nombreRol": "Administrador",
+      "ayudas": [
+        {
+          "idAyuda": 1,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "ctlBusquedaUniversal",
+          "secciones": [
+            { "idSeccion": 1, "titulo": "¿Cómo buscar un cliente?", "contenido": "Escriba al menos 3 caracteres: se filtra por DNI, apellido, nombre o patente. Si el cliente tiene 2 o más vehículos, aparece una fila agrupada para elegir el vehículo.", "orden": 1, "expandida": true },
+            { "idSeccion": 2, "titulo": "¿Y si no existe?", "contenido": "Si no hay coincidencias, use la fila 'Registrar Nuevo Cliente y Vehículo' para crear cliente + vehículo + vínculo en un solo paso.", "orden": 2, "expandida": false }
+          ]
+        },
+        {
+          "idAyuda": 2,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "cmbVehiculos",
+          "secciones": [
+            { "idSeccion": 3, "titulo": "¿Qué vehículo seleccionar?", "contenido": "Elija el vehículo asociado a la orden. Al seleccionarlo se completa automáticamente el cliente.", "orden": 1, "expandida": true },
+            { "idSeccion": 4, "titulo": "Permisos", "contenido": "Solo Administrador y Recepcionista pueden cambiar el vehículo; el Mecánico solo ve el suyo.", "orden": 2, "expandida": false }
+          ]
+        },
+        {
+          "idAyuda": 3,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "cmbServicios",
+          "secciones": [
+            { "idSeccion": 5, "titulo": "¿Qué servicio agregar?", "contenido": "Busque y seleccione un servicio del catálogo. Use el buscador si la lista es larga.", "orden": 1, "expandida": true },
+            { "idSeccion": 6, "titulo": "Agregar a la orden", "contenido": "Presione '➕ Agregar' para sumar el servicio a la orden actual. Luego asigne un mecánico.", "orden": 2, "expandida": false }
+          ]
+        },
+        {
+          "idAyuda": 4,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "txtKm",
+          "secciones": [
+            { "idSeccion": 7, "titulo": "Kilometraje de ingreso", "contenido": "Ingrese el kilometraje actual del vehículo al momento de la recepción. Campo numérico.", "orden": 1, "expandida": true }
+          ]
+        },
+        {
+          "idAyuda": 5,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "cmbEstado",
+          "secciones": [
+            { "idSeccion": 8, "titulo": "Estado de la orden", "contenido": "Abierta, En Proceso, Completada, Pagada o Cancelada. El estado avanza según las tareas realizadas.", "orden": 1, "expandida": true }
+          ]
+        },
+        {
+          "idAyuda": 6,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "cmbTalleres",
+          "secciones": [
+            { "idSeccion": 9, "titulo": "Taller asignado", "contenido": "Seleccione el taller donde se realizará el servicio.", "orden": 1, "expandida": true }
+          ]
+        },
+        {
+          "idAyuda": 7,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "dgChecklist",
+          "secciones": [
+            { "idSeccion": 10, "titulo": "Detalle de servicios", "contenido": "Listado de servicios agregados con su mecánico asignado. Cada servicio debe tener un mecánico para poder guardar.", "orden": 1, "expandida": true }
+          ]
+        }
+      ]
+    },
+    {
+      "idRol": 2,
+      "nombreRol": "Recepcionista",
+      "ayudas": [
+        {
+          "idAyuda": 8,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "ctlBusquedaUniversal",
+          "secciones": [
+            { "idSeccion": 11, "titulo": "¿Cómo buscar un cliente?", "contenido": "Escriba al menos 3 caracteres para filtrar por DNI, apellido, nombre o patente.", "orden": 1, "expandida": true }
+          ]
+        },
+        {
+          "idAyuda": 9,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "cmbVehiculos",
+          "secciones": [
+            { "idSeccion": 12, "titulo": "Vehículo de la orden", "contenido": "Elija el vehículo asociado. Al seleccionarlo se completa el cliente.", "orden": 1, "expandida": true }
+          ]
+        },
+        {
+          "idAyuda": 10,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "cmbServicios",
+          "secciones": [
+            { "idSeccion": 13, "titulo": "Servicios", "contenido": "Busque y seleccione un servicio del catálogo y presione '➕ Agregar'.", "orden": 1, "expandida": true }
+          ]
+        }
+      ]
+    },
+    {
+      "idRol": 3,
+      "nombreRol": "Mecánico",
+      "ayudas": [
+        {
+          "idAyuda": 11,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "ctlBusquedaUniversal",
+          "secciones": [
+            { "idSeccion": 14, "titulo": "Búsqueda (solo lectura)", "contenido": "Como mecánico, la búsqueda de cliente está deshabilitada; solo ve las órdenes asignadas.", "orden": 1, "expandida": true }
+          ]
+        },
+        {
+          "idAyuda": 12,
+          "nombrePantalla": "OrdenServicio",
+          "nombreControl": "dgChecklist",
+          "secciones": [
+            { "idSeccion": 15, "titulo": "Mis tareas", "contenido": "Solo ve y edita los servicios asignados a usted. Marque 'Realizado' al terminar.", "orden": 1, "expandida": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -85,15 +85,62 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     }
                 }
             }));
+
+            // Configurar handlers GotFocus para cargar ayuda contextual
+            ConfigurarAyudaContextual();
+        }
+
+        /// <summary>
+        /// Configura los handlers GotFocus para mostrar ayuda contextual al cambiar de control.
+        /// </summary>
+        private void ConfigurarAyudaContextual()
+        {
+            WireAyuda(ctlBusquedaUniversal);
+            WireAyuda(cmbVehiculos);
+            WireAyuda(cmbServicios);
+            WireAyuda(txtKm);
+            WireAyuda(cmbEstado);
+            WireAyuda(cmbTalleres);
+            if (dgChecklist != null) WireAyuda(dgChecklist);
+        }
+
+        private void WireAyuda(FrameworkElement control)
+        {
+            control.GotFocus += (s, e) =>
+            {
+                if (DataContext is OrdenServicioViewModel vm)
+                {
+                    vm.CargarAyudaPorControl(control.Name);
+                }
+            };
+        }
+
+        private void BtnAyuda_Click(object sender, RoutedEventArgs e)
+        {
+            pnlAyuda.Visibility = pnlAyuda.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            btnAyuda.Content = pnlAyuda.Visibility == Visibility.Visible ? "Ocultar ayuda" : "❓ Ayuda";
+        }
+
+        private void BtnCerrarAyuda_Click(object sender, RoutedEventArgs e)
+        {
+            pnlAyuda.Visibility = Visibility.Collapsed;
+            btnAyuda.Content = "❓ Ayuda";
         }
 
         private async void ConfigurarViewModel(RegistroServicioDto? orden)
         {
             try
             {
-                if (App.ServiceProvider?.GetService(typeof(OrdenServicioViewModel)) is OrdenServicioViewModel vmOrdenServicioForm)
+                if (TP_ControlVehicular.App.ServiceProvider?.GetService(typeof(OrdenServicioViewModel)) is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     DataContext = vmOrdenServicioForm;
+
+                    if (Application.Current.MainWindow is MainWindow mwRol && mwRol.UsuarioSesionActual != null)
+                    {
+                        vmOrdenServicioForm.EstablecerRolActual(mwRol.UsuarioSesionActual.IdRol);
+                    }
 
                     if (vmOrdenServicioForm.VehiculosDisponibles.Count == 0 || vmOrdenServicioForm.TalleresDisponibles.Count == 0 || vmOrdenServicioForm.ServiciosDisponibles.Count == 0)
                         await vmOrdenServicioForm.LoadCombosAsync();
@@ -149,6 +196,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     }
 
                     vmOrdenServicioForm.ClearAllErrors();
+                    vmOrdenServicioForm.CargarAyudaPorControl("ctlBusquedaUniversal");
                     vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
                     vmOrdenServicioForm.RegistrationFailed += Vm_RegistrationFailed;
                     vmOrdenServicioForm.AbrirModalNuevoClienteVehiculoRequested -= Vm_AbrirModalNuevoClienteVehiculoRequested;

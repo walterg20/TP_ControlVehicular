@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Windows;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Datos.Repositories;
@@ -23,9 +22,9 @@ using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
-using TP_ControlVehicular.Negocio.Reportes;
-using TP_ControlVehicular.Negocio.Handlers;
-using TP_ControlVehicular.Datos.Repositories;
+using TP_ControlVehicular.Negocio.Handlers.Reportes;
+using TP_ControlVehicular.Presentacion.Pantalla.Configuracion;
+using TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio;
 
 namespace TP_ControlVehicular
 {
@@ -79,7 +78,7 @@ namespace TP_ControlVehicular
             services.AddScoped<IServicioRepository, ServicioRepository>();
             services.AddScoped<IRegistroServicioRepository, RegistroServicioRepository>();
             services.AddScoped<IReporteRepository, ReporteRepository>();
-            services.AddScoped<TP_ControlVehicular.Negocio.Reportes.IReporteGerencialRepository, TP_ControlVehicular.Datos.Repositories.ReporteGerencialRepository>();
+            services.AddScoped<IReporteGerencialRepository,ReporteGerencialRepository>();
             services.AddScoped<IFacturaRepository, FacturaRepository>();
             services.AddScoped<IPagoRepository, PagoRepository>();
             services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
@@ -131,14 +130,15 @@ namespace TP_ControlVehicular
             services.AddScoped<ModificarRegistroServicioHandler>();
             services.AddScoped<AvanzarEstadoTareaHandler>();
             services.AddScoped<ListarTareasPorEspecialistaHandler>();
-            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler>();
-            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler>();
-            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler>();
+            services.AddScoped<GenerarComprobanteOrdenHandler>();
+            services.AddScoped<GenerarComprobantePagoHandler>();
+            services.AddScoped<GenerarManualUsuarioHandler>();
             services.AddScoped<AsignarVehiculoPorPatenteHandler>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // Servicios Especiales
             services.AddTransient<IReporteService, QuestPdfReporteService>();
+            services.AddScoped<IAyudaService, AyudaService>();
 
             // ViewModels
             services.AddScoped<ClienteViewModel>();
@@ -184,12 +184,12 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlDashboard>();
             services.AddScoped<CtlReporteOrdenes>();
             services.AddScoped<CtlServicio>();
-            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion>();
-            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup>();
-            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion>();
+            services.AddScoped<CtlConfiguracion>();
+            services.AddScoped<CtlBackup>();
+            services.AddScoped<CtlBackupConfiguracion>();
             services.AddTransient<FrmServicio>();
-            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();
-            services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm>();
+            services.AddScoped<CtlOrdenServicio>();
+            services.AddTransient<CtlOrdenServicioForm>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();
