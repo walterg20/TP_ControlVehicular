@@ -6,6 +6,12 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 > **Fuente canónica de reglas: `AGENTS.md`.** El conocimiento de dominio está en `docs/referencia/` (reportes, dashboard, BD y estados, Mis Trabajos). Este archivo NO duplica convenciones.
 
 ## Estado actual (verificar con `git`)
+- Rama de trabajo: `feature/manejo-errores-unificado`. Spec `manejo-errores-unificado` implementada (build con 0 errores; 150 tests unitarios en verde).
+- **Manejo unificado de errores silenciosos (spec `manejo-errores-unificado`)**:
+  - Servicio `IErrorNotifier`/`ErrorNotifierService` con `Notify(ex, contexto, modal)`; dedup 2s; log a `%AppData%/TP_ControlVehicular/logs/error.log`; evento `ErrorOccurred`.
+  - Registro global en `App` (`DispatcherUnhandledException`, `TaskScheduler.UnobservedTaskException`, `AppDomain.UnhandledException`).
+  - `MainWindow.MostrarError(mensaje, modal)` unificado (toast por defecto, modal opcional) suscrito al evento.
+  - Auditoría de ~59 catch silenciosos en code-behind + VMs: ahora notifican vía el notifier. Catch con `Debug.WriteLine` también notifican.
 - Rama de trabajo: `feature/fix-form-cliente-vehiculo`. Spec `fix-form-cliente-vehiculo` implementada (build con 0 errores; 147 tests unitarios en verde).
 - **Corrección de etiquetas y limpieza de campos en FrmClienteVehiculo (spec `fix-form-cliente-vehiculo`)**:
   - Reorganización de `FrmClienteVehiculo.xaml` con etiquetas individuales arriba de cada campo (DNI, Apellido, Nombre, Teléfono a la izquierda; Patente, Marca, Modelo, Año a la derecha).
