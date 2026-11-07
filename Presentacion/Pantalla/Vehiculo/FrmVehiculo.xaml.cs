@@ -6,6 +6,7 @@ using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Marca;
 using TP_ControlVehicular.Presentacion.Modelo;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Vehiculo
 {
@@ -92,8 +93,9 @@ namespace TP_ControlVehicular.Presentacion.Vehiculo
                     vmVehiculo.ClearAllErrors();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "FrmVehiculo.xaml");
                 // Silenciar si DI no está disponible
             }
         }

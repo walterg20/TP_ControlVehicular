@@ -5,6 +5,7 @@ using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Taller
 {
@@ -85,8 +86,9 @@ namespace TP_ControlVehicular.Presentacion.Taller
                     vmTaller.ClearAllErrors();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "FrmTaller.xaml");
                 // Ignorar si DI no está disponible
             }
         }

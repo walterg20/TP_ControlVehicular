@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 {
@@ -30,8 +31,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     await vmOrdenServicio.LoadAsync();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlOrdenServicio.xaml");
                 // Manejar error inicial de carga si ocurre
             }
         }

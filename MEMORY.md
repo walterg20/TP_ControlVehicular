@@ -6,13 +6,18 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 > **Fuente canónica de reglas: `AGENTS.md`.** El conocimiento de dominio está en `docs/referencia/` (reportes, dashboard, BD y estados, Mis Trabajos). Este archivo NO duplica convenciones.
 
 ## Estado actual (verificar con `git`)
-- Rama de trabajo: `feature/ayuda-contextual-interactiva`. Spec `ayuda-contextual-interactiva` implementada (build con 0 errores; 154 tests unitarios en verde).
+- Rama de trabajo: `develop` (specs `ayuda-contextual-interactiva` y `manejo-errores-unificado` mergeadas).
 - **Ayuda contextual interactiva en Orden de Servicio (spec `ayuda-contextual-interactiva`)**:
-  - Servicio `IAyudaService`/`AyudaService` carga ayudas desde `Datos/Configuracion/ayudas_ordenes_servicio.json` (por rol, pantalla y control) y persiste preferencias de expansión en `%AppData%/TP_ControlVehicular/Ayudas`.
+  - Servicio `IAyudaService`/`AyudaService` carga ayudas desde `Datos/Configuracion/ayudas_ordenes_servicio.json` (por rol, pantalla y control) y persiste preferencias de expansion en `%AppData%/TP_ControlVehicular/Ayudas`.
   - DTOs `AyudaContextoDto`, `AyudaPorRolDto`, `AyudaSeccionDto`. Control reutilizable `CtlAyudaContextual` (panel colapsable) con DependencyProperty `Secciones`.
-  - `CtlOrdenServicioForm`: panel lateral colapsable (botón "Ayuda"/"Ocultar ayuda"), carga de ayuda al cambiar foco entre controles, rol actual desde la sesión.
-  - `OrdenServicioViewModel`: propiedad `AyudaActual`, método `CargarAyudaPorControl`, `EstablecerRolActual`.
+  - `CtlOrdenServicioForm`: panel lateral colapsable (boton "Ayuda"/"Ocultar ayuda"), carga de ayuda al cambiar foco entre controles, rol actual desde la sesion.
+  - `OrdenServicioViewModel`: propiedad `AyudaActual`, metodo `CargarAyudaPorControl`, `EstablecerRolActual`.
   - Registro DI en `App.xaml.cs`. JSON copiado al output como Content. Textos en UTF-8 correcto.
+- **Manejo unificado de errores silenciosos (spec `manejo-errores-unificado`)**:
+  - Servicio `IErrorNotifier`/`ErrorNotifierService` con `Notify(ex, contexto, modal)`; dedup 2s; log a `%AppData%/TP_ControlVehicular/logs/error.log`; evento `ErrorOccurred`.
+  - Registro global en `App` (`DispatcherUnhandledException`, `TaskScheduler.UnobservedTaskException`, `AppDomain.UnhandledException`).
+  - `MainWindow.MostrarError(mensaje, modal)` unificado (toast por defecto, modal opcional) suscrito al evento.
+  - Auditoria de ~59 catch silenciosos en code-behind + VMs: ahora notifican via el notifier. Catch con `Debug.WriteLine` tambien notifican.
 - Rama de trabajo: `feature/fix-form-cliente-vehiculo`. Spec `fix-form-cliente-vehiculo` implementada (build con 0 errores; 147 tests unitarios en verde).
 - **Corrección de etiquetas y limpieza de campos en FrmClienteVehiculo (spec `fix-form-cliente-vehiculo`)**:
   - Reorganización de `FrmClienteVehiculo.xaml` con etiquetas individuales arriba de cada campo (DNI, Apellido, Nombre, Teléfono a la izquierda; Patente, Marca, Modelo, Año a la derecha).

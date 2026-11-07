@@ -5,6 +5,7 @@ using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
 {
@@ -29,8 +30,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlServicio.xaml");
                 // Fallback handled gracefully
             }
 

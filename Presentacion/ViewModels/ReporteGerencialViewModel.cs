@@ -8,6 +8,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System.Diagnostics;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
@@ -510,6 +511,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error al abrir PDF: {ex.Message}");
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "ReporteGerencialViewModel");
             }
         }
     }

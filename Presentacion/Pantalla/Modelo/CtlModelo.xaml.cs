@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Modelo
 {
@@ -25,8 +26,9 @@ namespace TP_ControlVehicular.Presentacion.Modelo
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlModelo.xaml");
                 // Silenciar si DI no está listo
             }
 

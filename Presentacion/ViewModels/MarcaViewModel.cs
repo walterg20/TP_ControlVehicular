@@ -153,8 +153,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
                 ActualizarTotales(total);
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MarcaViewModel");
                 // Silenciar error en carga inicial
                 Marcas.Clear();
                 ActualizarTotales(0);
@@ -192,8 +193,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MarcaViewModel");
                 return false;
             }
         }
@@ -206,8 +208,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MarcaViewModel");
                 return false;
             }
         }
@@ -220,8 +223,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MarcaViewModel");
                 return false;
             }
         }

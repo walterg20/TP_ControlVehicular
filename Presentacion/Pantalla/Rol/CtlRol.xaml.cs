@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Rol
 {
@@ -27,8 +28,9 @@ namespace TP_ControlVehicular.Presentacion.Rol
                     };
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlRol.xaml");
                 // Ignorar si DI no está listo
             }
         }
