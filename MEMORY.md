@@ -6,6 +6,12 @@ Aplicación WPF .NET 10 MVVM para control vehicular con EF Core y SQL Server.
 > **Fuente canónica de reglas: `AGENTS.md`.** El conocimiento de dominio está en `docs/referencia/` (reportes, dashboard, BD y estados, Mis Trabajos). Este archivo NO duplica convenciones.
 
 ## Estado actual (verificar con `git`)
+- Rama de trabajo: `feature/instalador-localdb`. Spec `instalador-localdb` en curso (Fases 0-3 implementadas: DER/ERS actualizados, limpieza, bootstrap SQL + instalar.ps1, rol SuperAdmin, modal first-run FrmSetupInicial). Fases 4-5 (instalador Inno Setup, validación VM) pendientes.
+- **Instalador LocalDB (spec `instalador-localdb`)**:
+  - `bd/00_bootstrap.sql` crea la BD si no existe; `bd/instalar.ps1` orquesta bootstrap+estructura+seed+triggers+SPs (solo seed base).
+  - Rol `SuperAdmin` (Id 4) con permiso exclusivo `Configuracion.Backup.Gestionar`; admin operativo ya no lo tiene.
+  - Modal `FrmSetupInicial` (first-run) crea admin + datos de empresa cuando la BD está vacía o el admin sigue con la clave bootstrap.
+  - Dead code `ProcesarPagoHandler` eliminado.
 - Rama de trabajo: `develop` (specs `ayuda-contextual-interactiva` y `manejo-errores-unificado` mergeadas).
 - **Ayuda contextual interactiva en Orden de Servicio (spec `ayuda-contextual-interactiva`)**:
   - Servicio `IAyudaService`/`AyudaService` carga ayudas desde `Datos/Configuracion/ayudas_ordenes_servicio.json` (por rol, pantalla y control) y persiste preferencias de expansion en `%AppData%/TP_ControlVehicular/Ayudas`.
