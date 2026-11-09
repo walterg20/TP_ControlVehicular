@@ -35,8 +35,6 @@ El sistema permitirá:
 ### 1.4 Referencias
 - `docs/DER.md` – Diagrama Entidad-Relación vigente (18 tablas).
 - `bd/01_Estructura.sql` – DDL canónico de la base de datos.
-- `AGENTS.md` – Constitución técnica del proyecto (stack, convenciones y reglas).
-- `docs/referencia/` – Conocimiento de dominio (reportes, dashboard, BD, pantallas).
 
 ### 1.5 Visión general del documento
 El documento se estructura en siete capítulos: el **Capítulo 1** introduce propósito y alcance; el **Capítulo 2** presenta la descripción general del sistema; el **Capítulo 3** detalla los requisitos funcionales; el **Capítulo 4** los requisitos no funcionales; el **Capítulo 5** los casos de uso; el **Capítulo 6** el modelo de datos; y el **Capítulo 7** concluye.
