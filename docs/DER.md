@@ -1,6 +1,6 @@
 # Diagrama Entidad-Relación (DER) — Sistema de Control Vehicular
 
-> **Versión:** final · **Fecha:** 2026-10-12
+> **Versión:** final · **Fecha:** 2026-11-06 (actualizado para instalador con LocalDB y rol SuperAdmin)
 > Documento vigente y **autoritativo**. Refleja el modelo real de **18 tablas** en SQL Server.
 > La versión 1 (con nombres *legacy* en `snake_case` y entidades que nunca llegaron al modelo) quedó archivada en `docs/historico/DER_v1.md` y **no debe usarse** como referencia.
 
@@ -272,3 +272,5 @@ erDiagram
 6. **Unicidad de factura.** `IX_Factura_RegistroServicioId` es único: cada orden de servicio puede facturarse una sola vez.
 7. **Propiedad independiente.** Un vehículo puede existir sin cliente asignado; la relación de propiedad se registra en `PropietarioVehiculo` para conservar el historial de dueños ante ventas.
 8. **RBAC.** Los permisos denegados implícitamente: un rol solo puede ejecutar las acciones cuyos permisos figuren en `RolPermisos`. Los reportes usan permisos granulares (`Reporte.<Nombre>.Ver`); el permiso genérico `Reporte.Ver` es obsoleto.
+9. **Rol SuperAdmin.** Rol con permiso exclusivo `Configuracion.Backup.Gestionar` (y los de configuración) para validar restauraciones de base de datos (doble factor). El admin operativo no debe tener este permiso. Seed en `bd/02_datos.sql`.
+10. **Instalador / LocalDB.** La base se crea con `bd/00_bootstrap.sql` (Fase 1) sobre SQL Server Express LocalDB. `06_poblacion.sql` (datos demo) no se incluye en el instalador (solo semilla base).

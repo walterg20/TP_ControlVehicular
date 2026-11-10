@@ -26,6 +26,7 @@ namespace TP_ControlVehicular.Datos.Data
         public DbSet<PropietarioVehiculo> PropietariosVehiculos { get; set; } = null!;
         public DbSet<ConfiguracionEmpresa> ConfiguracionEmpresa { get; set; } = null!;
         public DbSet<ConfiguracionBackup> ConfiguracionBackup { get; set; } = null!;
+        public DbSet<SchemaVersion> SchemaVersions { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(CVDbContext).Assembly);
@@ -35,6 +36,7 @@ namespace TP_ControlVehicular.Datos.Data
 
 
             modelBuilder.Entity<Permiso>().ToTable("Permisos").HasKey(p => p.IdPermiso);
+            modelBuilder.Entity<SchemaVersion>().ToTable("SchemaVersion");
             modelBuilder.Entity<Rol>()
                 .HasMany(r => r.Permisos)
                 .WithMany(p => p.Roles)
