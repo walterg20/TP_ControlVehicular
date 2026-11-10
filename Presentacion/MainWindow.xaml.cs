@@ -451,6 +451,7 @@ namespace TP_ControlVehicular
             btnMisTrabajos.Background = transparente; btnMisTrabajos.FontWeight = normalWeight;
             btnBackup.Background = transparente; btnBackup.FontWeight = normalWeight;
             btnBackupConfiguracion.Background = transparente; btnBackupConfiguracion.FontWeight = normalWeight;
+            btnConfiguracionEmpresa.Background = transparente; btnConfiguracionEmpresa.FontWeight = normalWeight;
 
             var colorAzul = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2980B9");
             botonActivo.Background = new System.Windows.Media.SolidColorBrush(colorAzul);
