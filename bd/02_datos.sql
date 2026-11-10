@@ -145,7 +145,7 @@ GO
 -- ============================================================================
 IF NOT EXISTS (SELECT 1 FROM [dbo].[Usuarios] WHERE [Email] = N'admin@example.com')
     INSERT INTO [dbo].[Usuarios] ([RolId], [Nombre], [Apellido], [Dni], [Email], [Telefono], [Domicilio], [FechaNacimiento], [Contrasena], [Activo])
-    SELECT r.[Id], N'Admin', N'Sistema', N'10000001', N'admin@example.com', N'3794000001', N'Av. Siempre Viva 742', CAST(N'2000-01-26T00:00:00' AS datetime2), N'CHANGE_ME', 1
+    SELECT r.[Id], N'Admin', N'Sistema', N'12345678', N'admin@example.com', N'3794000001', N'Av. Siempre Viva 742', CAST(N'2000-01-26T00:00:00' AS datetime2), N'123456', 1
     FROM [dbo].[Roles] r
     WHERE r.[Id] = 1;
 GO
