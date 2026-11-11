@@ -1,10 +1,10 @@
 # Diagrama Entidad-Relación (DER) — Sistema de Control Vehicular
 
-> **Versión:** final · **Fecha:** 2026-11-06 (actualizado para instalador con LocalDB y rol SuperAdmin)
-> Documento vigente y **autoritativo**. Refleja el modelo real de **18 tablas** en SQL Server.
+> **Versión:** 2 · **Fecha:** 2026-11-11 (actualizado: baja lógica unificada bajo `Activo`, tabla `SchemaVersion`, 19 tablas)
+> Documento vigente y **autoritativo**. Refleja el modelo real de **19 tablas** en SQL Server.
 > La versión 1 (con nombres *legacy* en `snake_case` y entidades que nunca llegaron al modelo) quedó archivada en `docs/historico/DER_v1.md` y **no debe usarse** como referencia.
 
-La fuente de verdad de este documento es el DDL canónico `bd/01_Estructura.sql` (consolidado 2026-10-12), las entidades de `Entidad/` y las configuraciones de `Datos/Configuracion/`. Cuando exista duda, prevalece el DDL.
+La fuente de verdad de este documento es el DDL canónico `bd/01_estructura.sql` (consolidado 2026-10-12), las entidades de `Entidad/` y las configuraciones de `Datos/Configuracion/`. Cuando exista duda, prevalece el DDL.
 
 ---
 
@@ -30,7 +30,7 @@ El modelo cubre los siguientes dominios:
 | `Id` | `int` | **PK** | Identificador del rol. |
 | `Nombre` | `nvarchar(max)` | | Nombre del rol (Administrador, Recepcionista, Mecánico). |
 | `Descripcion` | `nvarchar(max)` | | Descripción de responsabilidades. |
-| `Estado` | `bit` | | Rol habilitado/inhabilitado (por defecto activo). |
+| `Activo` | `bit` | | Rol habilitado/deshabilitado (por defecto activo). |
 
 #### Permisos
 | Campo | Tipo (SQL Server) | Clave | Descripción |
@@ -51,7 +51,7 @@ El modelo cubre los siguientes dominios:
 | `Domicilio` | `nvarchar(200)` | | Domicilio. |
 | `FechaNacimiento` | `datetime2` | | Fecha de nacimiento. |
 | `Contrasena` | `nvarchar(max)` | | Credencial de acceso (hash/almacenada). |
-| `Estado` | `bit` | | Cuenta habilitada/inhabilitada (por defecto activa). |
+| `Activo` | `bit` | | Cuenta habilitada/deshabilitada (por defecto activa). |
 
 #### RolPermisos
 | Campo | Tipo (SQL Server) | Clave | Descripción |
@@ -83,6 +83,7 @@ El modelo cubre los siguientes dominios:
 | :--- | :--- | :--- | :--- |
 | `Id` | `int` | **PK** | Identificador de la marca. |
 | `NombreMarca` | `nvarchar(100)` | | Denominación de la marca (p. ej. Volkswagen, Ford). |
+| `Activo` | `bit` | | Marca habilitada/deshabilitada (por defecto activa). |
 
 #### Modelo
 | Campo | Tipo (SQL Server) | Clave | Descripción |
@@ -90,6 +91,7 @@ El modelo cubre los siguientes dominios:
 | `Id` | `int` | **PK** | Identificador del modelo. |
 | `MarcaId` | `int` | **FK** → `Marca.Id` | Marca fabricante. |
 | `NombreModelo` | `nvarchar(100)` | | Denominación del modelo. |
+| `Activo` | `bit` | | Modelo habilitado/deshabilitado (por defecto activo). |
 
 #### Vehiculo
 | Campo | Tipo (SQL Server) | Clave | Descripción |
@@ -99,6 +101,7 @@ El modelo cubre los siguientes dominios:
 | `Anio` | `int` | | Año de fabricación. |
 | `Patente` | `nvarchar(15)` | | Dominio/patente. |
 | `KmActual` | `int` | | Kilometraje acumulado (CHECK ≥ 0). |
+| `Activo` | `bit` | | Vehículo habilitado/deshabilitado (por defecto activo). |
 
 #### PropietarioVehiculo
 | Campo | Tipo (SQL Server) | Clave | Descripción |
@@ -143,6 +146,7 @@ El modelo cubre los siguientes dominios:
 | `Fecha` | `datetime2` | | Fecha de ingreso. |
 | `KmIngreso` | `int` | | Kilometraje al ingresar (CHECK ≥ 0). |
 | `Estado` | `nvarchar(50)` | | Estado de la orden (CHECK: `Abierta`, `En Proceso`, `Completada`, `Pagada`, `Cancelada`). |
+| `Activo` | `bit` | | Orden habilitada/deshabilitada (por defecto activa). |
 
 #### DetalleServicio
 | Campo | Tipo (SQL Server) | Clave | Descripción |
@@ -170,6 +174,7 @@ El modelo cubre los siguientes dominios:
 | `Numero` | `int` | | Número consecutivo (`DEFAULT NEXT VALUE FOR Seq_Factura_Numero`). |
 | `Fecha` | `datetime2` | | Fecha de emisión. |
 | `Total` | `decimal(10,2)` | | Importe liquidado. |
+| `Activo` | `bit` | | Factura habilitada/deshabilitada (por defecto activa). |
 
 #### MetodoPago
 | Campo | Tipo (SQL Server) | Clave | Descripción |
@@ -185,6 +190,7 @@ El modelo cubre los siguientes dominios:
 | `MetodoPagoId` | `int` | **FK** → `MetodoPago.Id` | Medio utilizado. |
 | `Monto` | `decimal(10,2)` | | Importe abonado. |
 | `FechaPago` | `datetime2` | | Fecha del pago. |
+| `Activo` | `bit` | | Pago habilitado/deshabilitado (por defecto activo). |
 
 ---
 
@@ -212,6 +218,13 @@ El modelo cubre los siguientes dominios:
 | `UltimaSubidaArchivo` | `nvarchar(260)` (nulo) | | Nombre del último archivo subido. |
 | `FechaUltimaSubida` | `datetime2` (nulo) | | Fecha de la última subida. |
 | `FechaActualizacion` | `datetime2` | | Última modificación. |
+
+#### SchemaVersion (versionado de esquema)
+| Campo | Tipo (SQL Server) | Clave | Descripción |
+| :--- | :--- | :--- | :--- |
+| `Id` | `int` IDENTITY | **PK** | Identificador. |
+| `Version` | `nvarchar(50)` | | Versión del esquema (p. ej. `1.0.0`). |
+| `AppliedOn` | `datetime2` | | Fecha de aplicación (default `GETDATE()`). |
 
 ---
 
@@ -258,7 +271,7 @@ erDiagram
     METODOPAGO    ||--o{ PAGO                 : "aplica en"
 ```
 
-> `ConfiguracionEmpresa` y `ConfiguracionBackup` son tablas *singleton* aisladas, sin relaciones con el resto del modelo.
+> `ConfiguracionEmpresa`, `ConfiguracionBackup` y `SchemaVersion` son tablas *singleton/auxiliares* aisladas, sin relaciones con el resto del modelo.
 
 ---
 
@@ -274,3 +287,5 @@ erDiagram
 8. **RBAC.** Los permisos denegados implícitamente: un rol solo puede ejecutar las acciones cuyos permisos figuren en `RolPermisos`. Los reportes usan permisos granulares (`Reporte.<Nombre>.Ver`); el permiso genérico `Reporte.Ver` es obsoleto.
 9. **Rol SuperAdmin.** Rol con permiso exclusivo `Configuracion.Backup.Gestionar` (y los de configuración) para validar restauraciones de base de datos (doble factor). El admin operativo no debe tener este permiso. Seed en `bd/02_datos.sql`.
 10. **Instalador / LocalDB.** La base se crea con `bd/00_bootstrap.sql` (Fase 1) sobre SQL Server Express LocalDB. `06_poblacion.sql` (datos demo) no se incluye en el instalador (solo semilla base).
+11. **Baja lógica unificada bajo `Activo`.** Las tablas `Roles`, `Usuarios`, `Cliente`, `Marca`, `Modelo`, `Vehiculo`, `Servicio`, `Taller`, `RegistroServicio`, `Factura` y `Pago` usan la columna `Activo` (bit, default 1) para baja lógica; no existe la columna `Estado` en `Roles`/`Usuarios` (la versión 1 del DER la referenciaba erróneamente).
+12. **Versionado de esquema.** La tabla `SchemaVersion` registra la versión del esquema aplicada (`1.0.0`), verificada en `App.OnStartup` para detectar desalineaciones entre la aplicación y la base.
