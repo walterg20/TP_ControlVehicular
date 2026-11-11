@@ -395,6 +395,7 @@ token.json
 .codegraph/
 mcp.json
 MEMORY.md
+AGENTS.md
 
 # Resguardos locales de base de datos
 docs/script/BAckup_activos.sql
