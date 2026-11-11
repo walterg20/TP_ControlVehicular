@@ -39,6 +39,11 @@ namespace TP_ControlVehicular
         {
             base.OnStartup(e);
 
+            // Cargar .env (si existe) ANTES de construir la configuracion, para que
+            // cada desarrollador pueda definir su conexion a SQL Server sin editar
+            // appsettings.json. Las variables del sistema/CI tienen prioridad.
+            TP_ControlVehicular.Presentacion.Helpers.EnvLoader.CargarSiExiste();
+
             // Configurar licencia de QuestPDF (Community)
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
@@ -52,7 +57,10 @@ namespace TP_ControlVehicular
             // DbContext
             var builder = new ConfigurationBuilder()
                             .SetBasePath(AppContext.BaseDirectory)
-                            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                            // Variables de entorno con prefijo TPCV_ sobrescriben el JSON
+                            // (ej. TPCV_ConnectionStrings__DefaultConnection). Util para CI/CD.
+                            .AddEnvironmentVariables(prefix: "TPCV_");
 
             IConfiguration configuration = builder.Build();
             services.AddSingleton<IConfiguration>(configuration);

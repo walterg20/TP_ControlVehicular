@@ -239,17 +239,37 @@ namespace TP_ControlVehicular.Negocio.Services
 
         private async Task<UserCredential> ObtenerCredencialAsync(CancellationToken cancellationToken)
         {
-            var rutaCredenciales = Path.Combine(AppContext.BaseDirectory, ArchivoCredenciales);
+            // Override opcional por variables de entorno (util en CI/CD o cuando no se
+            // quiere un archivo credenciales.json en disco). Si ambas estan presentes,
+            // se construye el ClientSecrets en memoria.
+            var clientId = Environment.GetEnvironmentVariable("TPCV_Google__ClientId");
+            var clientSecret = Environment.GetEnvironmentVariable("TPCV_Google__ClientSecret");
 
-            if (!File.Exists(rutaCredenciales))
+            Google.Apis.Auth.OAuth2.ClientSecrets secretos;
+
+            if (!string.IsNullOrWhiteSpace(clientId) && !string.IsNullOrWhiteSpace(clientSecret))
             {
-                throw new InvalidOperationException(
-                    $"No se encontró el archivo de credenciales de Google Drive ({rutaCredenciales}). " +
-                    "Copie credenciales.json (descargado de Google Cloud) junto al ejecutable.");
+                secretos = new Google.Apis.Auth.OAuth2.ClientSecrets
+                {
+                    ClientId = clientId,
+                    ClientSecret = clientSecret
+                };
             }
+            else
+            {
+                var rutaCredenciales = Path.Combine(AppContext.BaseDirectory, ArchivoCredenciales);
 
-            using var stream = File.OpenRead(rutaCredenciales);
-            var secretos = GoogleClientSecrets.FromStream(stream).Secrets;
+                if (!File.Exists(rutaCredenciales))
+                {
+                    throw new InvalidOperationException(
+                        $"No se encontró el archivo de credenciales de Google Drive ({rutaCredenciales}). " +
+                        "Copie credenciales.json (descargado de Google Cloud) junto al ejecutable, " +
+                        "o defina TPCV_Google__ClientId y TPCV_Google__ClientSecret.");
+                }
+
+                using var stream = File.OpenRead(rutaCredenciales);
+                secretos = GoogleClientSecrets.FromStream(stream).Secrets;
+            }
 
             return await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 secretos,

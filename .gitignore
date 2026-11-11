@@ -384,6 +384,10 @@ credenciales.json
 credentials.json
 token.json
 
+# Variables de entorno locales (por desarrollador, nunca versionar)
+.env
+.env.local
+
 # Resguardos locales de base de datos
 docs/script/BAckup_activos.sql
 *.bak
