@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.Login
 {
@@ -27,8 +28,9 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Login
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlLogin.xaml");
                 // Fallback handled by caller
             }
         }

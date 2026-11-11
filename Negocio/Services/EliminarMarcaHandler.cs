@@ -14,7 +14,18 @@ namespace TP_ControlVehicular.Negocio.Services
 
         public async Task HandleAsync(int id)
         {
-            await _marcaRepository.DeleteAsync(id);
+            var marca = await _marcaRepository.GetByIdAsync(id);
+            if (marca == null) return;
+            marca.Activo = false;
+            await _marcaRepository.UpdateAsync(marca);
+        }
+
+        public async Task ReactivarAsync(int id)
+        {
+            var marca = await _marcaRepository.GetByIdAsync(id);
+            if (marca == null) return;
+            marca.Activo = true;
+            await _marcaRepository.UpdateAsync(marca);
         }
     }
 }

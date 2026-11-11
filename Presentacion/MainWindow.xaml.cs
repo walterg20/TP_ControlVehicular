@@ -17,6 +17,7 @@ using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
 using TP_ControlVehicular.Negocio.Handlers.Reportes;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular
 {
@@ -35,6 +36,15 @@ namespace TP_ControlVehicular
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            // Suscribirse al notificador centralizado de errores
+            if (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) is IErrorNotifier notifier)
+            {
+                notifier.ErrorOccurred += (s, ev) =>
+                {
+                    Dispatcher.Invoke(() => MostrarError(ev.Mensaje, ev.Modal));
+                };
+            }
+
             MostrarPantallaLogin();
         }
 
@@ -118,8 +128,9 @@ namespace TP_ControlVehicular
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MainWindow.xaml");
                 // No bloquear el flujo de login
             }
 
@@ -247,7 +258,14 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_Cliente(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlCliente());
+            if (App.ServiceProvider?.GetService(typeof(CtlCliente)) is CtlCliente ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlCliente());
+            }
         }
 
         private void MenuItem_Click_Taller(object sender, RoutedEventArgs e)
@@ -315,19 +333,40 @@ namespace TP_ControlVehicular
         private void MenuItem_Click_Vehiculo(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlVehiculo());
+            if (App.ServiceProvider?.GetService(typeof(CtlVehiculo)) is CtlVehiculo ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlVehiculo());
+            }
         }
 
         private void MenuItem_Click_Modelo(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlModelo());
+            if (App.ServiceProvider?.GetService(typeof(CtlModelo)) is CtlModelo ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlModelo());
+            }
         }
 
         private void MenuItem_Click_Marca(object sender, RoutedEventArgs e)
         {
             ResaltarBotonActivo(sender as Button);
-            AgregarPagina(new CtlMarca());
+            if (App.ServiceProvider?.GetService(typeof(CtlMarca)) is CtlMarca ctl)
+            {
+                AgregarPagina(ctl);
+            }
+            else
+            {
+                AgregarPagina(new CtlMarca());
+            }
         }
 
         private void MenuItem_Click_ManualUsuario(object sender, RoutedEventArgs e)
@@ -366,6 +405,21 @@ namespace TP_ControlVehicular
             bdrToast.Visibility = Visibility.Collapsed;
         }
 
+        /// <summary>
+        /// Muestra un error de forma unificada: toast (no bloqueante) por defecto o modal bloqueante.
+        /// </summary>
+        public void MostrarError(string mensaje, bool modal = false)
+        {
+            if (modal)
+            {
+                Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso(mensaje, "Error", this);
+            }
+            else
+            {
+                MostrarToast($"⚠️ {mensaje}");
+            }
+        }
+
         public void AgregarPagina(UserControl userControl)
         {
             this.grdContenido.Children.Clear();
@@ -397,6 +451,7 @@ namespace TP_ControlVehicular
             btnMisTrabajos.Background = transparente; btnMisTrabajos.FontWeight = normalWeight;
             btnBackup.Background = transparente; btnBackup.FontWeight = normalWeight;
             btnBackupConfiguracion.Background = transparente; btnBackupConfiguracion.FontWeight = normalWeight;
+            btnConfiguracionEmpresa.Background = transparente; btnConfiguracionEmpresa.FontWeight = normalWeight;
 
             var colorAzul = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2980B9");
             botonActivo.Background = new System.Windows.Media.SolidColorBrush(colorAzul);

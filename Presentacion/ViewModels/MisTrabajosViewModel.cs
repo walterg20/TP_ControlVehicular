@@ -4,12 +4,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel;
-using System.Windows.Data;
 using System.Windows.Input;
 using TP_ControlVehicular.Negocio.Context;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
 using TP_ControlVehicular.Negocio.Reportes.Documentos;
+using TP_ControlVehicular.Presentacion.Helpers;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -100,18 +100,16 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         }
     }
 
-    public class MisTrabajosViewModel : BaseViewModel
+    public class MisTrabajosViewModel : BasePaginableViewModel
     {
         private readonly ListarRegistroServiciosHandler _listarHandler;
         private readonly ModificarRegistroServicioHandler _modificarHandler;
         private readonly ObtenerHistorialClinicoVehiculoHandler _historialHandler;
         private readonly ObtenerHojaTrabajoDiariaHandler _hojaTrabajoHandler;
+        private readonly Debouncer _debouncer;
 
-        /// <summary>Ordenes (fila maestra). Cada orden agrupa las tareas del mecanico logueado.</summary>
+        /// <summary>Ordenes (fila maestra) de la pagina actual. Cada orden agrupa las tareas del mecanico logueado.</summary>
         public ObservableCollection<MiOrdenItemViewModel> Ordenes { get; set; }
-
-        /// <summary>Vista filtrada de ordenes (busqueda + estado).</summary>
-        public ICollectionView OrdenesView { get; private set; }
 
         /// <summary>Detalle de la orden seleccionada (tareas del mecanico logueado).</summary>
         public ObservableCollection<MiTareaItemViewModel> TareasDeOrden { get; set; }
@@ -126,11 +124,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _modificarHandler = modificarHandler;
             _historialHandler = historialHandler;
             _hojaTrabajoHandler = hojaTrabajoHandler;
+            _debouncer = new Debouncer();
 
             Ordenes = new ObservableCollection<MiOrdenItemViewModel>();
             TareasDeOrden = new ObservableCollection<MiTareaItemViewModel>();
-            OrdenesView = CollectionViewSource.GetDefaultView(Ordenes);
-            OrdenesView.Filter = OrdenesFilter;
         }
 
         private string _textoBusqueda = string.Empty;
@@ -141,8 +138,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 _textoBusqueda = value;
                 OnPropertyChanged();
-                OrdenesView.Refresh();
-                OnPropertyChanged(nameof(IsListEmpty));
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
             }
         }
 
@@ -154,8 +151,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 _fechaDesde = value;
                 OnPropertyChanged();
-                OrdenesView.Refresh();
-                OnPropertyChanged(nameof(IsListEmpty));
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
             }
         }
 
@@ -167,8 +164,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 _fechaHasta = value;
                 OnPropertyChanged();
-                OrdenesView.Refresh();
-                OnPropertyChanged(nameof(IsListEmpty));
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
             }
         }
 
@@ -180,15 +177,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 _filtroEstado = value;
                 OnPropertyChanged();
-                OrdenesView.Refresh();
-                OnPropertyChanged(nameof(IsListEmpty));
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
             }
         }
 
-        public bool IsListEmpty => OrdenesView.IsEmpty;
+        public bool IsListEmpty => !Ordenes.Any();
 
         private ICommand? _limpiarFiltrosCommand;
-        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(() =>
+        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new TP_ControlVehicular.Presentacion.RelayCommand(async () =>
         {
             _fechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             _fechaHasta = DateTime.Today;
@@ -198,9 +195,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             OnPropertyChanged(nameof(FechaHasta));
             OnPropertyChanged(nameof(FiltroEstado));
             OnPropertyChanged(nameof(TextoBusqueda));
-            OrdenesView.Refresh();
-            OnPropertyChanged(nameof(IsListEmpty));
-            return Task.CompletedTask;
+            await BuscarAsync();
         });
 
         private MiOrdenItemViewModel? _ordenSeleccionada;
@@ -222,33 +217,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public bool HayOrdenSeleccionada => OrdenSeleccionada != null;
         public bool NoHayOrdenSeleccionada => OrdenSeleccionada == null;
 
-        private bool OrdenesFilter(object item)
-        {
-            if (item is MiOrdenItemViewModel orden)
-            {
-                // Filtro por fecha de la orden
-                if (FechaDesde.HasValue && orden.Fecha.Date < FechaDesde.Value.Date) return false;
-                if (FechaHasta.HasValue && orden.Fecha.Date > FechaHasta.Value.Date) return false;
-
-                // Filtro por estado de las tareas del mecanico
-                if (FiltroEstado == "Pendientes" && !orden.TienePendientes) return false;
-                if (FiltroEstado == "Finalizados" && orden.TienePendientes) return false;
-
-                // Filtro de busqueda: Nº de orden, patente o cliente
-                if (!string.IsNullOrWhiteSpace(TextoBusqueda))
-                {
-                    bool match = (orden.OrdenId.ToString().IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                                 (orden.VehiculoPatente?.IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                                 (orden.VehiculoDetalle?.IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                                 (orden.ClienteDetalle?.IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
-                    if (!match) return false;
-                }
-
-                return true;
-            }
-            return false;
-        }
-
         private void ReconstruirTareas()
         {
             TareasDeOrden.Clear();
@@ -265,39 +233,86 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             if (UserSession.CurrentUser == null) return;
 
-            int? idPrevio = OrdenSeleccionada?.OrdenId;
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
 
-            Ordenes.Clear();
-            var ordenes = await _listarHandler.HandleAsync();
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            if (UserSession.CurrentUser == null) return;
+
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        /// <summary>
+        /// Carga la pagina actual de ordenes del mecanico con los filtros aplicados
+        /// en la base de datos.
+        /// </summary>
+        protected override async Task CargarPaginaAsync()
+        {
+            if (UserSession.CurrentUser == null) return;
+
+            int? idPrevio = OrdenSeleccionada?.OrdenId;
             int currentUserId = UserSession.CurrentUser.IdUsuario;
 
-            foreach (var orden in ordenes.Where(o => o.Estado != "Cancelada").OrderByDescending(o => o.Id))
+            IsLoading = true;
+            try
             {
-                if (orden.Detalles == null) continue;
+                var (items, total) = await _listarHandler.HandlePaginadoPorMecanicoAsync(
+                    currentUserId,
+                    TextoBusqueda.Trim(),
+                    FiltroEstado,
+                    FechaDesde,
+                    FechaHasta,
+                    PaginaActual,
+                    TamanoPagina);
 
-                var misDetalles = orden.Detalles.Where(d => d.UsuarioId == currentUserId).ToList();
-                if (misDetalles.Count == 0) continue;
-
-                var master = new MiOrdenItemViewModel { Orden = orden };
-                foreach (var det in misDetalles)
+                Ordenes.Clear();
+                foreach (var orden in items)
                 {
-                    master.MisTareas.Add(new MiTareaItemViewModel
+                    if (orden.Detalles == null) continue;
+
+                    var misDetalles = orden.Detalles.Where(d => d.UsuarioId == currentUserId).ToList();
+                    if (misDetalles.Count == 0) continue;
+
+                    var master = new MiOrdenItemViewModel { Orden = orden };
+                    foreach (var det in misDetalles)
                     {
-                        Orden = orden,
-                        Detalle = det,
-                        OrdenPadre = master,
-                        IsModified = false
-                    });
+                        master.MisTareas.Add(new MiTareaItemViewModel
+                        {
+                            Orden = orden,
+                            Detalle = det,
+                            OrdenPadre = master,
+                            IsModified = false
+                        });
+                    }
+                    Ordenes.Add(master);
                 }
-                Ordenes.Add(master);
+
+                ActualizarTotales(total);
+                OnPropertyChanged(nameof(IsListEmpty));
+
+                // Preservar la seleccion previa si la orden sigue visible; si no, seleccionar la primera.
+                var visibles = Ordenes.ToList();
+                OrdenSeleccionada = visibles.FirstOrDefault(o => o.OrdenId == idPrevio) ?? visibles.FirstOrDefault();
             }
-
-            OrdenesView.Refresh();
-            OnPropertyChanged(nameof(IsListEmpty));
-
-            // Preservar la seleccion previa si la orden sigue visible; si no, seleccionar la primera.
-            var visibles = OrdenesView.Cast<MiOrdenItemViewModel>().ToList();
-            OrdenSeleccionada = visibles.FirstOrDefault(o => o.OrdenId == idPrevio) ?? visibles.FirstOrDefault();
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         public async Task<bool> GuardarCambiosAsync()
@@ -356,11 +371,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 item.IsModified = false;
             }
 
-            await LoadAsync();
+            // Recargar la pagina actual para que el listado refleje los cambios guardados.
+            await CargarPaginaAsync();
 
             return true;
         }
-
         /// <summary>Habilita los reportes del mecanico segun el permiso Reporte.Mecanico.Ver.</summary>
         public bool PuedeVerReportesMecanico => TienePermiso("Reporte.Mecanico.Ver");
 

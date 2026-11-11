@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="950">
 
@@ -55,6 +56,8 @@
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Buscar" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
                         <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                                 TextChanged="TxtBusqueda_TextChanged"
+                                 KeyDown="TxtBusqueda_KeyDown"
                                  Height="34" VerticalContentAlignment="Center" Padding="8,6" FontSize="13" 
                                  BorderBrush="#BDC3C7" BorderThickness="1">
                             <TextBox.Resources>
@@ -69,6 +72,7 @@
                     <StackPanel Grid.Column="2">
                         <TextBlock Text="Desde" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
                         <DatePicker SelectedDate="{Binding FechaDesde, UpdateSourceTrigger=PropertyChanged}" 
+                                    SelectedDateChanged="DtpFechaDesde_SelectedDateChanged"
                                     Height="34" VerticalContentAlignment="Center"/>
                     </StackPanel>
 
@@ -76,6 +80,7 @@
                     <StackPanel Grid.Column="4">
                         <TextBlock Text="Hasta" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
                         <DatePicker SelectedDate="{Binding FechaHasta, UpdateSourceTrigger=PropertyChanged}" 
+                                    SelectedDateChanged="DtpFechaHasta_SelectedDateChanged"
                                     Height="34" VerticalContentAlignment="Center"/>
                     </StackPanel>
 
@@ -83,7 +88,8 @@
                     <StackPanel Grid.Column="6">
                         <TextBlock Text="Estado" FontWeight="SemiBold" Foreground="#34495E" FontSize="12" Margin="0,0,0,6"/>
                         <ComboBox SelectedValue="{Binding EstadoFiltro, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                  SelectedValuePath="Content" Height="34" VerticalContentAlignment="Center">
+                                  SelectedValuePath="Content" Height="34" VerticalContentAlignment="Center"
+                                  SelectionChanged="CboEstado_SelectionChanged">
                             <ComboBoxItem Content="Todos" IsSelected="True"/>
                             <ComboBoxItem Content="Abierta"/>
                             <ComboBoxItem Content="En Proceso"/>
@@ -100,15 +106,26 @@
                 <!-- FILA 2: ACCIONES INFERIORES (EXTREMO IZQUIERDO Y DERECHO) -->
                 <Grid Grid.Row="2">
                     <!-- Acción izquierda: Limpiar -->
-                    <Button HorizontalAlignment="Left" Content="🔄 Limpiar" Command="{Binding LimpiarFiltrosCommand}" 
-                            Padding="12,7" Background="#95A5A6" Foreground="White" FontWeight="Bold" 
-                            BorderThickness="0" Cursor="Hand" ToolTip="Restablecer filtros">
-                        <Button.Resources>
-                            <Style TargetType="Border">
-                                <Setter Property="CornerRadius" Value="6"/>
-                            </Style>
-                        </Button.Resources>
-                    </Button>
+                    <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                        <Button Content="🔄 Limpiar" Command="{Binding LimpiarFiltrosCommand}"
+                                Padding="12,7" Background="#95A5A6" Foreground="White" FontWeight="Bold"
+                                BorderThickness="0" Cursor="Hand" ToolTip="Restablecer filtros">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                        <Button Content="Buscar" Click="BtnBuscar_Click"
+                                Padding="12,7" Margin="8,0,0,0" Background="#2980B9" Foreground="White" FontWeight="Bold"
+                                BorderThickness="0" Cursor="Hand" ToolTip="Consultar con los filtros aplicados">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="6"/>
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </StackPanel>
 
                     <!-- Acción derecha: Imprimir PDF -->
                     <Button HorizontalAlignment="Right" Content="📄 Imprimir PDF" 
@@ -139,8 +156,12 @@
             </Border.Effect>
 
             <Grid>
-                <DataGrid x:Name="dgReporte" 
-                          ItemsSource="{Binding ListadoOrdenesFiltered}" 
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DataGrid x:Name="dgReporte" Grid.Row="0" 
+                          ItemsSource="{Binding Ordenes}" 
                           AutoGenerateColumns="False" 
                           IsReadOnly="True" 
                           GridLinesVisibility="Horizontal" 
@@ -172,6 +193,7 @@
                         <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="100"/>
                     </DataGrid.Columns>
                 </DataGrid>
+                <compartido:CtlPaginacion Grid.Row="1" Model="{Binding}"/>
             </Grid>
         </Border>
     </Grid>

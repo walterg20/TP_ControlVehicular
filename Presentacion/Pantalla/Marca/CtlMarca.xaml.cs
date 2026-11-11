@@ -1,45 +1,157 @@
 // walterg20
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Marca
 {
     public partial class CtlMarca : UserControl
     {
+        public MarcaViewModel? ViewModel => DataContext as MarcaViewModel;
+
         public CtlMarca()
         {
             InitializeComponent();
             try
             {
-                if (App.ServiceProvider.GetService(typeof(MarcaViewModel)) is MarcaViewModel vmMarca)
+                if (App.ServiceProvider != null)
                 {
-                    this.DataContext = vmMarca;
-                    this.Loaded += async (s, e) => { await vmMarca.LoadAsync(); };
+                    var vmMarca = App.ServiceProvider.GetService(typeof(MarcaViewModel)) as MarcaViewModel;
+                    if (vmMarca != null)
+                    {
+                        DataContext = vmMarca;
+                    }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlMarca.xaml");
                 // Silenciar si DI no está listo
             }
+
+            Loaded += async (s, e) =>
+            {
+                if (ViewModel != null)
+                {
+                    ViewModel.NotificarPermisos();
+                    await ViewModel.LoadAsync();
+                }
+            };
+        }
+
+        public CtlMarca(MarcaViewModel viewModel) : this()
+        {
+            DataContext = viewModel;
+            ViewModel?.NotificarPermisos();
+        }
+
+        /// <summary>
+        /// Ejecuta la busqueda en la base de datos (boton Buscar).
+        /// </summary>
+        private async void BtnBuscar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MarcaViewModel vmMarca)
+            {
+                vmMarca.CancelarBusquedaProgramada();
+                await vmMarca.BuscarAsync();
+            }
+        }
+
+        /// <summary>
+        /// Busca con retardo mientras el usuario escribe, para no consultar la base de datos
+        /// en cada tecla.
+        /// </summary>
+        private void TxtBusqueda_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (this.DataContext is MarcaViewModel vmMarca)
+            {
+                vmMarca.ProgramarBusqueda();
+            }
+        }
+
+        /// <summary>
+        /// La tecla Enter ejecuta la busqueda de inmediato.
+        /// </summary>
+        private async void TxtBusqueda_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            if (this.DataContext is MarcaViewModel vmMarca)
+            {
+                vmMarca.CancelarBusquedaProgramada();
+                await vmMarca.BuscarAsync();
+            }
+        }
+
+        /// <summary>
+        /// Cambiar la visibilidad de los registros inactivos recarga el listado.
+        /// </summary>
+        private async void CmbFiltroEstado_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (this.DataContext is MarcaViewModel vmMarca)
+            {
+                vmMarca.CancelarBusquedaProgramada();
+                await vmMarca.BuscarAsync();
+            }
+        }
+
+        private async void BtnReactivar_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is MarcaViewModel vmMarca && vmMarca.MarcaSeleccionada != null)
+            {
+                var ok = await vmMarca.ReactivarMarcaAsync(vmMarca.MarcaSeleccionada.Id);
+                if (ok)
+                {
+                    Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso("Marca reactivada correctamente.", "Reactivar", Window.GetWindow(this));
+                }
+            }
+            else
+            {
+                Presentacion.Pantalla.Compartido.FrmConfirmacion.MostrarAviso("Por favor, seleccione una marca.", "Aviso", Window.GetWindow(this));
+            }
+        }
+
+        private void DgMarcas_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (ViewModel is MarcaViewModel vmMarca && !vmMarca.PuedeEditar)
+            {
+                return;
+            }
+            BtnEditar_Click(sender, e);
         }
 
         private async void BtnNuevo_Click(object sender, RoutedEventArgs e)
         {
-            var frm = new FrmMarca();
-            frm.Owner = Window.GetWindow(this);
-            var ok = frm.ShowDialog();
-            if (ok == true && this.DataContext is MarcaViewModel vmMarca)
+            if (ViewModel is MarcaViewModel vmMarca)
             {
-                await vmMarca.LoadAsync();
+                if (!vmMarca.PuedeCrear)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para registrar nuevas marcas.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
+                var frm = new FrmMarca();
+                frm.Owner = Window.GetWindow(this);
+                var ok = frm.ShowDialog();
+                if (ok == true)
+                {
+                    await vmMarca.LoadAsync();
+                }
             }
         }
 
         private async void BtnEditar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is MarcaViewModel vmMarca)
+            if (ViewModel is MarcaViewModel vmMarca)
             {
+                if (!vmMarca.PuedeEditar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para modificar marcas.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmMarca.MarcaSeleccionada == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero una marca.", "Aviso", Window.GetWindow(this));
@@ -58,8 +170,14 @@ namespace TP_ControlVehicular.Presentacion.Marca
 
         private async void BtnBorrar_Click(object sender, RoutedEventArgs e)
         {
-            if (this.DataContext is MarcaViewModel vmMarca)
+            if (ViewModel is MarcaViewModel vmMarca)
             {
+                if (!vmMarca.PuedeEliminar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para eliminar marcas.", "Acceso denegado", Window.GetWindow(this));
+                    return;
+                }
+
                 if (vmMarca.MarcaSeleccionada == null)
                 {
                     FrmConfirmacion.MostrarAviso("Por favor, selecciona primero una marca para eliminar.", "Aviso", Window.GetWindow(this));

@@ -8,6 +8,7 @@ namespace TP_ControlVehicular.Entidad
         public int Anio { get; set; }
         public string Patente { get; set; } = string.Empty;
         public int KmActual { get; set; }
+        public bool Activo { get; set; } = true;
 
         public Modelo Modelo { get; set; } = null!;
         public ICollection<PropietarioVehiculo> Propietarios { get; set; } = new List<PropietarioVehiculo>();

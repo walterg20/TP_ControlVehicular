@@ -4,17 +4,22 @@ using System.Runtime.CompilerServices;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class MarcaViewModel : BaseViewModel
+    /// <summary>
+    /// Listado de marcas con paginacion y busqueda en la base de datos.
+    /// </summary>
+    public class MarcaViewModel : BasePaginableViewModel
     {
-        protected override string Modulo => "Vehiculo";
+        protected override string Modulo => "Marca";
 
         private readonly ListarMarcaHandler _listarMarcaHandler;
         private readonly RegistrarMarcaHandler _registrarMarcaHandler;
         private readonly ModificarMarcaHandler _modificarMarcaHandler;
         private readonly EliminarMarcaHandler _eliminarMarcaHandler;
+        private readonly Debouncer _debouncer;
 
         public MarcaViewModel(
             ListarMarcaHandler listarMarcaHandler,
@@ -26,12 +31,36 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _registrarMarcaHandler = registrarMarcaHandler;
             _modificarMarcaHandler = modificarMarcaHandler;
             _eliminarMarcaHandler = eliminarMarcaHandler;
+            _debouncer = new Debouncer();
 
             Marcas = new ObservableCollection<MarcaDto>();
-            ((ObservableCollection<MarcaDto>)Marcas).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoMarcasFiltered));
         }
 
         public ObservableCollection<MarcaDto> Marcas { get; set; }
+
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
 
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
@@ -41,14 +70,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 _textoBusqueda = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ListadoMarcasFiltered));
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
             }
         }
-
-        public IEnumerable<MarcaDto> ListadoMarcasFiltered =>
-            string.IsNullOrWhiteSpace(TextoBusqueda)
-                ? Marcas
-                : Marcas.Where(m => (m.NombreMarca ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
 
         private string _nombreMarca = string.Empty;
         public string NombreMarca
@@ -81,20 +106,63 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public MarcaDto? MarcaSeleccionada { get; set; }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
         {
-            Marcas.Clear();
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
+        {
+            IsLoading = true;
             try
             {
-                var lista = await _listarMarcaHandler.HandleAsync();
-                foreach (var marca in lista)
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
+                var (items, total) = await _listarMarcaHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    estado,
+                    PaginaActual,
+                    TamanoPagina);
+
+                Marcas.Clear();
+                foreach (var marca in items)
                 {
                     Marcas.Add(marca);
                 }
+
+                ActualizarTotales(total);
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MarcaViewModel");
                 // Silenciar error en carga inicial
+                Marcas.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -106,30 +174,28 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             var marca = new Entidad.Marca
             {
                 Id = marcaSeleccionada?.Id ?? 0,
-                NombreMarca = NombreMarca.Trim()
+                NombreMarca = NombreMarca.Trim(),
+                Activo = marcaSeleccionada?.Activo ?? true
             };
 
             try
             {
                 if (marca.Id == 0)
                 {
-                    var dto = await _registrarMarcaHandler.HandleAsync(marca);
-                    Marcas.Add(dto);
+                    await _registrarMarcaHandler.HandleAsync(marca);
                 }
                 else
                 {
-                    var dto = await _modificarMarcaHandler.HandleAsync(marca);
-                    var exist = Marcas.FirstOrDefault(m => m.Id == dto.Id);
-                    if (exist != null)
-                    {
-                        exist.NombreMarca = dto.NombreMarca;
-                        OnPropertyChanged(nameof(ListadoMarcasFiltered));
-                    }
+                    await _modificarMarcaHandler.HandleAsync(marca);
                 }
+
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MarcaViewModel");
                 return false;
             }
         }
@@ -139,15 +205,27 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 await _eliminarMarcaHandler.HandleAsync(id);
-                var exist = Marcas.FirstOrDefault(m => m.Id == id);
-                if (exist != null)
-                {
-                    Marcas.Remove(exist);
-                }
+                await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MarcaViewModel");
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarMarcaAsync(int id)
+        {
+            try
+            {
+                await _eliminarMarcaHandler.ReactivarAsync(id);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "MarcaViewModel");
                 return false;
             }
         }

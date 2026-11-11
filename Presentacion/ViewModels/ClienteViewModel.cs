@@ -1,20 +1,30 @@
 // walterg20
-using System.Collections;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class ClienteViewModel : BaseViewModel, INotifyDataErrorInfo
+    /// <summary>
+    /// Listado de clientes con paginacion y busqueda en la base de datos.
+    /// </summary>
+    public class ClienteViewModel : BasePaginableViewModel
     {
+        protected override string Modulo => "Cliente";
+
         private readonly RegistrarClienteHandler _registrarClienteHandler;
         private readonly TP_ControlVehicular.Negocio.Interfaces.IClienteRepository _clienteRepository;
         private readonly AutoMapper.IMapper _mapper;
+        private readonly Debouncer _debouncer;
         private readonly Dictionary<string, List<string>> _errors = new();
 
         public ClienteViewModel(RegistrarClienteHandler registrarClienteHandler, TP_ControlVehicular.Negocio.Interfaces.IClienteRepository clienteRepository, AutoMapper.IMapper mapper)
@@ -22,28 +32,56 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _registrarClienteHandler = registrarClienteHandler;
             _clienteRepository = clienteRepository;
             _mapper = mapper;
+            _debouncer = new Debouncer();
             Clientes = new ObservableCollection<ClienteDto>();
-            // escuchar cambios para invalidar ListadoClientesFiltered
-            ((ObservableCollection<ClienteDto>)Clientes).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoClientesFiltered));
             Activo = true; // por defecto
             RegistrarCommand = new RelayCommand(async () => await RegistrarClienteAsync(), () => !HasErrors);
         }
 
         public ObservableCollection<ClienteDto> Clientes { get; set; }
 
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public bool MostrarInactivos
+        {
+            get => FiltroEstado != "Activos";
+            set => FiltroEstado = value ? "Todos" : "Activos";
+        }
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
+
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
         {
             get => _textoBusqueda;
-            set { _textoBusqueda = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoClientesFiltered)); }
+            set
+            {
+                _textoBusqueda = value;
+                OnPropertyChanged();
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
+            }
         }
-
-        public IEnumerable<ClienteDto> ListadoClientesFiltered =>
-            string.IsNullOrWhiteSpace(TextoBusqueda)
-                ? Clientes
-                : Clientes.Where(c => (c.Nombre ?? string.Empty).IndexOf(TextoBusqueda, System.StringComparison.OrdinalIgnoreCase) >= 0
-                                  || (c.Apellido ?? string.Empty).IndexOf(TextoBusqueda, System.StringComparison.OrdinalIgnoreCase) >= 0
-                                  || (c.Dni ?? string.Empty).IndexOf(TextoBusqueda, System.StringComparison.OrdinalIgnoreCase) >= 0);
 
         public int IdCliente { get; set; }
 
@@ -93,7 +131,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public string Telefono
         {
             get => _telefono;
-            set { _telefono = value; OnPropertyChanged(); }
+            set { _telefono = value; OnPropertyChanged(); ValidateProperty(); }
         }
 
         private bool _activo;
@@ -106,32 +144,106 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public ClienteDto? ClienteSeleccionado { get; set; }
         public ICommand RegistrarCommand { get; }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
         {
-            Clientes.Clear();
-            IEnumerable<TP_ControlVehicular.Entidad.Cliente> lista;
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// Es la accion que ejecutan el boton Buscar y la tecla Enter.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>
+        /// Cancela una busqueda programada que todavia no se ejecuto (por ejemplo, cuando
+        /// el usuario presiona Enter y la busqueda se ejecuta de inmediato).
+        /// </summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        /// <summary>
+        /// Recupera de la base de datos los registros de la pagina actual.
+        /// </summary>
+        protected override async Task CargarPaginaAsync()
+        {
+            IsLoading = true;
             try
             {
-                lista = await _clienteRepository.GetActivosAsync();
-            }
-            catch
-            {
-                lista = Enumerable.Empty<TP_ControlVehicular.Entidad.Cliente>();
-            }
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
+                var (items, total) = await _clienteRepository.GetPaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    estado,
+                    PaginaActual,
+                    TamanoPagina);
 
-            foreach (var cliente in lista)
+                Clientes.Clear();
+                foreach (var cliente in items)
+                {
+                    Clientes.Add(_mapper.Map<ClienteDto>(cliente));
+                }
+
+                ActualizarTotales(total);
+            }
+            catch (Exception ex)
             {
-                Clientes.Add(_mapper.Map<ClienteDto>(cliente));
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "ClienteViewModel");
+                Clientes.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        public async Task DeleteClienteAsync(int id)
+        public async Task<bool> DeleteClienteAsync(int id)
         {
-            var entity = await _clienteRepository.GetByIdAsync(id);
-            if (entity == null) return;
-            entity.Activo = false;
-            await _clienteRepository.UpdateAsync(entity);
-            await LoadAsync();
+            try
+            {
+                var entity = await _clienteRepository.GetByIdAsync(id);
+                if (entity == null) return false;
+                entity.Activo = false;
+                await _clienteRepository.UpdateAsync(entity);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "ClienteViewModel");
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarClienteAsync(int id)
+        {
+            try
+            {
+                var entity = await _clienteRepository.GetByIdAsync(id);
+                if (entity == null) return false;
+                entity.Activo = true;
+                await _clienteRepository.UpdateAsync(entity);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "ClienteViewModel");
+                return false;
+            }
         }
 
         public async Task<bool> RegistrarClienteAsync()
@@ -153,30 +265,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 var dto = await _registrarClienteHandler.HandleAsync(cliente);
-                // si fue actualización, reemplazar el elemento en la colección
-                if (cliente.Id > 0)
-                {
-                    var existing = Clientes.FirstOrDefault(c => c.IdCliente == cliente.Id);
-                    if (existing != null)
-                    {
-                        var idx = Clientes.IndexOf(existing);
-                        Clientes[idx] = dto;
-                    }
-                    else
-                    {
-                        Clientes.Add(dto);
-                    }
-                }
-                else
-                {
-                    Clientes.Add(dto);
-                }
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
                 RegistrationCompleted?.Invoke(this, true);
                 return true;
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
-                // intentar detectar violación de unique constraint en SQL Server
+                // intentar detectar violaciones de unique constraint en SQL Server
                 if (dbEx.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx && (sqlEx.Number == 2627 || sqlEx.Number == 2601))
                 {
                     // error de clave duplicada (posible DNI repetido)
@@ -196,7 +292,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        // Evento para notificar a la vista que el registro se completó (éxito/fracaso)
+        // Evento para notificar a la vista que el registro se completó (éxito/fallo)
         public event EventHandler<bool>? RegistrationCompleted;
         // Evento para notificar errores de registro con mensaje (p.ej. DNI duplicado)
         public event EventHandler<string>? RegistrationFailed;

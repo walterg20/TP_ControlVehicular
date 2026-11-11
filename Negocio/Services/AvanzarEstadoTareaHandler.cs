@@ -10,15 +10,17 @@ namespace TP_ControlVehicular.Negocio.Services
 {
     public class AvanzarEstadoTareaHandler
     {
-        private readonly CVDbContext _context;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public AvanzarEstadoTareaHandler(CVDbContext context)
+        public AvanzarEstadoTareaHandler(IDbContextFactory<CVDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task HandleAsync(int detalleId, int usuarioAutenticadoId)
         {
+            await using var _context = _contextFactory.CreateDbContext();
+
             var tarea = await _context.DetalleServicios
                 .Include(d => d.RegistroServicio)
                     .ThenInclude(r => r.Detalles)

@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Text;
+using TP_ControlVehicular.Negocio.Context;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 
@@ -13,11 +14,13 @@ namespace TP_ControlVehicular.Negocio.Services
         private const string NombreBasePrueba = "ControlVehicular_Test";
 
         private readonly IBackupConfiguracionService _configuracionService;
+        private readonly IUsuarioRepository _usuarioRepository;
         private readonly string _connectionString;
 
-        public DatabaseBackupService(IBackupConfiguracionService configuracionService, IConfiguration configuration)
+        public DatabaseBackupService(IBackupConfiguracionService configuracionService, IUsuarioRepository usuarioRepository, IConfiguration configuration)
         {
             _configuracionService = configuracionService;
+            _usuarioRepository = usuarioRepository;
             _connectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
         }
 
@@ -130,6 +133,128 @@ WITH MOVE N'{Escapar(logicoDatos)}' TO N'{Escapar(rutaMdf)}',
             catch
             {
                 await IntentarLimpiarBasePruebaAsync(conexion);
+                throw;
+            }
+        }
+
+        public async Task<BackupResultDto> RestaurarAsync(string archivoBak, string dniAutorizador, string contrasenaAutorizador)
+        {
+            if (string.IsNullOrWhiteSpace(archivoBak))
+                throw new InvalidOperationException("Debe seleccionar un archivo de respaldo (.bak) para restaurar.");
+
+            if (string.IsNullOrWhiteSpace(dniAutorizador))
+                throw new InvalidOperationException("Debe ingresar el DNI del usuario autorizador.");
+
+            if (string.IsNullOrWhiteSpace(contrasenaAutorizador))
+                throw new InvalidOperationException("Debe ingresar la contraseña del usuario autorizador.");
+
+            // 1. Validar segundo factor.
+            var autorizador = await _usuarioRepository.GetByDniAsync(dniAutorizador.Trim());
+            if (autorizador == null)
+                throw new InvalidOperationException("El usuario autorizador no se encuentra registrado.");
+
+            if (!autorizador.Activo)
+                throw new InvalidOperationException("El usuario autorizador se encuentra inactivo.");
+
+            if (autorizador.Contrasena != contrasenaAutorizador)
+                throw new InvalidOperationException("La contraseña del usuario autorizador es incorrecta.");
+
+            var usuarioActual = UserSession.CurrentUser;
+            if (usuarioActual != null && autorizador.Id == usuarioActual.IdUsuario)
+                throw new InvalidOperationException("El usuario autorizador debe ser distinto al usuario de la sesión actual.");
+
+            var tienePermiso = autorizador.Rol?.Permisos != null
+                && autorizador.Rol.Permisos.Any(p => string.Equals(p.Nombre, "Configuracion.Backup.Gestionar", StringComparison.OrdinalIgnoreCase));
+            if (!tienePermiso)
+                throw new InvalidOperationException("El usuario autorizador no tiene permiso para gestionar los respaldos.");
+
+            // 2. Resolver ruta del respaldo.
+            var config = await _configuracionService.ObtenerAsync();
+            var nombreBase = string.IsNullOrWhiteSpace(config.NombreBaseDatos) ? "ControlVehicular" : config.NombreBaseDatos.Trim();
+            var rutaBak = Path.IsPathRooted(archivoBak)
+                ? archivoBak
+                : Path.Combine(ObtenerCarpetaEfectiva(config), archivoBak);
+
+            // 3. Conectar a master para poder restaurar la BD productiva.
+            var builder = new SqlConnectionStringBuilder(_connectionString)
+            {
+                InitialCatalog = "master"
+            };
+            var connStrMaster = builder.ConnectionString;
+
+            await using var conexion = new SqlConnection(connStrMaster);
+            await conexion.OpenAsync();
+
+            try
+            {
+                // 4. Descubrir nombres logicos del respaldo.
+                var (logicoDatos, logicoLog) = await ObtenerNombresLogicosAsync(conexion, rutaBak);
+                if (string.IsNullOrEmpty(logicoDatos) || string.IsNullOrEmpty(logicoLog))
+                    throw new InvalidOperationException("No se pudieron determinar los nombres lógicos de datos/log del respaldo.");
+
+                // 5. Carpeta del servidor para los archivos de la BD.
+                var carpetaDatos = await ObtenerCarpetaDatosServidorAsync(conexion);
+                var rutaMdf = Path.Combine(carpetaDatos, $"{nombreBase}.mdf");
+                var rutaLdf = Path.Combine(carpetaDatos, $"{nombreBase}_log.ldf");
+
+                // 6. Poner la BD productiva en SINGLE_USER.
+                var sqlSingle = $@"
+IF DB_ID('{Escapar(nombreBase)}') IS NOT NULL
+BEGIN
+    ALTER DATABASE [{nombreBase}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+END";
+                await using (var comando = new SqlCommand(sqlSingle, conexion) { CommandTimeout = 0 })
+                {
+                    await comando.ExecuteNonQueryAsync();
+                }
+
+                // 7. Restaurar la BD productiva.
+                var sqlRestore = $@"RESTORE DATABASE [{nombreBase}] FROM DISK = N'{Escapar(rutaBak)}'
+WITH MOVE N'{Escapar(logicoDatos)}' TO N'{Escapar(rutaMdf)}',
+     MOVE N'{Escapar(logicoLog)}' TO N'{Escapar(rutaLdf)}',
+     REPLACE, RECOVERY;";
+                await using (var comando = new SqlCommand(sqlRestore, conexion) { CommandTimeout = 0 })
+                {
+                    await comando.ExecuteNonQueryAsync();
+                }
+
+                // 8. Volver a MULTI_USER.
+                var sqlMulti = $@"
+IF DB_ID('{Escapar(nombreBase)}') IS NOT NULL
+BEGIN
+    ALTER DATABASE [{nombreBase}] SET MULTI_USER;
+END";
+                await using (var comando = new SqlCommand(sqlMulti, conexion) { CommandTimeout = 0 })
+                {
+                    await comando.ExecuteNonQueryAsync();
+                }
+
+                return new BackupResultDto
+                {
+                    Exitoso = true,
+                    Archivo = Path.GetFileName(rutaBak),
+                    Ruta = rutaBak,
+                    FechaHora = DateTime.Now,
+                    Mensaje = "Restauración completada correctamente. Reinicie la aplicación para que los cambios tengan efecto."
+                };
+            }
+            catch
+            {
+                // Intentar volver a MULTI_USER si la BD quedó en SINGLE_USER.
+                try
+                {
+                    var sqlMulti = $@"
+IF DB_ID('{Escapar(nombreBase)}') IS NOT NULL
+BEGIN
+    ALTER DATABASE [{nombreBase}] SET MULTI_USER;
+END";
+                    await using var comando = new SqlCommand(sqlMulti, conexion) { CommandTimeout = 0 };
+                    await comando.ExecuteNonQueryAsync();
+                }
+                catch
+                {
+                    // Ignorar errores de limpieza.
+                }
                 throw;
             }
         }

@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Cliente
 {
@@ -125,8 +126,9 @@ namespace TP_ControlVehicular.Presentacion.Cliente
                     vmCliente.ClearAllErrors();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "FrmCliente.xaml");
                 // Silenciar si DI no está disponible
             }
         }

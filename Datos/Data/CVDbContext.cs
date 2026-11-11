@@ -1,6 +1,7 @@
 // walterg20
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Entidad;
+using TP_ControlVehicular.Negocio.DTOs.Reportes;
 
 namespace TP_ControlVehicular.Datos.Data
 {
@@ -25,15 +26,17 @@ namespace TP_ControlVehicular.Datos.Data
         public DbSet<PropietarioVehiculo> PropietariosVehiculos { get; set; } = null!;
         public DbSet<ConfiguracionEmpresa> ConfiguracionEmpresa { get; set; } = null!;
         public DbSet<ConfiguracionBackup> ConfiguracionBackup { get; set; } = null!;
+        public DbSet<SchemaVersion> SchemaVersions { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(CVDbContext).Assembly);
 
-            modelBuilder.Entity<TP_ControlVehicular.Negocio.DTOs.Reportes.ReporteIngresosDto>().HasNoKey();
-            modelBuilder.Entity<TP_ControlVehicular.Negocio.DTOs.Reportes.ReporteTiemposResolucionDto>().HasNoKey();
+            modelBuilder.Entity<ReporteIngresosDto>().HasNoKey();
+            modelBuilder.Entity<ReporteTiemposResolucionDto>().HasNoKey();
 
 
             modelBuilder.Entity<Permiso>().ToTable("Permisos").HasKey(p => p.IdPermiso);
+            modelBuilder.Entity<SchemaVersion>().ToTable("SchemaVersion");
             modelBuilder.Entity<Rol>()
                 .HasMany(r => r.Permisos)
                 .WithMany(p => p.Roles)

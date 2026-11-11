@@ -29,7 +29,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         private bool _isLoading;
         public bool IsNotLoading => !IsLoading;
-        public bool IsLoading
+        public virtual bool IsLoading
         {
             get => _isLoading;
             set { SetProperty(ref _isLoading, value); OnPropertyChanged(nameof(IsNotLoading)); }
@@ -44,10 +44,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public bool TienePermiso(string permiso)
         {
-            var main = System.Windows.Application.Current?.MainWindow as MainWindow;
-            if (main == null || main.UsuarioSesionActual == null || main.UsuarioSesionActual.Permisos == null)
+            var usuario = (System.Windows.Application.Current?.MainWindow as MainWindow)?.UsuarioSesionActual
+                          ?? UserSession.CurrentUser;
+            if (usuario == null)
+                return false;
+            if (usuario.IdRol == 1)
                 return true;
-            return main.UsuarioSesionActual.Permisos.Contains(permiso);
+            return usuario.Permisos != null && usuario.Permisos.Contains(permiso);
         }
 
         public void NotificarPermisos()

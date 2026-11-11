@@ -1,10 +1,10 @@
 -- =======================================================================
 -- 05_utilidades_test.sql — Utilidades de desarrollo/test (NO productivo)
 -- -----------------------------------------------------------------------
--- Reorganización bd/ (change 2026-10-12-reorganizacion-bd).
--- Contenido consolidado verbatim desde docs/historico/bd/15_Limpieza_Artefactos_TestE2E.sql
+-- Reorganización bd/
+-- Contenido consolidado 15_Limpieza_Artefactos_TestE2E.sql
 --
--- LIMPIEZA DE ARTEFACTOS - Test E2E (EndToEndTallerTests)
+-- LIMPIEZA DE ARTEFACTOS 
 -- -----------------------------------------------------------------------
 -- Elimina los datos generados por las corridas del test end-to-end que
 -- quedaron persistidos en la base (corridas previas que fallaron antes de

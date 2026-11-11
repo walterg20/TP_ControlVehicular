@@ -1,6 +1,6 @@
 # ERS – Sistema de Control Vehicular y Mantenimiento
 
-> **Versión:** final · **Fecha:** 2026-10-12
+> **Versión:** 2 · **Fecha:** 2026-11-11 (actualizado: baja lógica unificada, `SchemaVersion`, 19 tablas, estructura canónica de `bd/`)
 > Documento vigente y **autoritativo**. Describe los requisitos del sistema tal como está implementado.
 > La versión 1 (que referenciaba entidades inexistentes como `CONTACTO`, `PLANTILLA_MANTENIMIENTO` y `AVISO`) quedó archivada en `docs/historico/ERS_v1.md` y **no debe usarse** como referencia.
 
@@ -33,10 +33,10 @@ El sistema permitirá:
 - **SP**: *Stored Procedure* (procedimiento almacenado).
 
 ### 1.4 Referencias
-- `docs/DER.md` – Diagrama Entidad-Relación vigente (18 tablas).
-- `bd/01_Estructura.sql` – DDL canónico de la base de datos.
-- `AGENTS.md` – Constitución técnica del proyecto (stack, convenciones y reglas).
-- `docs/referencia/` – Conocimiento de dominio (reportes, dashboard, BD, pantallas).
+- `docs/DER.md` – Diagrama Entidad-Relación vigente (19 tablas).
+- `bd/01_estructura.sql` – DDL canónico de la base de datos.
+- `bd/README.md` – scripts SQL canónicos, orden de aplicación e idempotencia.
+- Instalador (Inno Setup) y `bd/instalar.ps1` – provisión de la base sobre SQL Server Express LocalDB.
 
 ### 1.5 Visión general del documento
 El documento se estructura en siete capítulos: el **Capítulo 1** introduce propósito y alcance; el **Capítulo 2** presenta la descripción general del sistema; el **Capítulo 3** detalla los requisitos funcionales; el **Capítulo 4** los requisitos no funcionales; el **Capítulo 5** los casos de uso; el **Capítulo 6** el modelo de datos; y el **Capítulo 7** concluye.
@@ -60,6 +60,8 @@ Aplicación de escritorio **WPF (.NET 10)** con arquitectura **MVVM** y **EF Cor
 - **Seguridad** – Roles y Usuarios (`FrmRolPermiso` asigna permisos).
 - **Configuración** – datos de la empresa (`CtlConfiguracion`) y respaldos (`CtlBackup`, `CtlBackupConfiguracion`).
 - **Confirmaciones** (`FrmConfirmacion`) – diálogos de confirmación y avisos unificados.
+- **Instalación / Configuración inicial** (`FrmSetupInicial`) – first-run: crea el administrador inicial y los datos de empresa cuando la base está vacía.
+- **Respaldo / Restauración** – restauración de base con doble factor (usuario validador con rol SuperAdmin).
 
 ### 2.3 Actores
 | Actor | Descripción |
@@ -94,6 +96,9 @@ Aplicación de escritorio **WPF (.NET 10)** con arquitectura **MVVM** y **EF Cor
 | **RF‑18** | Reportes | Generar reportes por perfil: Órdenes, Operativo, Gerencial y Mecánico (PDF). | Media |
 | **RF‑19** | Configuración de la empresa | Registrar datos de la empresa (nombre, dirección, teléfono, email y logo). | Media |
 | **RF‑20** | Configuración de respaldos | Configurar rutas de respaldo y carpeta de Drive, y ejecutar el respaldo de la base. | Media |
+| **RF‑21** | Configuración inicial (first-run) | Si la base no tiene usuarios, solicitar la contraseña del administrador inicial y los datos de la empresa antes de permitir el uso. | Alta |
+| **RF‑22** | Restauración con doble factor | Restaurar la base de datos validando un segundo usuario (distinto, activo, contraseña correcta, rol SuperAdmin con `Configuracion.Backup.Gestionar`). | Alta |
+| **RF‑23** | Rol SuperAdmin | Rol con permiso exclusivo `Configuracion.Backup.Gestionar` para validar restauraciones y administrar la configuración de respaldos. | Alta |
 
 ---
 
@@ -104,7 +109,7 @@ Aplicación de escritorio **WPF (.NET 10)** con arquitectura **MVVM** y **EF Cor
 - **RNF‑03: Seguridad** → Autenticación de usuarios y control de acceso por roles y permisos (RBAC).
 - **RNF‑04: Integridad referencial** → Claves foráneas, restricciones `CHECK` y triggers que garantizan consistencia (kilometraje, precios, estados).
 - **RNF‑05: Mantenibilidad** → Arquitectura por capas (Datos, Entidad, Migracion, Negocio, Presentacion) con patrón MVVM y EF Core.
-- **RNF‑06: Portabilidad** → Ejecutable de escritorio sobre Windows con SQL Server.
+- **RNF‑06: Portabilidad** → Ejecutable de escritorio sobre Windows; la base se provisiona sobre SQL Server Express LocalDB mediante el instalador (sin requerir un SQL Server completo preinstalado).
 - **RNF‑07: Trazabilidad** → Registro histórico de operaciones (propiedad de vehículos, órdenes y pagos).
 
 ---
@@ -128,18 +133,45 @@ Aplicación de escritorio **WPF (.NET 10)** con arquitectura **MVVM** y **EF Cor
 | **CU‑13** | Generar reporte | Administrador / Recepcionista / Mecánico | Exporta el reporte habilitado para su perfil. |
 | **CU‑14** | Configurar empresa | Administrador | Actualiza datos y logo de la empresa. |
 | **CU‑15** | Configurar y ejecutar respaldo | Administrador | Define rutas y ejecuta (o sube) el respaldo de la base. |
+| **CU‑16** | Configuración inicial | SuperAdmin | Crea el administrador inicial y los datos de la empresa en el primer arranque. |
 
 ---
 
 ## Capítulo 6 – Modelo de datos
 
-El modelo relacional consta de **18 tablas** en SQL Server, agrupadas por dominio:
+El modelo relacional consta de **19 tablas** en SQL Server, agrupadas por dominio:
 
 - **Seguridad y acceso:** `Roles`, `Permisos`, `Usuarios`, `RolPermisos`.
 - **Clientes y parque automotor:** `Cliente`, `Marca`, `Modelo`, `Vehiculo`, `PropietarioVehiculo`.
 - **Operación de taller:** `Taller`, `Servicio`, `RegistroServicio`, `DetalleServicio`.
 - **Facturación y cobros:** `Factura`, `MetodoPago`, `Pago`.
 - **Configuración:** `ConfiguracionEmpresa`, `ConfiguracionBackup`.
+- **Versionado de esquema:** `SchemaVersion`.
+
+### 6.1 Estructura de los scripts de base de datos (reorganización canónica)
+
+La base de datos se provisiona mediante los scripts idempotentes de `bd/`, consolidados
+por tipo a partir de los 26 scripts históricos (consolidación 2026-10-12). El orden de
+aplicación es estricto:
+
+| Orden | Script | Contenido |
+| :--- | :--- | :--- |
+| 0 | `00_bootstrap.sql` | Crea la base `ControlVehicular` si no existe (ejecutar conectado a `master`). |
+| 1 | `01_estructura.sql` | DDL de las 19 tablas, índices, PK/FK, constraints `CHECK` y sincronización defensiva de columnas `Activo`/`OrdenEjecucion`. |
+| 2 | `02_datos.sql` | Datos semilla canónicos (producción/base limpia): roles, permisos y matriz RBAC, taller base, configuraciones singleton, usuario administrador bootstrap, catálogo de servicios, marcas y modelos. |
+| 3 | `04_triggers.sql` | Triggers de integridad del flujo (validación de precio/cantidad, bloqueo de detalle de orden finalizada, sincronización de kilometraje). |
+| 4 | `03_procedimientos.sql` | Procedimientos almacenados oficiales (reportes por perfil, comprobantes, consultas paginadas). |
+| 5 (opcional) | `05_utilidades_test.sql` | Utilidades de desarrollo/pruebas (purga de artefactos E2E). |
+| 6 (opcional) | `06_poblacion.sql` | Población de datos operativos/demo (clientes, vehículos, órdenes, facturas y pagos). |
+
+**Justificación de la reorganización:**
+- **Menos archivos, más claridad:** se pasó de 26 scripts numerados (donde unos pisaban a otros) a 6 canónicos por tipo, cada uno dueño único de su categoría.
+- **Idempotencia:** todos los objetos se crean con guardas (`IF OBJECT_ID ... IS NULL`) o `CREATE OR ALTER`, de modo que pueden re-ejecutarse sin duplicar ni romper nada.
+- **Separación semilla base vs. población demo:** `02_datos.sql` queda como semilla de producción (sin datos ficticios); los datos de prueba se aíslan en `06_poblacion.sql`, de ejecución opcional.
+- **Versionado de esquema:** la tabla `SchemaVersion` registra la versión aplicada (`1.0.0`), verificada al arrancar la aplicación para detectar desalineaciones.
+- **Cambios de esquema administrados por EF Core** viven en `Migracion/`, no en `bd/`.
+
+El instalador (`bd/instalar.ps1` + Inno Setup) ejecuta bootstrap + estructura + seed + triggers + SPs (solo semilla base), sin la población demo.
 
 El detalle de atributos, claves y cardinalidades se encuentra en el documento **DER vigente** (`docs/DER.md`).
 
@@ -147,4 +179,4 @@ El detalle de atributos, claves y cardinalidades se encuentra en el documento **
 
 ## Capítulo 7 – Conclusión
 
-El sistema de control vehicular cubre el ciclo completo desde el alta del cliente y su vehículo hasta la ejecución de las tareas en el taller, la facturación y el cobro, con control de acceso por roles, dashboard y reportes por perfil. El modelo de 18 tablas y las validaciones a nivel de base (claves foráneas, `CHECK` y triggers) garantizan consistencia, trazabilidad e integridad operativa.
+El sistema de control vehicular cubre el ciclo completo desde el alta del cliente y su vehículo hasta la ejecución de las tareas en el taller, la facturación y el cobro, con control de acceso por roles, dashboard y reportes por perfil. El modelo de 19 tablas y las validaciones a nivel de base (claves foráneas, `CHECK` y triggers) garantizan consistencia, trazabilidad e integridad operativa.

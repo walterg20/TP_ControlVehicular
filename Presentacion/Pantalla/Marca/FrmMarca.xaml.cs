@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Marca
 {
@@ -80,8 +81,9 @@ namespace TP_ControlVehicular.Presentacion.Marca
                     vmMarca.ClearAllErrors();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "FrmMarca.xaml");
                 // Silenciar si DI no está disponible
             }
         }

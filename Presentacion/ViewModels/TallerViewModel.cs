@@ -1,49 +1,92 @@
 // walterg20
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows.Input;
-using TP_ControlVehicular.Negocio.DTOs;
-using TP_ControlVehicular.Negocio.Services;
-using TP_ControlVehicular.Negocio.Interfaces;
 using AutoMapper;
-using System.Collections.Generic;
+using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Negocio.Interfaces;
+using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class TallerViewModel : BaseViewModel, INotifyDataErrorInfo
+    /// <summary>
+    /// Listado de talleres con paginacion y busqueda en la base de datos.
+    /// </summary>
+    public class TallerViewModel : BasePaginableViewModel, INotifyDataErrorInfo
     {
+        protected override string Modulo => "Taller";
+
         private readonly ListarTallerHandler _listarTallerHandler;
         private readonly RegistrarTallerHandler _registrarTallerHandler;
         private readonly ModificarTallerHandler _modificarTallerHandler;
+        private readonly ReactivarTallerHandler _reactivarTallerHandler;
         private readonly IMapper _mapper;
+        private readonly Debouncer _debouncer;
         private readonly Dictionary<string, List<string>> _errors = new();
 
-        public TallerViewModel(ListarTallerHandler listarTallerHandler, RegistrarTallerHandler registrarTallerHandler, ModificarTallerHandler modificarTallerHandler, IMapper mapper)
+        public TallerViewModel(ListarTallerHandler listarTallerHandler, RegistrarTallerHandler registrarTallerHandler, ModificarTallerHandler modificarTallerHandler, ReactivarTallerHandler reactivarTallerHandler, IMapper mapper)
         {
             _listarTallerHandler = listarTallerHandler;
             _registrarTallerHandler = registrarTallerHandler;
             _modificarTallerHandler = modificarTallerHandler;
+            _reactivarTallerHandler = reactivarTallerHandler;
             _mapper = mapper;
+            _debouncer = new Debouncer();
             Talleres = new ObservableCollection<TallerDto>();
-            ((ObservableCollection<TallerDto>)Talleres).CollectionChanged += (s, e) => OnPropertyChanged(nameof(ListadoTalleresFiltered));
             Activo = true;
             RegistrarCommand = new RelayCommand(async () => await RegistrarAsync(), () => !HasErrors);
         }
 
         public ObservableCollection<TallerDto> Talleres { get; set; }
 
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
+
+        public bool MostrarInactivos
+        {
+            get => FiltroEstado != "Activos";
+            set => FiltroEstado = value ? "Todos" : "Activos";
+        }
+
         private string _textoBusqueda = string.Empty;
         public string TextoBusqueda
         {
             get => _textoBusqueda;
-            set { _textoBusqueda = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoTalleresFiltered)); }
+            set
+            {
+                _textoBusqueda = value;
+                OnPropertyChanged();
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
+            }
         }
-
-        public IEnumerable<TallerDto> ListadoTalleresFiltered =>
-            string.IsNullOrWhiteSpace(TextoBusqueda)
-                ? Talleres
-                : Talleres.Where(taller => (taller.Nombre ?? string.Empty).IndexOf(TextoBusqueda, System.StringComparison.OrdinalIgnoreCase) >= 0);
 
         private string _nombre = string.Empty;
         public string Nombre
@@ -75,20 +118,63 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public ICommand RegistrarCommand { get; }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
         {
-            Talleres.Clear();
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
+        {
+            IsLoading = true;
             try
             {
-                var lista = await _listarTallerHandler.HandleAsync();
-                foreach (var taller in lista)
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
+                var (items, total) = await _listarTallerHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    estado,
+                    PaginaActual,
+                    TamanoPagina);
+
+                Talleres.Clear();
+                foreach (var taller in items)
                 {
                     Talleres.Add(taller);
                 }
+
+                ActualizarTotales(total);
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "TallerViewModel");
                 // Si falla, la colección se queda vacía
+                Talleres.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -107,8 +193,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             return await GuardarTallerAsync();
         }
 
-        // Guarda un taller: si es nuevo (id == 0) usa RegistrarTallerHandler,
-        // si existe (id > 0) usa ModificarTallerHandler. Retorna true si tuvo éxito.
         public async Task<bool> GuardarTallerAsync()
         {
             if (!ValidateAll()) return false;
@@ -128,24 +212,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (id == 0)
                 {
-                    var dto = await _registrarTallerHandler.HandleAsync(taller);
-                    Talleres.Add(dto);
+                    await _registrarTallerHandler.HandleAsync(taller);
                 }
                 else
                 {
-                    var dto = await _modificarTallerHandler.HandleAsync(taller);
-                    var index = -1;
-                    for (int i = 0; i < Talleres.Count; i++)
-                    {
-                        if (Talleres[i].IdTaller == dto.IdTaller)
-                        {
-                            index = i;
-                            break;
-                        }
-                    }
-                    if (index >= 0) Talleres[index] = dto;
-                    else Talleres.Add(dto);
+                    await _modificarTallerHandler.HandleAsync(taller);
                 }
+
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
 
                 RegistrationCompleted?.Invoke(this, true);
                 return true;
@@ -157,9 +232,47 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
-        // Evento: éxito/fracaso del registro
+        public async Task<bool> EliminarTallerAsync(int id)
+        {
+            try
+            {
+                var taller = Talleres.FirstOrDefault(t => t.IdTaller == id);
+                if (taller == null) return false;
+                var entidad = new TP_ControlVehicular.Entidad.Taller
+                {
+                    Id = taller.IdTaller,
+                    Nombre = taller.Nombre,
+                    Direccion = taller.Direccion,
+                    Telefono = taller.Telefono,
+                    Activo = false
+                };
+                await _modificarTallerHandler.HandleAsync(entidad);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "TallerViewModel");
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarAsync(int id)
+        {
+            try
+            {
+                await _reactivarTallerHandler.HandleAsync(id);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "TallerViewModel");
+                return false;
+            }
+        }
+
         public event EventHandler<bool>? RegistrationCompleted;
-        // Evento: error de registro con mensaje
         public event EventHandler<string>? RegistrationFailed;
 
         public override bool ValidateProperty([CallerMemberName] string? propertyName = null)
@@ -189,10 +302,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             return !HasErrors;
         }
 
-        // Para modificar un taller existente (cargar datos en el form)
         public TallerDto? TallerSeleccionado { get; set; }
 
-        // Para baja lógica (toggle Activo): usa ModificarTallerHandler para persistir
         public async Task ToggleActivoAsync()
         {
             if (TallerSeleccionado == null) return;
@@ -210,18 +321,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             try
             {
-                var dto = await _modificarTallerHandler.HandleAsync(taller);
-                var index = -1;
-                for (int i = 0; i < Talleres.Count; i++)
-                {
-                    if (Talleres[i].IdTaller == dto.IdTaller)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-                if (index >= 0) Talleres[index] = dto;
-                else Talleres.Add(dto);
+                await _modificarTallerHandler.HandleAsync(taller);
+                await CargarPaginaAsync();
             }
             catch (Exception ex)
             {

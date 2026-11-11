@@ -1,6 +1,4 @@
 // walterg20
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
@@ -10,16 +8,17 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class MetodoPagoRepository : IMetodoPagoRepository
     {
-        private readonly CVDbContext _context;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public MetodoPagoRepository(CVDbContext context)
+        public MetodoPagoRepository(IDbContextFactory<CVDbContext> contextFactory)
         {
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<IEnumerable<MetodoPago>> GetAll()
         {
-            return await _context.MetodosPago.ToListAsync();
+            await using var ctx = _contextFactory.CreateDbContext();
+            return await ctx.MetodosPago.ToListAsync();
         }
     }
 }

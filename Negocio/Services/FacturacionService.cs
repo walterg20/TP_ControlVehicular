@@ -1,0 +1,124 @@
+// walterg20
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using TP_ControlVehicular.Datos.Data;
+using TP_ControlVehicular.Entidad;
+using TP_ControlVehicular.Negocio.Interfaces;
+
+namespace TP_ControlVehicular.Negocio.Services
+{
+    public class FacturacionService : IFacturacionService
+    {
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
+        private readonly IFacturaRepository _facturaRepo;
+        private readonly IPagoRepository _pagoRepo;
+        private readonly IMetodoPagoRepository _metodoRepo;
+
+        public FacturacionService(
+            IDbContextFactory<CVDbContext> contextFactory,
+            IFacturaRepository facturaRepo,
+            IPagoRepository pagoRepo,
+            IMetodoPagoRepository metodoRepo)
+        {
+            _contextFactory = contextFactory;
+            _facturaRepo = facturaRepo;
+            _pagoRepo = pagoRepo;
+            _metodoRepo = metodoRepo;
+        }
+
+        public async Task<Factura> GenerarFactura(int registroServicioId)
+        {
+            await using var _context = _contextFactory.CreateDbContext();
+
+            var detalles = await _context.DetalleServicios
+                .Where(d => d.RegistroServicioId == registroServicioId)
+                .ToListAsync();
+
+            decimal total = detalles.Sum(d => d.Precio * d.Cantidad);
+
+            var facturaExistente = await _context.Facturas.FirstOrDefaultAsync(f => f.RegistroServicioId == registroServicioId);
+            if (facturaExistente != null)
+                return facturaExistente;
+
+            var factura = new Factura
+            {
+                RegistroServicioId = registroServicioId,
+                Fecha = DateTime.Now,
+                Total = total
+            };
+
+            await _facturaRepo.Create(factura);
+
+            return factura;
+        }
+
+        public async Task<(Pago pago, decimal vuelto)> RegistrarPago(int facturaId, int metodoPagoId, decimal montoAbonado)
+        {
+            await using var _context = _contextFactory.CreateDbContext();
+
+            var factura = await _facturaRepo.GetById(facturaId);
+            if (factura == null)
+                throw new Exception("Factura no encontrada.");
+
+            var registro = await _context.RegistroServicios.FindAsync(factura.RegistroServicioId);
+            if (registro == null)
+                throw new Exception("Orden de servicio no encontrada.");
+
+            if (registro.Estado != "Completada")
+                throw new Exception("La orden de servicio debe estar completada para procesar el pago.");
+
+            var pagosRealizados = await _pagoRepo.GetPagosByFactura(facturaId);
+            decimal pagado = pagosRealizados.Sum(p => p.Monto);
+            decimal balance = factura.Total - pagado;
+
+            if (balance <= 0)
+                throw new Exception("La factura ya está pagada.");
+
+            var metodos = await _metodoRepo.GetAll();
+            var metodo = metodos.FirstOrDefault(m => m.Id == metodoPagoId);
+            if (metodo == null)
+                throw new Exception("Método de pago no válido.");
+
+            decimal montoFinal = montoAbonado;
+            decimal vuelto = 0;
+
+            if (metodo.Nombre == "Tarjeta")
+            {
+                if (montoAbonado != balance)
+                    throw new Exception("El pago con tarjeta debe ser por el monto exacto del saldo.");
+            }
+            else if (metodo.Nombre == "Efectivo")
+            {
+                if (montoAbonado > balance)
+                {
+                    montoFinal = balance;
+                    vuelto = montoAbonado - balance;
+                }
+            }
+
+            var pago = new Pago
+            {
+                FacturaId = facturaId,
+                MetodoPagoId = metodoPagoId,
+                Monto = montoFinal,
+                FechaPago = DateTime.Now
+            };
+
+            await _pagoRepo.Create(pago);
+
+            decimal nuevoPagado = pagado + montoFinal;
+            if (nuevoPagado >= factura.Total)
+            {
+                if (registro != null)
+                {
+                    registro.Estado = "Pagada";
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            return (pago, vuelto);
+        }
+    }
+}

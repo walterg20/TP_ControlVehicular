@@ -8,16 +8,17 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class ConfiguracionEmpresaRepository : Repository<ConfiguracionEmpresa>, IConfiguracionEmpresaRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public ConfiguracionEmpresaRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public ConfiguracionEmpresaRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
         public async Task<ConfiguracionEmpresa?> ObtenerAsync()
         {
-            return await _cvDbContext.ConfiguracionEmpresa
+            await using var ctx = CrearContexto();
+            return await ctx.ConfiguracionEmpresa
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == 1);
         }

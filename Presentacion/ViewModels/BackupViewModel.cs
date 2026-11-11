@@ -28,6 +28,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             HacerBackupCommand = new RelayCommand(async () => await HacerBackupAsync(), () => PuedeGestionar);
             ProbarBackupCommand = new RelayCommand(async () => await ProbarBackupAsync(), () => PuedeProbar);
+            RestaurarBackupCommand = new RelayCommand(async () => await RestaurarBackupAsync(), () => PuedeRestaurar);
+            RestaurarDesdeDriveCommand = new RelayCommand(async () => await RestaurarDesdeDriveAsync(), () => PuedeGestionar);
             ResguardarCommand = new RelayCommand(async () => await ResguardarAsync(), () => PuedeGestionar);
             ActualizarCommand = new RelayCommand(async () => await CargarListaAsync(), () => PuedeGestionar);
         }
@@ -44,6 +46,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 if (SetProperty(ref _respaldoSeleccionado, value))
                 {
                     OnPropertyChanged(nameof(PuedeProbar));
+                    OnPropertyChanged(nameof(PuedeRestaurar));
                     NotificarComandos();
                 }
             }
@@ -51,11 +54,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public ICommand HacerBackupCommand { get; }
         public ICommand ProbarBackupCommand { get; }
+        public ICommand RestaurarBackupCommand { get; }
+        public ICommand RestaurarDesdeDriveCommand { get; }
         public ICommand ResguardarCommand { get; }
         public ICommand ActualizarCommand { get; }
 
         public bool PuedeGestionar => TienePermiso($"{Modulo}.Gestionar") && IsNotLoading;
         public bool PuedeProbar => PuedeGestionar && RespaldoSeleccionado != null;
+        public bool PuedeRestaurar => PuedeGestionar && RespaldoSeleccionado != null;
 
         public async Task LoadAsync()
         {
@@ -161,6 +167,164 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        public async Task RestaurarBackupAsync()
+        {
+            if (!PuedeGestionarSinCargando())
+            {
+                MostrarAviso("No tiene permiso para gestionar los respaldos.", "Sin permiso");
+                return;
+            }
+
+            if (RespaldoSeleccionado == null)
+            {
+                MostrarAviso("Por favor, seleccione un respaldo para restaurar.", "Sin selección");
+                return;
+            }
+
+            var archivo = RespaldoSeleccionado;
+            if (!Confirmar($"¿Desea RESTAURAR la base de datos desde '{archivo.Nombre}'?\n\nEsta operación SOBREESCRIBE la base de datos actual y no se puede deshacer. Requiere autorización de un segundo usuario.", "Confirmar restauración"))
+                return;
+
+            var frm = new TP_ControlVehicular.Presentacion.Pantalla.Configuracion.FrmAutorizacionBackup();
+            frm.Owner = Owner;
+            if (frm.ShowDialog() != true)
+                return;
+
+            var dni = frm.DniAutorizador;
+            var contrasena = frm.ContrasenaAutorizador;
+
+            IsLoading = true;
+            NotificarComandos();
+            try
+            {
+                var resultado = await _databaseBackupService.RestaurarAsync(archivo.RutaCompleta, dni, contrasena);
+                if (resultado.Exitoso)
+                {
+                    MostrarAviso($"{resultado.Mensaje}", "Restauración completada", icono: "✅");
+                    await CargarRespaldosAsync();
+                }
+                else
+                {
+                    MostrarAviso($"No se pudo restaurar:\n{resultado.Mensaje}", "Error");
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarAviso($"Error al restaurar la base de datos: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
+                NotificarComandos();
+            }
+        }
+
+        public async Task RestaurarDesdeDriveAsync()
+        {
+            if (!PuedeGestionarSinCargando())
+            {
+                MostrarAviso("No tiene permiso para gestionar los respaldos.", "Sin permiso");
+                return;
+            }
+
+            if (!_driveBackupService.TieneCredencialesGuardadas())
+            {
+                var owner = Owner;
+                if (owner == null) return;
+
+                var autenticado = await _driveBackupService.AutenticarAsync(owner);
+                if (!autenticado)
+                {
+                    MostrarAviso("No se pudo conectar con Google Drive. Verifique las credenciales.", "Drive");
+                    return;
+                }
+            }
+
+            IsLoading = true;
+            NotificarComandos();
+            IReadOnlyList<DriveArchivoDto> archivos;
+            try
+            {
+                archivos = await _driveBackupService.ListarArchivosAsync();
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                NotificarComandos();
+                MostrarAviso($"No se pudieron listar los respaldos de Drive: {ex.Message}", "Error");
+                return;
+            }
+            finally
+            {
+                IsLoading = false;
+                NotificarComandos();
+            }
+
+            if (archivos == null || archivos.Count == 0)
+            {
+                MostrarAviso("No se encontraron respaldos (.bak) en Google Drive.", "Sin archivos");
+                return;
+            }
+
+            var frmSeleccion = new TP_ControlVehicular.Presentacion.Pantalla.Configuracion.FrmSeleccionarBackupDrive(archivos);
+            frmSeleccion.Owner = Owner;
+            if (frmSeleccion.ShowDialog() != true || frmSeleccion.ArchivoSeleccionado == null)
+                return;
+
+            var seleccionado = frmSeleccion.ArchivoSeleccionado;
+
+            if (!Confirmar($"¿Desea descargar y restaurar la base de datos desde '{seleccionado.Nombre}' (Google Drive)?\n\nEl archivo se descargará a la carpeta local de respaldos y luego se restaurará, sobrescribiendo la base de datos actual.", "Confirmar restauración desde Drive"))
+                return;
+
+            IsLoading = true;
+            NotificarComandos();
+            string rutaLocal;
+            try
+            {
+                rutaLocal = await _driveBackupService.DescargarAsync(seleccionado.Id, seleccionado.Nombre);
+            }
+            catch (Exception ex)
+            {
+                IsLoading = false;
+                NotificarComandos();
+                MostrarAviso($"Error al descargar el respaldo: {ex.Message}", "Error");
+                return;
+            }
+
+            // Segundo factor.
+            var frmAuth = new TP_ControlVehicular.Presentacion.Pantalla.Configuracion.FrmAutorizacionBackup();
+            frmAuth.Owner = Owner;
+            if (frmAuth.ShowDialog() != true)
+            {
+                IsLoading = false;
+                NotificarComandos();
+                return;
+            }
+
+            try
+            {
+                var resultado = await _databaseBackupService.RestaurarAsync(rutaLocal, frmAuth.DniAutorizador, frmAuth.ContrasenaAutorizador);
+                if (resultado.Exitoso)
+                {
+                    MostrarAviso($"{resultado.Mensaje}", "Restauración completada", icono: "✅");
+                    await CargarRespaldosAsync();
+                }
+                else
+                {
+                    MostrarAviso($"No se pudo restaurar:\n{resultado.Mensaje}", "Error");
+                }
+            }
+            catch (Exception ex)
+            {
+                MostrarAviso($"Error al restaurar la base de datos: {ex.Message}", "Error");
+            }
+            finally
+            {
+                IsLoading = false;
+                NotificarComandos();
+            }
+        }
+
         public async Task ResguardarAsync()
         {
             if (!PuedeGestionarSinCargando())
@@ -221,6 +385,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             ((RelayCommand)HacerBackupCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ProbarBackupCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)RestaurarBackupCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)RestaurarDesdeDriveCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ResguardarCommand).RaiseCanExecuteChanged();
             ((RelayCommand)ActualizarCommand).RaiseCanExecuteChanged();
         }

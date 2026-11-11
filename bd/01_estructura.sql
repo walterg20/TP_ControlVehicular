@@ -1,14 +1,170 @@
 -- ============================================================================
 -- 01_estructura.sql — Esquema base (DDL) del sistema de control vehicular.
 -- ----------------------------------------------------------------------------
--- Autor: consolidación de scripts históricos (2026-10-12).
--- Contenido: secuencia de facturación + 18 tablas + índices + CK/UNIQUE/FK.
--- Idempotente: cada objeto se crea solo si no existe (puede re-ejecutarse).
--- Requiere: base de datos [ControlVehicular] ya creada.
--- Compatible con SQL Server 2019 Express. Codificación UTF-8.
--- Orden de aplicación: 01 -> 02 -> 03 -> 04.
+-- Orden de aplicación: 01_estructura -> 02_datos -> 03_procedimientos -> 04_triggers -> 05_utilidades -> 06_poblacion.
 -- ============================================================================
 USE [ControlVehicular];
+GO
+
+-- ----------------------------------------------------------------------------
+-- Sincronización de nomenclatura (Estado -> Activo) si las tablas ya existían
+-- ----------------------------------------------------------------------------
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Roles]') AND name = 'Estado')
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Roles]') AND name = 'Activo')
+BEGIN
+    EXEC sp_rename '[dbo].[Roles].[Estado]', 'Activo', 'COLUMN';
+END
+GO
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Usuarios]') AND name = 'Estado')
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Usuarios]') AND name = 'Activo')
+BEGIN
+    EXEC sp_rename '[dbo].[Usuarios].[Estado]', 'Activo', 'COLUMN';
+END
+GO
+
+-- ----------------------------------------------------------------------------
+-- Asegurar columnas Activo en tablas existentes
+-- ----------------------------------------------------------------------------
+IF OBJECT_ID(N'[dbo].[Cliente]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Cliente]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Cliente] ADD [Activo] bit NOT NULL CONSTRAINT DF_Cliente_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Roles]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Roles]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Roles] ADD [Activo] bit NOT NULL CONSTRAINT DF_Roles_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Usuarios]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Usuarios]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Usuarios] ADD [Activo] bit NOT NULL CONSTRAINT DF_Usuarios_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Servicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Servicio]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Servicio] ADD [Activo] bit NOT NULL CONSTRAINT DF_Servicio_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Taller]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Taller]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Taller] ADD [Activo] bit NOT NULL CONSTRAINT DF_Taller_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Marca]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Marca]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Marca] ADD [Activo] bit NOT NULL CONSTRAINT DF_Marca_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Modelo]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Modelo]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Modelo] ADD [Activo] bit NOT NULL CONSTRAINT DF_Modelo_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Vehiculo]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Vehiculo]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Vehiculo] ADD [Activo] bit NOT NULL CONSTRAINT DF_Vehiculo_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[RegistroServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[RegistroServicio]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[RegistroServicio] ADD [Activo] bit NOT NULL CONSTRAINT DF_RegistroServicio_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Factura]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Factura]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Factura] ADD [Activo] bit NOT NULL CONSTRAINT DF_Factura_Activo DEFAULT (1);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Pago]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[Pago]') AND name = 'Activo')
+BEGIN
+    ALTER TABLE [dbo].[Pago] ADD [Activo] bit NOT NULL CONSTRAINT DF_Pago_Activo DEFAULT (1);
+END
+GO
+
+-- ----------------------------------------------------------------------------
+-- Asegurar columna OrdenEjecucion en DetalleServicio
+-- ----------------------------------------------------------------------------
+IF OBJECT_ID(N'[dbo].[DetalleServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[dbo].[DetalleServicio]') AND name = 'OrdenEjecucion')
+BEGIN
+    ALTER TABLE [dbo].[DetalleServicio] ADD [OrdenEjecucion] int NOT NULL CONSTRAINT DF_DetalleServicio_OrdenEjecucion DEFAULT (1);
+END
+GO
+
+-- ----------------------------------------------------------------------------
+-- Asegurar restricciones CHECK en tablas existentes
+-- ----------------------------------------------------------------------------
+IF OBJECT_ID(N'[dbo].[RegistroServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CHK_RegistroServicio_Estado')
+BEGIN
+    ALTER TABLE [dbo].[RegistroServicio] ADD CONSTRAINT [CHK_RegistroServicio_Estado]
+        CHECK ([Estado] IN ('Abierta', 'En Proceso', 'Completada', 'Pagada', 'Cancelada'));
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[DetalleServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CHK_DetalleServicio_Estado')
+BEGIN
+    ALTER TABLE [dbo].[DetalleServicio] ADD CONSTRAINT [CHK_DetalleServicio_Estado]
+        CHECK ([Estado] IN ('Pendiente', 'En Curso', 'Finalizada'));
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Servicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_Servicio_Precio')
+BEGIN
+    ALTER TABLE [dbo].[Servicio] ADD CONSTRAINT [CK_Servicio_Precio] CHECK ([Precio] > 0);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[Vehiculo]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_Vehiculo_KmActual')
+BEGIN
+    ALTER TABLE [dbo].[Vehiculo] ADD CONSTRAINT [CK_Vehiculo_KmActual] CHECK ([KmActual] >= 0);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[RegistroServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_RegistroServicio_KmIngreso')
+BEGIN
+    ALTER TABLE [dbo].[RegistroServicio] ADD CONSTRAINT [CK_RegistroServicio_KmIngreso] CHECK ([KmIngreso] >= 0);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[DetalleServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_DetalleServicio_Precio')
+BEGIN
+    ALTER TABLE [dbo].[DetalleServicio] ADD CONSTRAINT [CK_DetalleServicio_Precio] CHECK ([Precio] >= 0);
+END
+GO
+
+IF OBJECT_ID(N'[dbo].[DetalleServicio]', N'U') IS NOT NULL
+   AND NOT EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = N'CK_DetalleServicio_Cantidad')
+BEGIN
+    ALTER TABLE [dbo].[DetalleServicio] ADD CONSTRAINT [CK_DetalleServicio_Cantidad] CHECK ([Cantidad] > 0);
+END
 GO
 
 -- ----------------------------------------------------------------------------
@@ -39,7 +195,7 @@ BEGIN
         [Direccion] nvarchar(200) NOT NULL,
         [Email] nvarchar(max) NOT NULL,
         [Telefono] nvarchar(max) NOT NULL,
-        [Activo] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Cliente] PRIMARY KEY ([Id])
     );
 END
@@ -53,6 +209,7 @@ BEGIN
     CREATE TABLE [dbo].[Marca] (
         [Id] int NOT NULL IDENTITY,
         [NombreMarca] nvarchar(100) NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Marca_Activo] DEFAULT (1),
         CONSTRAINT [PK_Marca] PRIMARY KEY ([Id])
     );
 END
@@ -67,7 +224,7 @@ BEGIN
         [Id] int NOT NULL IDENTITY,
         [Nombre] nvarchar(max) NOT NULL,
         [Descripcion] nvarchar(max) NOT NULL,
-        [Estado] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Roles] PRIMARY KEY ([Id])
     );
 END
@@ -82,7 +239,7 @@ BEGIN
         [Id] int NOT NULL IDENTITY,
         [Nombre] nvarchar(150) NOT NULL,
         [Precio] decimal(18,2) NOT NULL,
-        [Activo] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Servicio] PRIMARY KEY ([Id]),
         CONSTRAINT [CK_Servicio_Precio] CHECK ([Precio] > 0)
     );
@@ -99,7 +256,7 @@ BEGIN
         [Nombre] nvarchar(100) NOT NULL,
         [Direccion] nvarchar(200) NOT NULL,
         [Telefono] nvarchar(20) NOT NULL,
-        [Activo] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Taller] PRIMARY KEY ([Id])
     );
 END
@@ -127,6 +284,7 @@ BEGIN
         [Id] int NOT NULL IDENTITY,
         [MarcaId] int NOT NULL,
         [NombreModelo] nvarchar(100) NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Modelo_Activo] DEFAULT (1),
         CONSTRAINT [PK_Modelo] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Modelo_Marca_MarcaId] FOREIGN KEY ([MarcaId]) REFERENCES [dbo].[Marca] ([Id]) ON DELETE CASCADE
     );
@@ -162,7 +320,7 @@ BEGIN
         [Domicilio] nvarchar(200) NOT NULL,
         [FechaNacimiento] datetime2 NOT NULL,
         [Contrasena] nvarchar(max) NOT NULL,
-        [Estado] bit NOT NULL,
+        [Activo] bit NOT NULL DEFAULT (1),
         CONSTRAINT [PK_Usuarios] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Usuarios_Roles_RolId] FOREIGN KEY ([RolId]) REFERENCES [dbo].[Roles] ([Id]) ON DELETE NO ACTION
     );
@@ -180,6 +338,7 @@ BEGIN
         [Anio] int NOT NULL,
         [Patente] nvarchar(15) NOT NULL,
         [KmActual] int NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Vehiculo_Activo] DEFAULT (1),
         CONSTRAINT [PK_Vehiculo] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Vehiculo_Modelo_ModeloId] FOREIGN KEY ([ModeloId]) REFERENCES [dbo].[Modelo] ([Id]) ON DELETE CASCADE,
         CONSTRAINT [CK_Vehiculo_KmActual] CHECK ([KmActual] >= 0)
@@ -234,6 +393,7 @@ BEGIN
         [Fecha] datetime2 NOT NULL,
         [KmIngreso] int NOT NULL,
         [Estado] nvarchar(50) NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_RegistroServicio_Activo] DEFAULT (1),
         CONSTRAINT [PK_RegistroServicio] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_RegistroServicio_Taller_TallerId] FOREIGN KEY ([TallerId]) REFERENCES [dbo].[Taller] ([Id]) ON DELETE NO ACTION,
         CONSTRAINT [FK_RegistroServicio_Usuarios_UsuarioId] FOREIGN KEY ([UsuarioId]) REFERENCES [dbo].[Usuarios] ([Id]) ON DELETE NO ACTION,
@@ -282,6 +442,7 @@ BEGIN
         [Numero] int NOT NULL DEFAULT (NEXT VALUE FOR [dbo].[Seq_Factura_Numero]),
         [Fecha] datetime2 NOT NULL,
         [Total] decimal(10,2) NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Factura_Activo] DEFAULT (1),
         CONSTRAINT [PK_Factura] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Factura_RegistroServicio_RegistroServicioId] FOREIGN KEY ([RegistroServicioId]) REFERENCES [dbo].[RegistroServicio] ([Id]) ON DELETE NO ACTION
     );
@@ -299,6 +460,7 @@ BEGIN
         [MetodoPagoId] int NOT NULL,
         [Monto] decimal(10,2) NOT NULL,
         [FechaPago] datetime2 NOT NULL,
+        [Activo] bit NOT NULL CONSTRAINT [DF_Pago_Activo] DEFAULT (1),
         CONSTRAINT [PK_Pago] PRIMARY KEY ([Id]),
         CONSTRAINT [FK_Pago_Factura_FacturaId] FOREIGN KEY ([FacturaId]) REFERENCES [dbo].[Factura] ([Id]) ON DELETE NO ACTION,
         CONSTRAINT [FK_Pago_MetodoPago_MetodoPagoId] FOREIGN KEY ([MetodoPagoId]) REFERENCES [dbo].[MetodoPago] ([Id]) ON DELETE NO ACTION
@@ -416,5 +578,19 @@ GO
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Factura_RegistroServicioId' AND object_id = OBJECT_ID(N'[dbo].[Factura]'))
 BEGIN
     CREATE UNIQUE INDEX [IX_Factura_RegistroServicioId] ON [dbo].[Factura] ([RegistroServicioId]);
+END
+GO
+
+-- ============================================================================
+-- SchemaVersion (versionado de esquema para actualizaciones del instalador)
+-- ============================================================================
+IF OBJECT_ID(N'[dbo].[SchemaVersion]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[SchemaVersion] (
+        [Id]          int IDENTITY(1,1) NOT NULL,
+        [Version]     nvarchar(50) NOT NULL,
+        [AppliedOn]   datetime2 NOT NULL CONSTRAINT [DF_SchemaVersion_AppliedOn] DEFAULT (GETDATE()),
+        CONSTRAINT [PK_SchemaVersion] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
 END
 GO

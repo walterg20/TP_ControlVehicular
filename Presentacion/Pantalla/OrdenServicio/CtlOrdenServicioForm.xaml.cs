@@ -3,13 +3,17 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using TP_ControlVehicular.Negocio.DTOs;
+using TP_ControlVehicular.Presentacion.Helpers;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 {
     public partial class CtlOrdenServicioForm : UserControl
     {
         private readonly bool _esModificacion;
+        private readonly Debouncer _debouncerServicios = new(TimeSpan.FromMilliseconds(250));
+        private bool _omitirFiltroServicios = false;
 
         public CtlOrdenServicioForm()
         {
@@ -19,11 +23,16 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             lblTitulo.Text = "Registrar Nueva Orden";
             ConfigurarViewModel(null);
             ConfigurarValidacionAlPerderFoco();
+            ConfigurarBusquedaCombos();
             this.Unloaded += (s, e) =>
             {
+                _debouncerServicios.Cancel();
                 if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
+                    vmOrdenServicioForm.AbrirModalNuevoClienteVehiculoRequested -= Vm_AbrirModalNuevoClienteVehiculoRequested;
+                    vmOrdenServicioForm.FocoVehiculoRequested -= Vm_FocoVehiculoRequested;
+                    vmOrdenServicioForm.FocoKilometrajeRequested -= Vm_FocoKilometrajeRequested;
                 }
             };
         }
@@ -38,11 +47,16 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
             lblTitulo.Text = $"Modificar Orden #{orden.Id}";
             ConfigurarViewModel(orden);
             ConfigurarValidacionAlPerderFoco();
+            ConfigurarBusquedaCombos();
             this.Unloaded += (s, e) =>
             {
+                _debouncerServicios.Cancel();
                 if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
+                    vmOrdenServicioForm.AbrirModalNuevoClienteVehiculoRequested -= Vm_AbrirModalNuevoClienteVehiculoRequested;
+                    vmOrdenServicioForm.FocoVehiculoRequested -= Vm_FocoVehiculoRequested;
+                    vmOrdenServicioForm.FocoKilometrajeRequested -= Vm_FocoKilometrajeRequested;
                 }
             };
         }
@@ -72,15 +86,62 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     }
                 }
             }));
+
+            // Configurar handlers GotFocus para cargar ayuda contextual
+            ConfigurarAyudaContextual();
+        }
+
+        /// <summary>
+        /// Configura los handlers GotFocus para mostrar ayuda contextual al cambiar de control.
+        /// </summary>
+        private void ConfigurarAyudaContextual()
+        {
+            WireAyuda(ctlBusquedaUniversal);
+            WireAyuda(cmbVehiculos);
+            WireAyuda(cmbServicios);
+            WireAyuda(txtKm);
+            WireAyuda(cmbEstado);
+            WireAyuda(cmbTalleres);
+            if (dgChecklist != null) WireAyuda(dgChecklist);
+        }
+
+        private void WireAyuda(FrameworkElement control)
+        {
+            control.GotFocus += (s, e) =>
+            {
+                if (DataContext is OrdenServicioViewModel vm)
+                {
+                    vm.CargarAyudaPorControl(control.Name);
+                }
+            };
+        }
+
+        private void BtnAyuda_Click(object sender, RoutedEventArgs e)
+        {
+            pnlAyuda.Visibility = pnlAyuda.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            btnAyuda.Content = pnlAyuda.Visibility == Visibility.Visible ? "Ocultar ayuda" : "❓ Ayuda";
+        }
+
+        private void BtnCerrarAyuda_Click(object sender, RoutedEventArgs e)
+        {
+            pnlAyuda.Visibility = Visibility.Collapsed;
+            btnAyuda.Content = "❓ Ayuda";
         }
 
         private async void ConfigurarViewModel(RegistroServicioDto? orden)
         {
             try
             {
-                if (App.ServiceProvider?.GetService(typeof(OrdenServicioViewModel)) is OrdenServicioViewModel vmOrdenServicioForm)
+                if (TP_ControlVehicular.App.ServiceProvider?.GetService(typeof(OrdenServicioViewModel)) is OrdenServicioViewModel vmOrdenServicioForm)
                 {
                     DataContext = vmOrdenServicioForm;
+
+                    if (Application.Current.MainWindow is MainWindow mwRol && mwRol.UsuarioSesionActual != null)
+                    {
+                        vmOrdenServicioForm.EstablecerRolActual(mwRol.UsuarioSesionActual.IdRol);
+                    }
 
                     if (vmOrdenServicioForm.VehiculosDisponibles.Count == 0 || vmOrdenServicioForm.TalleresDisponibles.Count == 0 || vmOrdenServicioForm.ServiciosDisponibles.Count == 0)
                         await vmOrdenServicioForm.LoadCombosAsync();
@@ -136,8 +197,29 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     }
 
                     vmOrdenServicioForm.ClearAllErrors();
+                    vmOrdenServicioForm.CargarAyudaPorControl("ctlBusquedaUniversal");
                     vmOrdenServicioForm.RegistrationFailed -= Vm_RegistrationFailed;
                     vmOrdenServicioForm.RegistrationFailed += Vm_RegistrationFailed;
+                    vmOrdenServicioForm.AbrirModalNuevoClienteVehiculoRequested -= Vm_AbrirModalNuevoClienteVehiculoRequested;
+                    vmOrdenServicioForm.AbrirModalNuevoClienteVehiculoRequested += Vm_AbrirModalNuevoClienteVehiculoRequested;
+                    vmOrdenServicioForm.FocoVehiculoRequested -= Vm_FocoVehiculoRequested;
+                    vmOrdenServicioForm.FocoVehiculoRequested += Vm_FocoVehiculoRequested;
+                    vmOrdenServicioForm.FocoKilometrajeRequested -= Vm_FocoKilometrajeRequested;
+                    vmOrdenServicioForm.FocoKilometrajeRequested += Vm_FocoKilometrajeRequested;
+
+                    // En modo edicion el buscador universal muestra el cliente de la orden
+                    // como texto; la coleccion de resultados queda vacia para que el operador
+                    // no pueda volver a seleccionar una fila obsoleta.
+                    if (_esModificacion && orden != null)
+                    {
+                        vmOrdenServicioForm.ResultadosBusquedaUniversal.Clear();
+                        var clienteOrden = vmOrdenServicioForm.TodosLosClientes
+                            .FirstOrDefault(c => c.IdCliente == vmOrdenServicioForm.ClienteId);
+                        if (clienteOrden != null)
+                        {
+                            ctlBusquedaUniversal.MostrarClienteSeleccionado(clienteOrden.NombreCompletoConDni);
+                        }
+                    }
 
                     // Restricciones por Rol
                     if (Application.Current.MainWindow is MainWindow mWin && mWin.UsuarioSesionActual != null)
@@ -145,7 +227,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                         bool esMecanico = mWin.UsuarioSesionActual.RolNombre?.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0 || mWin.UsuarioSesionActual.IdRol == 3;
                         if (esMecanico)
                         {
-                            cmbClientes.IsEnabled = false;
+                            ctlBusquedaUniversal.IsEnabled = false;
                             btnNuevoCliente.IsEnabled = false;
                             btnNuevoVehiculo.IsEnabled = false;
                             btnNuevoServicio.IsEnabled = false;
@@ -171,9 +253,101 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "CtlOrdenServicioForm.xaml");
                 // Ignorar en tiempo de diseño o si falla DI
+            }
+        }
+
+        private void ConfigurarBusquedaCombos()
+        {
+            cmbServicios.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler(CmbServicios_TextChanged));
+            cmbServicios.SelectionChanged += CmbServicios_SelectionChanged;
+            cmbServicios.DropDownOpened += CmbServicios_DropDownOpened;
+        }
+
+        private void CmbServicios_DropDownOpened(object? sender, EventArgs e)
+        {
+            if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+            {
+                if (string.IsNullOrWhiteSpace(cmbServicios.Text) || cmbServicios.Text.Trim().Length < 3)
+                {
+                    _omitirFiltroServicios = true;
+                    try
+                    {
+                        vmOrdenServicio.FiltrarServicios(string.Empty);
+                    }
+                    finally
+                    {
+                        _omitirFiltroServicios = false;
+                    }
+                }
+            }
+        }
+
+        private void CmbServicios_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_omitirFiltroServicios) return;
+
+            if (e.OriginalSource is TextBox textBox && textBox.IsKeyboardFocused)
+            {
+                string texto = textBox.Text;
+                int caret = textBox.SelectionStart;
+
+                if (texto.Trim().Length < 3)
+                {
+                    _debouncerServicios.Cancel();
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        vmOrdenServicio.FiltrarServicios(texto);
+                    }
+                    return;
+                }
+
+                _debouncerServicios.Debounce(() =>
+                {
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        _omitirFiltroServicios = true;
+                        try
+                        {
+                            vmOrdenServicio.FiltrarServicios(texto);
+                            cmbServicios.IsDropDownOpen = vmOrdenServicio.ServiciosDisponibles.Any();
+                            textBox.SelectionStart = Math.Min(caret, textBox.Text.Length);
+                            textBox.SelectionLength = 0;
+                        }
+                        finally
+                        {
+                            _omitirFiltroServicios = false;
+                        }
+                    }
+                    return Task.CompletedTask;
+                });
+            }
+        }
+
+        private void CmbServicios_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_omitirFiltroServicios) return;
+
+            if (cmbServicios.SelectedItem is ServicioDto servicio)
+            {
+                _debouncerServicios.Cancel();
+                _omitirFiltroServicios = true;
+                try
+                {
+                    if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+                    {
+                        vmOrdenServicio.ServicioBusquedaSeleccionado = servicio;
+                    }
+                    cmbServicios.Text = servicio.Nombre;
+                    cmbServicios.IsDropDownOpen = false;
+                }
+                finally
+                {
+                    _omitirFiltroServicios = false;
+                }
             }
         }
 
@@ -181,6 +355,12 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
         {
             if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
             {
+                if (vmOrdenServicioForm.ServicioBusquedaSeleccionado == null && !string.IsNullOrWhiteSpace(cmbServicios.Text))
+                {
+                    vmOrdenServicioForm.ServicioBusquedaSeleccionado = vmOrdenServicioForm.ServiciosDisponibles
+                        .FirstOrDefault(s => s.Nombre.Equals(cmbServicios.Text.Trim(), StringComparison.OrdinalIgnoreCase));
+                }
+
                 if (vmOrdenServicioForm.ServicioBusquedaSeleccionado != null)
                 {
                     if (vmOrdenServicioForm.DetallesOrdenActual.Any(d => d.ServicioId == vmOrdenServicioForm.ServicioBusquedaSeleccionado.IdServicio))
@@ -197,6 +377,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                             idMecanicoAuto = mWin.UsuarioSesionActual.IdUsuario;
                     }
 
+                    if (idMecanicoAuto == 0 && vmOrdenServicioForm.MecanicosDisponibles.Count > 0)
+                    {
+                        idMecanicoAuto = vmOrdenServicioForm.MecanicosDisponibles[0].IdUsuario;
+                    }
+
                     vmOrdenServicioForm.DetallesOrdenActual.Add(new DetalleServicioDto
                     {
                         ServicioId = vmOrdenServicioForm.ServicioBusquedaSeleccionado.IdServicio,
@@ -209,7 +394,20 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                         Estado = "Pendiente",
                         Origen = "Manual"
                     });
-                    vmOrdenServicioForm.ServicioBusquedaSeleccionado = null;
+
+                    _debouncerServicios.Cancel();
+                    _omitirFiltroServicios = true;
+                    try
+                    {
+                        vmOrdenServicioForm.ServicioBusquedaSeleccionado = null;
+                        cmbServicios.Text = string.Empty;
+                        vmOrdenServicioForm.FiltrarServicios(string.Empty);
+                        cmbServicios.IsDropDownOpen = false;
+                    }
+                    finally
+                    {
+                        _omitirFiltroServicios = false;
+                    }
                 }
                 else
                 {
@@ -220,28 +418,84 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 
         private async void BtnNuevoCliente_Click(object sender, RoutedEventArgs e)
         {
-            var frm = new Cliente.FrmCliente();
-            frm.Owner = Window.GetWindow(this);
-            if (frm.ShowDialog() == true)
-            {
-                if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
-                {
-                    await vmOrdenServicioForm.LoadCombosAsync();
-                }
-            }
+            await AbrirModalNuevoClienteVehiculo();
         }
 
         private async void BtnNuevoVehiculo_Click(object sender, RoutedEventArgs e)
         {
-            var frm = new Vehiculo.FrmVehiculo();
-            frm.Owner = Window.GetWindow(this);
-            if (frm.ShowDialog() == true)
+            // Si ya hay un cliente seleccionado, el vehiculo se le suma a ese cliente;
+            // si no, se abre el alta unificada de cliente + vehiculo.
+            ClienteDto? clienteExistente = null;
+
+            if (DataContext is OrdenServicioViewModel vmOrdenServicio && vmOrdenServicio.ClienteId > 0)
             {
-                if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
+                clienteExistente = vmOrdenServicio.TodosLosClientes
+                    .FirstOrDefault(c => c.IdCliente == vmOrdenServicio.ClienteId);
+            }
+
+            await AbrirModalNuevoClienteVehiculo(null, clienteExistente);
+        }
+
+        /// <summary>
+        /// Abre el modal unificado de alta (cliente + vehiculo). Si el operador ya escribio
+        /// algo que parece una patente en el buscador, esa patente se prellena en el modal.
+        /// Al cerrar con exito, la orden queda con el cliente y el vehiculo seleccionados
+        /// y el foco pasa al campo Kilometraje.
+        /// </summary>
+        private async Task AbrirModalNuevoClienteVehiculo(string? textoBuscador = null, ClienteDto? clienteExistente = null)
+        {
+            string patenteSugerida = "";
+
+            if (DataContext is OrdenServicioViewModel vmOrdenServicio)
+            {
+                textoBuscador ??= vmOrdenServicio.TextoBusquedaUniversal;
+                if (vmOrdenServicio.ParecePatente(textoBuscador))
                 {
-                    await vmOrdenServicioForm.LoadCombosAsync();
+                    patenteSugerida = textoBuscador.Trim();
                 }
             }
+
+            var frm = new FrmClienteVehiculo(patenteSugerida, clienteExistente);
+            frm.Owner = Window.GetWindow(this);
+
+            if (frm.ShowDialog() != true) return;
+
+            if (DataContext is OrdenServicioViewModel vmOrdenServicioForm)
+            {
+                var clienteCreado = frm.ClienteCreado;
+                var vehiculoCreado = frm.VehiculoCreado;
+                if (clienteCreado == null || vehiculoCreado == null) return;
+
+                // Recargar los catalogos para que incluyan el cliente y el vehiculo nuevos.
+                await vmOrdenServicioForm.LoadCombosAsync();
+
+                vmOrdenServicioForm.ResultadosBusquedaUniversal.Clear();
+                vmOrdenServicioForm.ClienteId = clienteCreado.IdCliente;
+                vmOrdenServicioForm.VehiculoId = vehiculoCreado.Id;
+
+                ctlBusquedaUniversal.MostrarClienteSeleccionado(clienteCreado.NombreCompletoConDni);
+
+                // El foco viaja directo al campo Kilometraje.
+                txtKm.Focus();
+            }
+        }
+
+        private void Vm_AbrirModalNuevoClienteVehiculoRequested(object? sender, string textoBuscador)
+        {
+            // Se difiere la apertura del modal para no anidar un ShowDialog dentro
+            // del evento de seleccion del combo.
+            Dispatcher.BeginInvoke(new Action(async () => await AbrirModalNuevoClienteVehiculo(textoBuscador)));
+        }
+
+        private void Vm_FocoVehiculoRequested(object? sender, EventArgs e)
+        {
+            cmbVehiculos.Focus();
+            cmbVehiculos.IsDropDownOpen = true;
+        }
+
+        private void Vm_FocoKilometrajeRequested(object? sender, EventArgs e)
+        {
+            txtKm.Focus();
         }
 
         private async void BtnNuevoServicio_Click(object sender, RoutedEventArgs e)
@@ -286,6 +540,11 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 if (vmOrdenServicioForm.DetallesOrdenActual.Count == 0)
                 {
                     Compartido.FrmConfirmacion.MostrarAviso("Debe agregar al menos un servicio a la orden antes de guardar.", "Validación", Window.GetWindow(this));
+                    return;
+                }
+                if (vmOrdenServicioForm.DetallesOrdenActual.Any(d => d.UsuarioId <= 0))
+                {
+                    Compartido.FrmConfirmacion.MostrarAviso("Debe asignar un mecánico a cada servicio de la orden antes de guardar.", "Validación", Window.GetWindow(this));
                     return;
                 }
 

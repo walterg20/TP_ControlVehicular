@@ -5,6 +5,7 @@ namespace TP_ControlVehicular.Negocio.DTOs
     {
         public int Id { get; set; }
         public string NombreMarca { get; set; } = string.Empty;
+        public bool Activo { get; set; } = true;
         public override string ToString() => NombreMarca;
     }
 }

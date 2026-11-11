@@ -8,16 +8,17 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class ConfiguracionBackupRepository : Repository<ConfiguracionBackup>, IConfiguracionBackupRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public ConfiguracionBackupRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public ConfiguracionBackupRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
         public async Task<ConfiguracionBackup?> ObtenerAsync()
         {
-            return await _cvDbContext.ConfiguracionBackup
+            await using var ctx = CrearContexto();
+            return await ctx.ConfiguracionBackup
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == 1);
         }

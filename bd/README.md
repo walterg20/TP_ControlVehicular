@@ -11,17 +11,16 @@ una cadena de scripts numerados donde unos pisan a otros.
 
 | Orden | Archivo | Contenido |
 |---|---|---|
-| 1 | `01_estructura.sql` | Secuencia de facturación, 18 tablas, índices, PK/FK y constraints CHECK. |
-| 2 | `02_procedimientos.sql` | 14 procedimientos almacenados (reportes y comprobantes). |
-| 3 | `03_triggers.sql` | 3 triggers de integridad del workflow. |
-| 4 | `04_datos.sql` | Datos semilla (seed): roles, permisos, rol-permisos, taller, configuración de empresa/respaldo, bootstrap del Admin y catálogo de marcas/modelos. |
+| 0 | `00_bootstrap.sql` | Crea la base de datos `ControlVehicular` si no existe (ejecutar conectado a `master`). |
+| 0 | `instalar.ps1` | Orquestador: ejecuta bootstrap + estructura + seed + triggers + SPs (solo seed base, sin demo). |
+| 1 | `01_estructura.sql` | Secuencia de facturación, 18 tablas, índices, PK/FK, constraints CHECK y sincronización/guardas defensivas de columnas `Activo` y `OrdenEjecucion`. |
+| 2 | `02_datos.sql` | Datos semilla canónicos (seed para producción / base limpia): 3 roles, 38 permisos, matriz RolPermisos, taller base, configuraciones singleton, usuario Admin bootstrap (`admin@example.com` / `10000001`), catálogo oficial de 15 servicios y catálogo ampliado de 45 marcas y 203 modelos argentinos. |
+| 3 | `03_procedimientos.sql` | 22 procedimientos almacenados oficiales (reportes, comprobantes y consultas paginadas a nivel de BD). |
+| 4 | `04_triggers.sql` | 3 triggers de integridad del workflow. |
+| 5 | `05_utilidades_test.sql` | Utilidades de desarrollo/pruebas (purga de artefactos E2E y verificaciones). |
+| 6 | `06_poblacion.sql` | Población de datos operativos y de demostración: personal de taller (recepción y mecánicos), 55 clientes, 55 vehículos, 55 titularidades, 61 órdenes de servicio (Junio-Octubre 2026), 110+ tareas de servicio, facturas y pagos. |
 
-Aplicar **siempre** en el orden `01 → 02 → 03 → 04` (las tablas deben existir antes de
-los SP/triggers, y las FK de los datos requieren el esquema y las filas padre).
-
-Además existe `05_utilidades_test.sql`, que **no** forma parte del alta del esquema:
-es una utilidad de desarrollo/pruebas (purga de artefactos E2E) y se ejecuta solo
-cuando se necesita.
+Aplicar **siempre** en el orden `01_estructura → 02_datos → 03_procedimientos → 04_triggers`. Si se desea cargar el entorno con datos de prueba/demostración, ejecutar a continuación `06_poblacion.sql`.
 
 ## Idempotencia
 

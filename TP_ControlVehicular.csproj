@@ -30,15 +30,21 @@
     <Content Include="Presentacion\Assets\logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Datos\Configuracion\ayudas_ordenes_servicio.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <!-- Credenciales OAuth de Google Drive: se copian solo si el archivo existe localmente (gitignored). -->
     <None Include="credenciales.json" Condition="Exists('credenciales.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- Archivo .env (configuracion local por desarrollador): se copia solo si existe. -->
+    <None Include=".env" Condition="Exists('.env')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Presentacion\ViewModels\" />
-    <Folder Include="Presentacion\Pantalla\" />
   </ItemGroup>
 
   <ItemGroup>

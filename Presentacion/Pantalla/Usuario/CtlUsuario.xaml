@@ -3,8 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="850">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
 
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -12,8 +17,10 @@
             <!-- Encabezado -->
             <RowDefinition Height="Auto"/>
             <!-- Barra de Búsqueda y Acción Superior -->
-            <RowDefinition Height="*"/>
             <!-- Tabla de Usuarios -->
+            <RowDefinition Height="*"/>
+            <!-- Barra de Paginación -->
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <!-- Pie de Acciones -->
         </Grid.RowDefinitions>
@@ -39,7 +46,9 @@
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="🔍 Buscar:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,10,0"/>
-                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" 
+                    <TextBox Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+                             TextChanged="TxtBusqueda_TextChanged"
+                             KeyDown="TxtBusqueda_KeyDown"
                              Width="300" Padding="8,6" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1">
                         <TextBox.Resources>
                             <Style TargetType="Border">
@@ -47,6 +56,26 @@
                             </Style>
                         </TextBox.Resources>
                     </TextBox>
+                    <TextBlock Text="Estado:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#34495E" Margin="10,0,6,0"
+                               Visibility="{Binding PuedeVerFiltroEstado, Converter={StaticResource BoolToVis}}"/>
+                    <ComboBox ItemsSource="{Binding EstadosDisponibles}"
+                              SelectedItem="{Binding FiltroEstado, Mode=TwoWay}"
+                              SelectionChanged="CmbFiltroEstado_SelectionChanged"
+                              Width="110" Padding="6,4" FontSize="13" BorderBrush="#BDC3C7" BorderThickness="1"
+                              Visibility="{Binding PuedeVerFiltroEstado, Converter={StaticResource BoolToVis}}">
+                        <ComboBox.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </ComboBox.Resources>
+                    </ComboBox>
+                    <Button Content="Buscar" Width="80" Padding="8,6" Margin="10,0,0,0" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnBuscar_Click" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
                 </StackPanel>
 
                 <Button Grid.Column="1" Content="➕ Nuevo Usuario" Click="BtnNuevo_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeCrear}">
@@ -66,8 +95,9 @@
             </Border.Effect>
 
             <DataGrid x:Name="dgUsuarios"
-                      ItemsSource="{Binding ListadoUsuariosFiltered}"
+                      ItemsSource="{Binding Usuarios}"
                       SelectedItem="{Binding UsuarioSeleccionado, Mode=TwoWay}"
+                      MouseDoubleClick="DgUsuarios_MouseDoubleClick"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       CanUserAddRows="False"
@@ -88,6 +118,16 @@
                         <Setter Property="Padding" Value="8,6"/>
                     </Style>
                 </DataGrid.Resources>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Activo}" Value="False">
+                                <Setter Property="Foreground" Value="#C0392B"/>
+                                <Setter Property="Background" Value="#FDECEA"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="ID" Binding="{Binding IdUsuario}" Width="60"/>
                     <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*"/>
@@ -95,25 +135,34 @@
                     <DataGridTextColumn Header="DNI" Binding="{Binding Dni}" Width="100"/>
                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
                     <DataGridTextColumn Header="Rol" Binding="{Binding RolNombre}" Width="120"/>
-                    <DataGridCheckBoxColumn Header="Estado" Binding="{Binding Estado}" Width="80"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
+        <!-- BARRA DE PAGINACIÓN -->
+        <compartido:CtlPaginacion Grid.Row="3" Model="{Binding}"/>
 
         <!-- PIE DE ACCIONES -->
-        <Border Grid.Row="3" Background="White" CornerRadius="12" Padding="16" Margin="0,16,0,0">
+        <Border Grid.Row="4" Background="White" CornerRadius="12" Padding="16" Margin="0,16,0,0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="10" ShadowDepth="2" Direction="270" Color="#000000" Opacity="0.08"/>
             </Border.Effect>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="✏️ Modificar Seleccionado" Click="BtnModificar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand">
+                <Button Content="✏️ Editar Seleccionado" Click="BtnEditar_Click" Padding="12,8" Background="#F39C12" Foreground="White" FontWeight="Bold" BorderThickness="0" Margin="0,0,8,0" Cursor="Hand" IsEnabled="{Binding PuedeEditar}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>
                         </Style>
                     </Button.Resources>
                 </Button>
-                <Button Content="🔄 Cambiar Estado" Click="BtnBaja_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
+                <Button Content="🗑️ Eliminar Seleccionado" Click="BtnBorrar_Click" Padding="12,8" Background="#C0392B" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" IsEnabled="{Binding PuedeEliminar}">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="6"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                <Button Content="♻️ Reactivar" Click="BtnReactivar_Click" Padding="12,8" Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="8,0,0,0"
+                        Visibility="{Binding PuedeVerFiltroEstado, Converter={StaticResource BoolToVis}}">
                     <Button.Resources>
                         <Style TargetType="Border">
                             <Setter Property="CornerRadius" Value="6"/>

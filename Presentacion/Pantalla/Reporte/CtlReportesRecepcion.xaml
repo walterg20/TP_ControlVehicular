@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
     
@@ -23,7 +24,7 @@
                 <TextBlock Text="Historial de Vehículo" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
                 <StackPanel Orientation="Horizontal" Margin="0,5">
                     <TextBlock Text="Patente:" VerticalAlignment="Center" Margin="0,0,5,0" />
-                    <TextBox x:Name="txtPatente" Text="{Binding Patente, UpdateSourceTrigger=PropertyChanged}" Width="150" Margin="0,0,10,0" Height="30" VerticalContentAlignment="Center">
+                    <TextBox x:Name="txtPatente" Text="{Binding Patente, UpdateSourceTrigger=PropertyChanged}" TextChanged="TxtPatente_TextChanged" Width="150" Margin="0,0,10,0" Height="30" VerticalContentAlignment="Center">
                         <TextBox.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="6"/>
@@ -45,7 +46,12 @@
             <Border.Effect>
                 <DropShadowEffect Opacity="0.08" Direction="270" BlurRadius="10" ShadowDepth="2" />
             </Border.Effect>
-            <DataGrid x:Name="dgResultadosHistorial" ItemsSource="{Binding ResultadosHistorial}" AutoGenerateColumns="True" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" IsReadOnly="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DataGrid x:Name="dgResultadosHistorial" Grid.Row="0" ItemsSource="{Binding ResultadosHistorial}" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" IsReadOnly="True">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
                         <Setter Property="Background" Value="#2C3E50" />
@@ -55,6 +61,8 @@
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
             </DataGrid>
+                <compartido:CtlPaginacion Grid.Row="1" Model="{Binding}"/>
+            </Grid>
         </Border>
 
         <!-- Sección Vehículos por Cliente -->
@@ -66,7 +74,7 @@
                 <TextBlock Text="Vehículos por Cliente" FontWeight="Bold" FontSize="16" Margin="0,0,0,10"/>
                 <StackPanel Orientation="Horizontal" Margin="0,5">
                     <TextBlock Text="DNI:" VerticalAlignment="Center" Margin="0,0,5,0" />
-                    <TextBox x:Name="txtDNI" Text="{Binding DNI, UpdateSourceTrigger=PropertyChanged}" Width="150" Margin="0,0,10,0" Height="30" VerticalContentAlignment="Center">
+                    <TextBox x:Name="txtDNI" Text="{Binding DNI, UpdateSourceTrigger=PropertyChanged}" TextChanged="TxtDni_TextChanged" Width="150" Margin="0,0,10,0" Height="30" VerticalContentAlignment="Center">
                         <TextBox.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="6"/>
@@ -88,7 +96,12 @@
             <Border.Effect>
                 <DropShadowEffect Opacity="0.08" Direction="270" BlurRadius="10" ShadowDepth="2" />
             </Border.Effect>
-            <DataGrid x:Name="dgResultadosVehiculos" ItemsSource="{Binding ResultadosVehiculos}" AutoGenerateColumns="True" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" IsReadOnly="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <DataGrid x:Name="dgResultadosVehiculos" Grid.Row="0" ItemsSource="{Binding ResultadosVehiculos}" Background="Transparent" BorderThickness="0" RowHeaderWidth="0" IsReadOnly="True">
                 <DataGrid.ColumnHeaderStyle>
                     <Style TargetType="DataGridColumnHeader">
                         <Setter Property="Background" Value="#2C3E50" />
@@ -98,6 +111,8 @@
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
             </DataGrid>
+                <compartido:CtlPaginacion Grid.Row="1" Model="{Binding PaginacionVehiculos}"/>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>

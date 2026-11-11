@@ -1,5 +1,6 @@
 // walterg20
 using AutoMapper;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -7,6 +8,7 @@ using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -15,7 +17,7 @@ using System.Diagnostics;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class OrdenServicioViewModel : BaseViewModel, INotifyDataErrorInfo
+    public class OrdenServicioViewModel : BasePaginableViewModel, INotifyDataErrorInfo
     {
         private readonly ListarRegistroServiciosHandler _listarHandler;
         private readonly RegistrarRegistroServicioHandler _registrarHandler;
@@ -29,6 +31,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler _generarComprobantePagoHandler;
         private readonly AsignarVehiculoPorPatenteHandler _asignarVehiculoPorPatenteHandler;
         private readonly IMapper _mapper;
+        private readonly Debouncer _debouncer;
+        private readonly IAyudaService? _ayudaService;
+        private int _idRolActual;
 
         public OrdenServicioViewModel(
             ListarRegistroServiciosHandler listarHandler,
@@ -42,7 +47,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler generarComprobanteOrdenHandler,
             TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler generarComprobantePagoHandler,
             AsignarVehiculoPorPatenteHandler asignarVehiculoPorPatenteHandler,
-            IMapper mapper)
+            IMapper mapper,
+            IAyudaService? ayudaService = null)
         {
             _listarHandler = listarHandler;
             _registrarHandler = registrarHandler;
@@ -56,10 +62,13 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _generarComprobantePagoHandler = generarComprobantePagoHandler;
             _asignarVehiculoPorPatenteHandler = asignarVehiculoPorPatenteHandler;
             _mapper = mapper;
+            _debouncer = new Debouncer();
+            _ayudaService = ayudaService;
 
             Ordenes = new ObservableCollection<RegistroServicioDto>();
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
             VehiculosDisponibles = new ObservableCollection<VehiculoDto>();
+            ResultadosBusquedaUniversal = new ObservableCollection<BusquedaClienteVehiculoDto>();
             TalleresDisponibles = new ObservableCollection<TallerDto>();
             EstadosDisponibles = new ObservableCollection<string> { "Abierta", "En Proceso", "Completada", "Cancelada" };
             DetallesOrdenActual = new ObservableCollection<DetalleServicioDto>();
@@ -69,7 +78,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             ((ObservableCollection<RegistroServicioDto>)Ordenes).CollectionChanged += (s, e) =>
             {
-                OnPropertyChanged(nameof(ListadoOrdenesFiltered));
                 OnPropertyChanged(nameof(IsListEmpty));
             };
 
@@ -80,6 +88,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public ObservableCollection<RegistroServicioDto> Ordenes { get; set; }
         public ObservableCollection<ClienteDto> ClientesDisponibles { get; set; }
         public ObservableCollection<VehiculoDto> VehiculosDisponibles { get; set; }
+
+        /// <summary>
+        /// Filas del buscador universal (cliente + vehiculo) mostradas en el desplegable
+        /// de la pantalla de orden de servicio.
+        /// </summary>
+        public ObservableCollection<BusquedaClienteVehiculoDto> ResultadosBusquedaUniversal { get; set; }
         public ObservableCollection<TallerDto> TalleresDisponibles { get; set; }
         public ObservableCollection<string> EstadosDisponibles { get; set; }
 
@@ -89,6 +103,11 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public ObservableCollection<UsuarioDto> MecanicosDisponibles { get; set; }
 
         private List<VehiculoDto> _todosLosVehiculos = new();
+        private List<ClienteDto> _todosLosClientes = new();
+        private List<ServicioDto> _todosLosServicios = new();
+
+        public IReadOnlyList<ClienteDto> TodosLosClientes => _todosLosClientes;
+        public IReadOnlyList<ServicioDto> TodosLosServicios => _todosLosServicios;
 
         private int _clienteId;
         public int ClienteId
@@ -124,6 +143,408 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             }
         }
 
+        /// <summary>
+        /// Filtra la lista de clientes disponibles según el término ingresado.
+        /// Se activa únicamente cuando el término contiene 3 o más caracteres (coincidiendo por Nombre, Apellido o DNI).
+        /// Con menos de 3 caracteres se preserva o restaura la lista completa sin filtrar agresivamente.
+        /// </summary>
+        public void FiltrarClientes(string? texto)
+        {
+            if (!_todosLosClientes.Any() && ClientesDisponibles.Any())
+            {
+                _todosLosClientes.AddRange(ClientesDisponibles);
+            }
+
+            var term = texto?.Trim() ?? string.Empty;
+
+            if (term.Length < 3)
+            {
+                if (ClientesDisponibles.Count != _todosLosClientes.Count)
+                {
+                    ClientesDisponibles.Clear();
+                    foreach (var c in _todosLosClientes)
+                    {
+                        ClientesDisponibles.Add(c);
+                    }
+                }
+                return;
+            }
+
+            var filtrados = _todosLosClientes.Where(c =>
+                (!string.IsNullOrEmpty(c.Nombre) && c.Nombre.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.Apellido) && c.Apellido.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.Dni) && c.Dni.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(c.NombreCompletoConDni) && c.NombreCompletoConDni.Contains(term, StringComparison.OrdinalIgnoreCase))
+            ).ToList();
+
+            ClientesDisponibles.Clear();
+            foreach (var c in filtrados)
+            {
+                ClientesDisponibles.Add(c);
+            }
+        }
+
+        /// <summary>
+        /// Catalogo completo de vehiculos cargado en memoria. Se expone para las pruebas
+        /// y para consultas que necesiten el total de vehiculos del taller.
+        /// </summary>
+        public IReadOnlyList<VehiculoDto> TodosLosVehiculos => _todosLosVehiculos;
+
+        /// <summary>
+        /// Texto tipeado actualmente en el buscador universal. Se conserva para poder
+        /// reutilizarlo (por ejemplo, para prellenar la patente en el modal de alta).
+        /// </summary>
+        private string _textoBusquedaUniversal = string.Empty;
+        public string TextoBusquedaUniversal
+        {
+            get => _textoBusquedaUniversal;
+            set { _textoBusquedaUniversal = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Fila seleccionada en el desplegable del buscador universal. La asignacion de
+        /// cliente y vehiculo la realiza <see cref="SeleccionarResultadoUniversal"/>, que
+        /// invoca el code-behind de forma explicita para no disparar efectos colaterales
+        /// al prellenar una orden en modo edicion.
+        /// </summary>
+        private BusquedaClienteVehiculoDto? _resultadoBusquedaSeleccionado;
+        public BusquedaClienteVehiculoDto? ResultadoBusquedaSeleccionado
+        {
+            get => _resultadoBusquedaSeleccionado;
+            set { _resultadoBusquedaSeleccionado = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Secciones de ayuda contextual para mostrar en el panel de ayuda.
+        /// Se actualiza dinámicamente cuando cambia el foco entre controles.
+        /// </summary>
+        private IEnumerable<AyudaSeccionDto>? _ayudaActual;
+        public IEnumerable<AyudaSeccionDto>? AyudaActual
+        {
+            get => _ayudaActual;
+            set { _ayudaActual = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Se dispara cuando el operador elige la fila "Registrar Nuevo Cliente y Vehiculo".
+        /// El parametro es el texto tipeado en el buscador.
+        /// </summary>
+        public event EventHandler<string>? AbrirModalNuevoClienteVehiculoRequested;
+
+        /// <summary>Se dispara cuando hay que elegir el vehiculo en el desplegable.</summary>
+        public event EventHandler? FocoVehiculoRequested;
+
+        /// <summary>Se dispara cuando el cliente y el vehiculo ya estan completos.</summary>
+        public event EventHandler? FocoKilometrajeRequested;
+
+        /// <summary>Cantidad maxima de filas mostradas en el desplegable del buscador.</summary>
+        public const int MaximoResultadosBusquedaUniversal = 25;
+
+        /// <summary>
+        /// Busca clientes y vehiculos de forma simultanea por DNI, apellido, nombre y patente.
+        /// El filtro predictivo se activa desde 3 caracteres (igual que el resto de los combos
+        /// de la pantalla). Cada fila se formatea como
+        /// <c>[Patente] - Apellido, Nombre (DNI) - Vehiculo</c>.
+        /// </summary>
+        public void FiltrarBusquedaUniversal(string? texto)
+        {
+            if (!_todosLosClientes.Any() && ClientesDisponibles.Any())
+            {
+                _todosLosClientes.AddRange(ClientesDisponibles);
+            }
+
+            var term = texto?.Trim() ?? string.Empty;
+            TextoBusquedaUniversal = term;
+
+            if (term.Length < 3)
+            {
+                ResultadosBusquedaUniversal.Clear();
+                return;
+            }
+
+            var filas = ConstruirFilasBusquedaUniversal(term);
+
+            ResultadosBusquedaUniversal.Clear();
+            foreach (var fila in filas)
+            {
+                ResultadosBusquedaUniversal.Add(fila);
+            }
+        }
+
+        /// <summary>
+        /// Construye las filas del desplegable a partir de los catalogos en memoria.
+        /// Un cliente con un solo vehiculo produce una fila normal; un cliente con dos o mas
+        /// vehiculos produce una fila agrupada que deriva la eleccion al desplegable de vehiculos.
+        /// </summary>
+        private List<BusquedaClienteVehiculoDto> ConstruirFilasBusquedaUniversal(string term)
+        {
+            var filas = new List<BusquedaClienteVehiculoDto>();
+
+            // Un vehiculo puede no tener propietario actual: se indexa aparte para no
+            // contaminar los grupos por cliente.
+            var vehiculosSinCliente = new List<VehiculoDto>();
+
+            // Cliente -> vehiculos cuyo texto coincide con los datos del cliente.
+            var coincidenciasPorCliente = new Dictionary<int, List<VehiculoDto>>();
+
+            // Clientes que ya tienen una fila propia por coincidencia de patente.
+            var clientesConPatente = new HashSet<int>();
+
+            foreach (var vehiculo in _todosLosVehiculos)
+            {
+                var cliente = BuscarCliente(vehiculo.IdCliente);
+                bool coincidePatente = Coincide(vehiculo.Patente, term);
+                bool coincideCliente = cliente != null && CoincideCliente(cliente, term);
+
+                if (!coincidePatente && !coincideCliente) continue;
+
+                if (vehiculo.IdCliente <= 0 || cliente == null)
+                {
+                    if (coincidePatente) vehiculosSinCliente.Add(vehiculo);
+                    continue;
+                }
+
+                if (coincidePatente)
+                {
+                    // Coincidencia directa por patente: se muestra el vehiculo concreto
+                    // aunque el cliente tenga varios autos.
+                    filas.Add(CrearFilaVehiculo(vehiculo, cliente));
+                    clientesConPatente.Add(cliente.IdCliente);
+                    continue;
+                }
+
+                if (!coincidenciasPorCliente.TryGetValue(cliente.IdCliente, out var lista))
+                {
+                    lista = new List<VehiculoDto>();
+                    coincidenciasPorCliente[cliente.IdCliente] = lista;
+                }
+                lista.Add(vehiculo);
+            }
+
+            // Clientes que coinciden por nombre, apellido o DNI.
+            foreach (var par in coincidenciasPorCliente)
+            {
+                var cliente = BuscarCliente(par.Key);
+                if (cliente == null) continue;
+
+                // Si el cliente ya tiene una fila propia por coincidencia de patente,
+                // no se agrega la fila agrupada para evitar duplicar al cliente.
+                if (clientesConPatente.Contains(cliente.IdCliente)) continue;
+
+                int totalVehiculos = _todosLosVehiculos.Count(v => v.IdCliente == cliente.IdCliente);
+
+                if (totalVehiculos <= 1)
+                {
+                    filas.Add(CrearFilaVehiculo(par.Value[0], cliente));
+                }
+                else
+                {
+                    filas.Add(CrearFilaAgrupada(cliente, totalVehiculos));
+                }
+            }
+
+            // Vehiculos sin propietario actual que coinciden por patente.
+            foreach (var vehiculo in vehiculosSinCliente)
+            {
+                filas.Add(CrearFilaVehiculo(vehiculo, null));
+            }
+
+            if (filas.Count == 0)
+            {
+                filas.Add(CrearFilaAccionRegistrar());
+            }
+
+            return filas.Take(MaximoResultadosBusquedaUniversal).ToList();
+        }
+
+        /// <summary>
+        /// Aplica la seleccion de una fila del buscador universal: completa cliente y vehiculo
+        /// de la orden y avisa al code-behind donde debe ir el foco.
+        /// </summary>
+        public void SeleccionarResultadoUniversal(BusquedaClienteVehiculoDto resultado)
+        {
+            if (resultado == null) return;
+
+            if (resultado.EsAccionRegistrar)
+            {
+                AbrirModalNuevoClienteVehiculoRequested?.Invoke(this, TextoBusquedaUniversal);
+                return;
+            }
+
+            ClienteId = resultado.ClienteId;
+
+            if (resultado.EsAgrupado || resultado.VehiculoId <= 0)
+            {
+                // Cliente con varios vehiculos (o sin vehiculo): el operador elige en el desplegable.
+                VehiculoId = 0;
+                FocoVehiculoRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            VehiculoId = resultado.VehiculoId;
+            FocoKilometrajeRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        /// <summary>
+        /// Indica si el texto tipeado tiene forma de patente y, por lo tanto, conviene
+        /// prellenarlo en el modal de alta unificada. Una patente combina letras y numeros
+        /// (por ejemplo "AG 987 ZK"); un nombre o un DNI puro no cumplen esa forma.
+        /// </summary>
+        public bool ParecePatente(string? texto)
+        {
+            var term = texto?.Trim() ?? string.Empty;
+            if (term.Length < 5) return false;
+
+            bool tieneLetras = term.Any(char.IsLetter);
+            bool tieneNumeros = term.Any(char.IsDigit);
+
+            return tieneLetras && tieneNumeros;
+        }
+
+        private ClienteDto? BuscarCliente(int idCliente)
+        {
+            if (idCliente <= 0) return null;
+            return _todosLosClientes.FirstOrDefault(c => c.IdCliente == idCliente);
+        }
+
+        private static bool Coincide(string? valor, string term)
+        {
+            return !string.IsNullOrEmpty(valor) && valor.Contains(term, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool CoincideCliente(ClienteDto cliente, string term)
+        {
+            return Coincide(cliente.Dni, term)
+                || Coincide(cliente.Apellido, term)
+                || Coincide(cliente.Nombre, term);
+        }
+
+        private static BusquedaClienteVehiculoDto CrearFilaVehiculo(VehiculoDto vehiculo, ClienteDto? cliente)
+        {
+            var fila = new BusquedaClienteVehiculoDto
+            {
+                ClienteId = cliente?.IdCliente ?? 0,
+                VehiculoId = vehiculo.Id,
+                Patente = vehiculo.Patente,
+                Apellido = cliente?.Apellido ?? string.Empty,
+                Nombre = cliente?.Nombre ?? string.Empty,
+                Dni = cliente?.Dni ?? string.Empty,
+                VehiculoDescripcion = $"{vehiculo.MarcaNombre} {vehiculo.ModeloNombre}".Trim()
+            };
+
+            fila.DisplayText = cliente == null
+                ? $"[{fila.Patente}] - (Sin Cliente) - {fila.VehiculoDescripcion}"
+                : $"[{fila.Patente}] - {fila.Apellido}, {fila.Nombre} ({fila.Dni}) - {fila.VehiculoDescripcion}";
+
+            fila.TextMostrar = cliente == null
+                ? $"[{fila.Patente}] - (Sin Cliente)"
+                : $"{fila.Apellido}, {fila.Nombre}";
+
+            return fila;
+        }
+
+        private static BusquedaClienteVehiculoDto CrearFilaAgrupada(ClienteDto cliente, int cantidadVehiculos)
+        {
+            return new BusquedaClienteVehiculoDto
+            {
+                ClienteId = cliente.IdCliente,
+                VehiculoId = 0,
+                Apellido = cliente.Apellido,
+                Nombre = cliente.Nombre,
+                Dni = cliente.Dni,
+                EsAgrupado = true,
+                CantidadVehiculos = cantidadVehiculos,
+                DisplayText = $"{cliente.Apellido}, {cliente.Nombre} (DNI: {cliente.Dni}) - [Ver {cantidadVehiculos} vehiculos]",
+                TextMostrar = $"{cliente.Apellido}, {cliente.Nombre}"
+            };
+        }
+
+        private static BusquedaClienteVehiculoDto CrearFilaAccionRegistrar()
+        {
+            return new BusquedaClienteVehiculoDto
+            {
+                EsAccionRegistrar = true,
+                DisplayText = "🔍 No se encontraron resultados. + Registrar Nuevo Cliente y Vehiculo",
+                TextMostrar = "🔍 No se encontraron resultados. + Registrar Nuevo Cliente y Vehiculo"
+            };
+        }
+
+        /// <summary>
+        /// Soporte dual para servicios: cuando el texto no tiene filtro o tiene menos de 3 caracteres,
+        /// expone el catálogo completo de servicios; cuando tiene 3 o más caracteres, filtra
+        /// dinámicamente por el nombre del servicio.
+        /// </summary>
+        public void FiltrarServicios(string? texto)
+        {
+            if (!_todosLosServicios.Any() && ServiciosDisponibles.Any())
+            {
+                _todosLosServicios.AddRange(ServiciosDisponibles);
+            }
+
+            var term = texto?.Trim() ?? string.Empty;
+
+            if (term.Length < 3)
+            {
+                if (ServiciosDisponibles.Count != _todosLosServicios.Count)
+                {
+                    ServiciosDisponibles.Clear();
+                    foreach (var s in _todosLosServicios)
+                    {
+                        ServiciosDisponibles.Add(s);
+                    }
+                }
+                return;
+            }
+
+            var filtrados = _todosLosServicios.Where(s =>
+                !string.IsNullOrEmpty(s.Nombre) && s.Nombre.Contains(term, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+
+            ServiciosDisponibles.Clear();
+            foreach (var s in filtrados)
+            {
+                ServiciosDisponibles.Add(s);
+            }
+        }
+
+        /// <summary>
+        /// Carga dinámicamente la ayuda contextual para un control específico.
+        /// Se llama cuando el usuario cambia el foco a un control en la pantalla.
+        /// </summary>
+        /// <param name="nombreControl">Nombre del control (ej: "TxtCliente", "CmbServicio").</param>
+        public async void CargarAyudaPorControl(string nombreControl)
+        {
+            if (_ayudaService == null) return;
+
+            try
+            {
+                var ayuda = await _ayudaService.ObtenerAyudaAsync(_idRolActual, "OrdenServicio", nombreControl);
+
+                if (ayuda != null)
+                {
+                    AyudaActual = ayuda.Secciones.OrderBy(s => s.Orden).ToList();
+                }
+                else
+                {
+                    AyudaActual = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error al cargar ayuda: {ex.Message}");
+                AyudaActual = null;
+            }
+        }
+
+        /// <summary>
+        /// Establece el rol actual del usuario (requerido para filtrar ayudas).
+        /// Debe llamarse al inicializar la pantalla.
+        /// </summary>
+        public void EstablecerRolActual(int idRol)
+        {
+            _idRolActual = idRol;
+        }
+
         private ServicioDto? _servicioBusquedaSeleccionado;
         public ServicioDto? ServicioBusquedaSeleccionado
         {
@@ -135,29 +556,47 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public string TextoBusqueda
         {
             get => _textoBusqueda;
-            set { _textoBusqueda = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+            set { _textoBusqueda = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
 
         private DateTime? _fechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         public DateTime? FechaDesde
         {
             get => _fechaDesde;
-            set { _fechaDesde = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+            set { _fechaDesde = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
 
         private DateTime? _fechaHasta = DateTime.Today;
         public DateTime? FechaHasta
         {
             get => _fechaHasta;
-            set { _fechaHasta = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+            set { _fechaHasta = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
 
         private string _estadoFiltro = "Todos";
         public string EstadoFiltro
         {
             get => _estadoFiltro;
-            set { _estadoFiltro = value; OnPropertyChanged(); OnPropertyChanged(nameof(ListadoOrdenesFiltered)); OnPropertyChanged(nameof(IsListEmpty)); }
+            set { _estadoFiltro = value; OnPropertyChanged(); ReiniciarPagina(); }
         }
+
+        private string _filtroActivo = "Todos";
+        public string FiltroActivo
+        {
+            get => _filtroActivo;
+            set
+            {
+                if (_filtroActivo == value) return;
+                _filtroActivo = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroActivo => PuedeEliminar;
+
+        public List<string> EstadosActivosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
 
         private string _mensajeValidacionFechas = string.Empty;
         public string MensajeValidacionFechas
@@ -166,60 +605,31 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set { _mensajeValidacionFechas = value; OnPropertyChanged(); }
         }
 
-        public IEnumerable<RegistroServicioDto> ListadoOrdenesFiltered
+        /// <summary>
+        /// Valida el rango de fechas y devuelve true si es correcto.
+        /// </summary>
+        private bool ValidarFechas()
         {
-            get
+            if (FechaDesde.HasValue && FechaHasta.HasValue && FechaDesde.Value.Date > FechaHasta.Value.Date)
             {
-                if (FechaDesde.HasValue && FechaHasta.HasValue && FechaDesde.Value.Date > FechaHasta.Value.Date)
-                {
-                    MensajeValidacionFechas = "La fecha 'Desde' no puede ser posterior a 'Hasta'.";
-                    return Enumerable.Empty<RegistroServicioDto>();
-                }
-                MensajeValidacionFechas = string.Empty;
-
-                var query = Ordenes.AsEnumerable();
-
-                if (FechaDesde.HasValue)
-                {
-                    query = query.Where(o => o.Fecha.Date >= FechaDesde.Value.Date);
-                }
-
-                if (FechaHasta.HasValue)
-                {
-                    query = query.Where(o => o.Fecha.Date <= FechaHasta.Value.Date);
-                }
-
-                if (!string.IsNullOrWhiteSpace(EstadoFiltro) && EstadoFiltro != "Todos")
-                {
-                    query = query.Where(o => string.Equals(o.Estado, EstadoFiltro, StringComparison.OrdinalIgnoreCase));
-                }
-
-                if (!string.IsNullOrWhiteSpace(TextoBusqueda))
-                {
-                    var txt = TextoBusqueda.Trim();
-                    query = query.Where(o => (o.VehiculoPatente ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.VehiculoDetalle ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.RecepcionistaNombre ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.TallerNombre ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.ClienteDetalle ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || (o.Estado ?? string.Empty).IndexOf(txt, StringComparison.OrdinalIgnoreCase) >= 0
-                                          || o.Id.ToString().Contains(txt));
-                }
-
-                return query;
+                MensajeValidacionFechas = "La fecha 'Desde' no puede ser posterior a 'Hasta'.";
+                return false;
             }
+
+            MensajeValidacionFechas = string.Empty;
+            return true;
         }
 
-        public bool IsListEmpty => !ListadoOrdenesFiltered.Any();
+        public bool IsListEmpty => !Ordenes.Any();
 
         private ICommand? _limpiarFiltrosCommand;
-        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(() =>
+        public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(async () =>
         {
             FechaDesde = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             FechaHasta = DateTime.Today;
             EstadoFiltro = "Todos";
             TextoBusqueda = string.Empty;
-            return Task.CompletedTask;
+            await BuscarAsync();
         });
 
         private ICommand? _imprimirListadoFiltradoCommand;
@@ -227,7 +637,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
         public async Task ImprimirListadoFiltradoAsync()
         {
-            var ordenes = ListadoOrdenesFiltered.ToList();
+            // El PDF exporta el conjunto completo de ordenes que cumplen los filtros,
+            // no solo la pagina visible.
+            var ordenes = (await _listarHandler.HandleCompletoAsync(
+                TextoBusqueda.Trim(),
+                EstadoFiltro,
+                FechaDesde,
+                FechaHasta,
+                PuedeVerFiltroActivo ? FiltroActivo : "Activos")).ToList();
+
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ListadoOrdenes_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
 
             var filtrosTexto = $"Estado: {EstadoFiltro}";
@@ -315,6 +733,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error al abrir PDF: {ex.Message}");
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "OrdenServicioViewModel");
             }
         }
 
@@ -374,6 +793,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public new bool PuedeEliminar => TienePermiso("OrdenServicio.Eliminar") && OrdenSeleccionada != null;
         public bool PuedeImprimirRecepcion => !EsMecanico && OrdenSeleccionada != null;
 
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroActivo));
+        }
+
         private RegistroServicioDto? _ordenSeleccionada;
         public RegistroServicioDto? OrdenSeleccionada
         {
@@ -399,10 +824,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             int currentTallerId = TallerId;
 
             ClientesDisponibles.Clear();
+            _todosLosClientes.Clear();
             _todosLosVehiculos.Clear();
             VehiculosDisponibles.Clear();
             TalleresDisponibles.Clear();
             ServiciosDisponibles.Clear();
+            _todosLosServicios.Clear();
             MecanicosDisponibles.Clear();
 
             try
@@ -410,7 +837,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 var clientes = await _clienteRepository.GetAllAsync();
                 foreach (var c in clientes)
                 {
-                    ClientesDisponibles.Add(_mapper.Map<ClienteDto>(c));
+                    var dto = _mapper.Map<ClienteDto>(c);
+                    _todosLosClientes.Add(dto);
+                    ClientesDisponibles.Add(dto);
                 }
 
                 var vehiculos = await _vehiculoRepository.GetAllWithDetailsAsync(); // Use the specialized method to include Modelo and Marca
@@ -438,17 +867,25 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 var servicios = await _servicioRepository.GetAllAsync();
                 foreach (var s in servicios)
                 {
-                    ServiciosDisponibles.Add(_mapper.Map<ServicioDto>(s));
+                    var dto = _mapper.Map<ServicioDto>(s);
+                    _todosLosServicios.Add(dto);
+                    ServiciosDisponibles.Add(dto);
                 }
 
-                var usuarios = await _usuarioRepository.GetAllAsync();
-                // Asumimos que RolId == 3 o similar es Mecánico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
-                foreach (var u in usuarios.Where(u => u.Rol?.Nombre?.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0 || u.RolId == 3))
+                var usuarios = await _usuarioRepository.GetActivosAsync();
+                if (usuarios != null)
                 {
-                    MecanicosDisponibles.Add(_mapper.Map<UsuarioDto>(u));
+                    // Asumimos que RolId == 3 o similar es Mecánico, pero podemos cargar todos si no sabemos el ID, o filtrar por nombre
+                    foreach (var u in usuarios.Where(u => u.RolId == 3 || (u.Rol?.Nombre != null && u.Rol.Nombre.IndexOf("Mec", StringComparison.OrdinalIgnoreCase) >= 0)))
+                    {
+                        MecanicosDisponibles.Add(_mapper.Map<UsuarioDto>(u));
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "OrdenServicio.LoadCombos");
+            }
         }
 
         public async Task LoadAsync()
@@ -459,18 +896,69 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             OnPropertyChanged(nameof(PuedePagar));
             OnPropertyChanged(nameof(PuedeVerComprobantePago));
 
-            Ordenes.Clear();
             await LoadCombosAsync();
 
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            if (!ValidarFechas()) return;
+
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        /// <summary>
+        /// Carga la pagina actual de ordenes con los filtros aplicados en la base de datos.
+        /// </summary>
+        protected override async Task CargarPaginaAsync()
+        {
+            if (!ValidarFechas()) return;
+
+            IsLoading = true;
             try
             {
-                var lista = await _listarHandler.HandleAsync();
-                foreach (var orden in lista)
+                var (items, total) = await _listarHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    EstadoFiltro,
+                    FechaDesde,
+                    FechaHasta,
+                    PaginaActual,
+                    TamanoPagina,
+                    PuedeVerFiltroActivo ? FiltroActivo : "Activos");
+
+                Ordenes.Clear();
+                foreach (var orden in items)
                 {
                     Ordenes.Add(orden);
                 }
+
+                ActualizarTotales(total);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "OrdenServicioViewModel");
+                Ordenes.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         public async Task<bool> CancelarOrdenSeleccionadaAsync()
@@ -486,6 +974,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Fecha = OrdenSeleccionada.Fecha,
                 KmIngreso = OrdenSeleccionada.KmIngreso,
                 Estado = Entidad.RegistroServicio.EstadoCancelada,
+                Activo = false,
                 Detalles = OrdenSeleccionada.Detalles?.Select(d => new Entidad.DetalleServicio
                 {
                     Id = d.Id,
@@ -504,20 +993,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
 
             try
             {
-                var dto = await _modificarHandler.HandleAsync(orden);
-                var index = -1;
-                for (int i = 0; i < Ordenes.Count; i++)
-                {
-                    if (Ordenes[i].Id == dto.Id)
-                    {
-                        index = i;
-                        break;
-                    }
-                }
-                if (index >= 0)
-                {
-                    Ordenes[index] = dto;
-                }
+                await _modificarHandler.HandleAsync(orden);
+                // Recargar la pagina actual para que el listado refleje el cambio de estado.
+                await CargarPaginaAsync();
                 return true;
             }
             catch (Exception ex)
@@ -531,6 +1009,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             if (!ValidateAll()) return false;
 
+            if (DetallesOrdenActual.Any(d => d.UsuarioId <= 0))
+            {
+                RegistrationFailed?.Invoke(this, "Debe asignar un mecánico a cada servicio de la orden.");
+                return false;
+            }
+
             if (IsLoading) return false;
             IsLoading = true;
 
@@ -543,6 +1027,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 Fecha = Fecha,
                 KmIngreso = KmIngreso,
                 Estado = Estado,
+                Activo = OrdenSeleccionada?.Activo ?? true,
                 Detalles = DetallesOrdenActual.Select(d => new Entidad.DetalleServicio
                 {
                     Id = d.Id,
@@ -562,24 +1047,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (orden.Id == 0)
                 {
-                    var dto = await _registrarHandler.HandleAsync(orden);
-                    Ordenes.Add(dto);
+                    await _registrarHandler.HandleAsync(orden);
                 }
                 else
                 {
-                    var dto = await _modificarHandler.HandleAsync(orden);
-                    var index = -1;
-                    for (int i = 0; i < Ordenes.Count; i++)
-                    {
-                        if (Ordenes[i].Id == dto.Id)
-                        {
-                            index = i;
-                            break;
-                        }
-                    }
-                    if (index >= 0) Ordenes[index] = dto;
-                    else Ordenes.Add(dto);
+                    await _modificarHandler.HandleAsync(orden);
                 }
+
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
 
                 return true;
             }

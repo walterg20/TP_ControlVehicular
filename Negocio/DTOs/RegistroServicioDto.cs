@@ -10,6 +10,7 @@ namespace TP_ControlVehicular.Negocio.DTOs
         public DateTime Fecha { get; set; }
         public int KmIngreso { get; set; }
         public string Estado { get; set; } = string.Empty;
+        public bool Activo { get; set; } = true;
 
         // Propiedades de navegaciÃ³n aplanadas para la grilla
         public string ClienteDetalle { get; set; } = string.Empty;

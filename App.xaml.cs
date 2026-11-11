@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Windows;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Datos.Repositories;
@@ -23,9 +22,9 @@ using TP_ControlVehicular.Presentacion.Taller;
 using TP_ControlVehicular.Presentacion.Usuario;
 using TP_ControlVehicular.Presentacion.Vehiculo;
 using TP_ControlVehicular.Presentacion.ViewModels;
-using TP_ControlVehicular.Negocio.Reportes;
-using TP_ControlVehicular.Negocio.Handlers;
-using TP_ControlVehicular.Datos.Repositories;
+using TP_ControlVehicular.Negocio.Handlers.Reportes;
+using TP_ControlVehicular.Presentacion.Pantalla.Configuracion;
+using TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio;
 
 namespace TP_ControlVehicular
 {
@@ -40,6 +39,11 @@ namespace TP_ControlVehicular
         {
             base.OnStartup(e);
 
+            // Cargar .env (si existe) ANTES de construir la configuracion, para que
+            // cada desarrollador pueda definir su conexion a SQL Server sin editar
+            // appsettings.json. Las variables del sistema/CI tienen prioridad.
+            TP_ControlVehicular.Presentacion.Helpers.EnvLoader.CargarSiExiste();
+
             // Configurar licencia de QuestPDF (Community)
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
@@ -53,13 +57,22 @@ namespace TP_ControlVehicular
             // DbContext
             var builder = new ConfigurationBuilder()
                             .SetBasePath(AppContext.BaseDirectory)
-                            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                            // Variables de entorno con prefijo TPCV_ sobrescriben el JSON
+                            // (ej. TPCV_ConnectionStrings__DefaultConnection). Util para CI/CD.
+                            .AddEnvironmentVariables(prefix: "TPCV_");
 
             IConfiguration configuration = builder.Build();
             services.AddSingleton<IConfiguration>(configuration);
 
-            services.AddDbContext<CVDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
+            // El contexto se resuelve con una factory: cada operacion de repositorio usa su
+            // propia instancia, de modo que dos consultas concurrentes (por ejemplo, dos
+            // pantallas cargando a la vez) nunca compartan el mismo DbContext. En WPF los
+            // servicios Scoped viven toda la vida de la aplicacion, asi que compartir una
+            // unica instancia de contexto habria provocar "A second operation was started
+            // on this context instance".
+            services.AddDbContextFactory<CVDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
 
             // Repositorios
@@ -73,11 +86,11 @@ namespace TP_ControlVehicular
             services.AddScoped<IServicioRepository, ServicioRepository>();
             services.AddScoped<IRegistroServicioRepository, RegistroServicioRepository>();
             services.AddScoped<IReporteRepository, ReporteRepository>();
-            services.AddScoped<TP_ControlVehicular.Negocio.Reportes.IReporteGerencialRepository, TP_ControlVehicular.Datos.Repositories.ReporteGerencialRepository>();
+            services.AddScoped<IReporteGerencialRepository,ReporteGerencialRepository>();
             services.AddScoped<IFacturaRepository, FacturaRepository>();
             services.AddScoped<IPagoRepository, PagoRepository>();
             services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
-            services.AddScoped<IBillingService, BillingService>();
+            services.AddScoped<IFacturacionService, FacturacionService>();
 
             // Handlers
             services.AddScoped<RegistrarClienteHandler>();
@@ -97,9 +110,11 @@ namespace TP_ControlVehicular
             services.AddScoped<ListarTallerHandler>();
             services.AddScoped<RegistrarTallerHandler>();
             services.AddScoped<ModificarTallerHandler>();
+            services.AddScoped<ReactivarTallerHandler>();
             services.AddScoped<RegistrarRolHandler>();
             services.AddScoped<ModificarRolHandler>();
             services.AddScoped<ListarRolHandler>();
+            services.AddScoped<ReactivarRolHandler>();
             services.AddScoped<RegistrarUsuarioHandler>();
             services.AddScoped<ModificarUsuarioHandler>();
             services.AddScoped<ListarUsuariosHandler>();
@@ -117,19 +132,22 @@ namespace TP_ControlVehicular
             services.AddScoped<RegistrarServicioHandler>();
             services.AddScoped<ModificarServicioHandler>();
             services.AddScoped<EliminarServicioHandler>();
+            services.AddScoped<ReactivarServicioHandler>();
             services.AddScoped<ListarRegistroServiciosHandler>();
             services.AddScoped<RegistrarRegistroServicioHandler>();
             services.AddScoped<ModificarRegistroServicioHandler>();
             services.AddScoped<AvanzarEstadoTareaHandler>();
             services.AddScoped<ListarTareasPorEspecialistaHandler>();
-            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobanteOrdenHandler>();
-            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarComprobantePagoHandler>();
-            services.AddScoped<TP_ControlVehicular.Negocio.Handlers.Reportes.GenerarManualUsuarioHandler>();
+            services.AddScoped<GenerarComprobanteOrdenHandler>();
+            services.AddScoped<GenerarComprobantePagoHandler>();
+            services.AddScoped<GenerarManualUsuarioHandler>();
             services.AddScoped<AsignarVehiculoPorPatenteHandler>();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
             // Servicios Especiales
             services.AddTransient<IReporteService, QuestPdfReporteService>();
+            services.AddScoped<IAyudaService, AyudaService>();
+            services.AddScoped<IErrorNotifier, ErrorNotifierService>();
 
             // ViewModels
             services.AddScoped<ClienteViewModel>();
@@ -146,6 +164,7 @@ namespace TP_ControlVehicular
             services.AddScoped<ReporteGerencialViewModel>();
             services.AddScoped<ServicioViewModel>();
             services.AddScoped<OrdenServicioViewModel>();
+            services.AddScoped<ClienteVehiculoViewModel>();
             services.AddScoped<MisTareasViewModel>();
             services.AddScoped<MisTrabajosViewModel>();
             services.AddScoped<EmpresaConfiguracionViewModel>();
@@ -174,12 +193,12 @@ namespace TP_ControlVehicular
             services.AddScoped<CtlDashboard>();
             services.AddScoped<CtlReporteOrdenes>();
             services.AddScoped<CtlServicio>();
-            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlConfiguracion>();
-            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackup>();
-            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.Configuracion.CtlBackupConfiguracion>();
+            services.AddScoped<CtlConfiguracion>();
+            services.AddScoped<CtlBackup>();
+            services.AddScoped<CtlBackupConfiguracion>();
             services.AddTransient<FrmServicio>();
-            services.AddScoped<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicio>();
-            services.AddTransient<TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio.CtlOrdenServicioForm>();
+            services.AddScoped<CtlOrdenServicio>();
+            services.AddTransient<CtlOrdenServicioForm>();
 
             // Ventana principal
             services.AddSingleton<MainWindow>();
@@ -187,6 +206,45 @@ namespace TP_ControlVehicular
             ServiceProvider = services.BuildServiceProvider();
 
             var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+
+            // First-run: si la base no tiene usuarios (o el admin sigue con la clave bootstrap),
+            // mostrar el modal de configuracion inicial antes de abrir la ventana principal.
+            try
+            {
+                using var ctx = ServiceProvider.GetRequiredService<IDbContextFactory<CVDbContext>>().CreateDbContext();
+                var hayUsuarios = ctx.Usuarios.Any();
+                var adminBootstrap = ctx.Usuarios.FirstOrDefault(u => u.Dni == "10000001");
+                var requiereSetup = !hayUsuarios || (adminBootstrap != null && adminBootstrap.Contrasena == "10000001");
+                if (requiereSetup)
+                {
+                    var frm = new Presentacion.Pantalla.Configuracion.FrmSetupInicial();
+                    frm.Owner = mainWindow;
+                    frm.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                var notifier = ServiceProvider.GetService<IErrorNotifier>();
+                notifier?.Notify(ex, "App.FirstRun");
+            }
+
+            // Verificar version del esquema (para futuras actualizaciones)
+            try
+            {
+                using var vctx = ServiceProvider.GetRequiredService<IDbContextFactory<CVDbContext>>().CreateDbContext();
+                var versionBd = vctx.SchemaVersions.OrderByDescending(v => v.Id).Select(v => v.Version).FirstOrDefault();
+                if (versionBd != "1.0.0")
+                {
+                    var notifier = ServiceProvider.GetService<IErrorNotifier>();
+                    notifier?.Notify(null, "App.SchemaVersion: BD=" + (versionBd ?? "(sin version)") + " App=1.0.0", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                var notifier = ServiceProvider.GetService<IErrorNotifier>();
+                notifier?.Notify(ex, "App.SchemaVersion");
+            }
+
             mainWindow.Show();
         }
         protected override void OnExit(ExitEventArgs e)

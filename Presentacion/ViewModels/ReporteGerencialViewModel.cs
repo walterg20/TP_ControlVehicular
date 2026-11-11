@@ -1,21 +1,18 @@
 // walterg20
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs.Reportes;
 using TP_ControlVehicular.Negocio.Reportes;
-using TP_ControlVehicular.Presentacion.ViewModels;
 using TP_ControlVehicular.Negocio.Reportes.Documentos;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System.Diagnostics;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class ReporteGerencialViewModel : BaseViewModel
+    public class ReporteGerencialViewModel : BasePaginableViewModel
     {
         private readonly IReporteGerencialRepository _repository;
 
@@ -33,13 +30,6 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set => SetProperty(ref _fechaHasta, value);
         }
 
-        private bool _isLoading;
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
-        }
-
         private string _mensajeValidacion = string.Empty;
         public string MensajeValidacion
         {
@@ -47,12 +37,31 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             set => SetProperty(ref _mensajeValidacion, value);
         }
 
+        // La paginación (estado, comandos y barra) vive en BasePaginableViewModel / CtlPaginacion.
+
         public ObservableCollection<ReporteIngresoDto> Ingresos { get; } = new();
+        public ObservableCollection<ReporteIngresoMensualDto> IngresosMensuales { get; } = new();
         public ObservableCollection<ReporteTopClienteDto> TopClientes { get; } = new();
         public ObservableCollection<ReporteModeloReparadoDto> ModelosReparados { get; } = new();
         public ObservableCollection<ReporteServicioCantidadDto> ServiciosPorRango { get; } = new();
 
+        /// <summary>
+        /// Estado de paginacion de la pestana "Top Clientes" (independiente del resto).
+        /// </summary>
+        public PaginacionViewModel PaginacionTopClientes { get; }
+
+        /// <summary>
+        /// Estado de paginacion de la pestana "Modelos Mas Reparados".
+        /// </summary>
+        public PaginacionViewModel PaginacionModelos { get; }
+
+        /// <summary>
+        /// Estado de paginacion de la pestana "Servicios por Rango".
+        /// </summary>
+        public PaginacionViewModel PaginacionServicios { get; }
+
         public ICommand CargarReporteCommand { get; }
+
         public ICommand ImprimirPdfIngresosCommand { get; }
         public ICommand ImprimirPdfTopClientesCommand { get; }
         public ICommand ImprimirPdfModelosCommand { get; }
@@ -62,10 +71,40 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             _repository = repository;
             CargarReporteCommand = new RelayCommand(LoadAsync);
+
+            PaginacionTopClientes = new PaginacionViewModel(
+                async (pagina, tamano) => await CargarTopClientesPaginaAsync(pagina, tamano));
+            PaginacionModelos = new PaginacionViewModel(
+                async (pagina, tamano) => await CargarModelosPaginaAsync(pagina, tamano));
+            PaginacionServicios = new PaginacionViewModel(
+                async (pagina, tamano) => await CargarServiciosPaginaAsync(pagina, tamano));
+
             ImprimirPdfIngresosCommand = new RelayCommand(ImprimirPdfIngresosAsync);
             ImprimirPdfTopClientesCommand = new RelayCommand(ImprimirPdfTopClientesAsync);
             ImprimirPdfModelosCommand = new RelayCommand(ImprimirPdfModelosAsync);
             ImprimirPdfServiciosCommand = new RelayCommand(ImprimirPdfServiciosAsync);
+        }
+
+        /// <summary>
+        /// Carga la página de ingresos correspondiente a la paginación actual.
+        /// </summary>
+        protected override async Task CargarPaginaAsync()
+        {
+            try
+            {
+                var (items, total) = await _repository.ObtenerIngresosPorFechaPaginadoAsync(FechaDesde, FechaHasta, PaginaActual, TamanoPagina);
+                ActualizarTotales(total);
+
+                Ingresos.Clear();
+                foreach (var item in items)
+                {
+                    Ingresos.Add(item);
+                }
+            }
+            finally
+            {
+                NotificarComandosPaginacion();
+            }
         }
 
         public async Task LoadAsync()
@@ -80,31 +119,82 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             IsLoading = true;
             try
             {
-                var ingresos = await _repository.ObtenerIngresosPorFechaAsync(FechaDesde, FechaHasta);
-                Ingresos.Clear();
-                foreach (var i in ingresos) Ingresos.Add(i);
+                PaginaActual = 1;
+                await CargarPaginaAsync();
 
-                var clientes = await _repository.ObtenerTopClientesAsync(FechaDesde, FechaHasta, 10);
-                TopClientes.Clear();
-                foreach (var c in clientes) TopClientes.Add(c);
+                var mensuales = await _repository.ObtenerIngresosMensualesAsync(FechaDesde, FechaHasta);
+                IngresosMensuales.Clear();
+                foreach (var m in mensuales) IngresosMensuales.Add(m);
 
-                var modelos = await _repository.ObtenerModelosMasReparadosAsync(FechaDesde, FechaHasta, 10);
-                ModelosReparados.Clear();
-                foreach (var m in modelos) ModelosReparados.Add(m);
+                // Cada pestana del reporte tiene su propia paginacion.
+                PaginacionTopClientes.ReiniciarPagina();
+                await CargarTopClientesPaginaAsync(PaginacionTopClientes.PaginaActual, PaginacionTopClientes.TamanoPagina);
 
-                var servicios = await _repository.ObtenerServiciosPorRangoAsync(FechaDesde, FechaHasta);
-                ServiciosPorRango.Clear();
-                foreach (var s in servicios) ServiciosPorRango.Add(s);
+                PaginacionModelos.ReiniciarPagina();
+                await CargarModelosPaginaAsync(PaginacionModelos.PaginaActual, PaginacionModelos.TamanoPagina);
+
+                PaginacionServicios.ReiniciarPagina();
+                await CargarServiciosPaginaAsync(PaginacionServicios.PaginaActual, PaginacionServicios.TamanoPagina);
             }
             finally
             {
                 IsLoading = false;
+                NotificarComandosPaginacion();
             }
+        }
+
+        /// <summary>
+        /// Carga la pagina actual del ranking de clientes.
+        /// </summary>
+        private async Task CargarTopClientesPaginaAsync(int pagina, int tamanoPagina)
+        {
+            var (items, total) = await _repository.ObtenerTopClientesPaginadoAsync(
+                FechaDesde, FechaHasta, pagina, tamanoPagina);
+
+            TopClientes.Clear();
+            foreach (var item in items) TopClientes.Add(item);
+
+            PaginacionTopClientes.ActualizarTotales(total);
+        }
+
+        /// <summary>
+        /// Carga la pagina actual del ranking de modelos mas reparados.
+        /// </summary>
+        private async Task CargarModelosPaginaAsync(int pagina, int tamanoPagina)
+        {
+            var (items, total) = await _repository.ObtenerModelosMasReparadosPaginadoAsync(
+                FechaDesde, FechaHasta, pagina, tamanoPagina);
+
+            ModelosReparados.Clear();
+            foreach (var item in items) ModelosReparados.Add(item);
+
+            PaginacionModelos.ActualizarTotales(total);
+        }
+
+        /// <summary>
+        /// Carga la pagina actual de servicios por cantidad.
+        /// </summary>
+        private async Task CargarServiciosPaginaAsync(int pagina, int tamanoPagina)
+        {
+            var (items, total) = await _repository.ObtenerServiciosPorRangoPaginadoAsync(
+                FechaDesde, FechaHasta, pagina, tamanoPagina);
+
+            ServiciosPorRango.Clear();
+            foreach (var item in items) ServiciosPorRango.Add(item);
+
+            PaginacionServicios.ActualizarTotales(total);
         }
 
         private async Task ImprimirPdfIngresosAsync()
         {
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ReporteIngresos_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+
+            var ingresosCompletos = (await _repository.ObtenerIngresosPorFechaAsync(FechaDesde, FechaHasta)).ToList();
+            var mensuales = IngresosMensuales.ToList();
+            if (mensuales.Count == 0 && ingresosCompletos.Count > 0)
+            {
+                mensuales = (await _repository.ObtenerIngresosMensualesAsync(FechaDesde, FechaHasta)).ToList();
+            }
 
             var document = Document.Create(container =>
             {
@@ -115,8 +205,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     page.PageColor(Colors.White);
                     page.DefaultTextStyle(x => x.FontSize(10));
 
-                    page.Header().Element(c => c.ComposeEncabezadoTaller("Ingresos Totales por Fecha"));
-                    page.Content().Element(ComposeIngresosContent);
+                    page.Header().Element(c => c.ComposeEncabezadoTaller("Ingresos Totales por Fecha y Mes"));
+                    page.Content().Element(c => ComposeIngresosContent(c, ingresosCompletos, mensuales));
                     page.Footer().Element(c => c.ComposePieDePagina());
                 });
             });
@@ -125,13 +215,55 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             AbrirPdf(filePath);
         }
 
-        private void ComposeIngresosContent(IContainer container)
+        private void ComposeIngresosContent(IContainer container, List<ReporteIngresoDto> listaIngresos, List<ReporteIngresoMensualDto> listaMensuales)
         {
             container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
-                var total = Ingresos.Sum(i => i.IngresosTotales);
+                var total = listaMensuales.Sum(i => i.IngresosTotales);
+                if (total == 0 && listaIngresos.Count > 0)
+                {
+                    total = listaIngresos.Sum(i => i.IngresosTotales);
+                }
                 column.Item().PaddingBottom(10).Text($"Total Recaudado en el periodo: {total:C}").FontSize(14).Bold();
 
+                // 1. Gráfico de evolución de ingresos (por periodo mensual si el rango
+                //    abarca mas de un mes; por dia si el rango cubre un solo mes).
+                if (listaIngresos.Count > 0)
+                {
+                    column.Item().PaddingBottom(15).Svg(IngresosBarChartGenerator.BuildSvg(listaIngresos, listaMensuales));
+                }
+
+                // 2. Resumen Agrupado por Mes
+                if (listaMensuales.Count > 0)
+                {
+                    column.Item().PaddingBottom(6).Text("Resumen de Ingresos por Mes").FontSize(12).Bold().FontColor("#2C3E50");
+                    column.Item().PaddingBottom(15).Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn(2);
+                            columns.RelativeColumn(2);
+                            columns.RelativeColumn(2);
+                        });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Element(c => c.CeldaCabecera()).Text("Mes / Período").Bold();
+                            header.Cell().Element(c => c.CeldaCabecera()).Text("Facturas Emitidas").Bold();
+                            header.Cell().Element(c => c.CeldaCabecera()).Text("Total Mensual").Bold();
+                        });
+
+                        foreach (var mes in listaMensuales)
+                        {
+                            table.Cell().Element(c => c.CeldaDato()).Text(mes.PeriodoMes);
+                            table.Cell().Element(c => c.CeldaDato()).Text(mes.CantidadFacturas.ToString());
+                            table.Cell().Element(c => c.CeldaDato()).Text(mes.IngresosTotales.ToString("C"));
+                        }
+                    });
+                }
+
+                // 3. Detalle por Fechas
+                column.Item().PaddingBottom(6).Text("Detalle Diario de Ingresos").FontSize(12).Bold().FontColor("#2C3E50");
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
@@ -148,7 +280,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         header.Cell().Element(c => c.CeldaCabecera()).Text("Ingresos").Bold();
                     });
 
-                    foreach (var ingreso in Ingresos)
+                    foreach (var ingreso in listaIngresos)
                     {
                         table.Cell().Element(c => c.CeldaDato()).Text(ingreso.Fecha.ToString("dd/MM/yyyy"));
                         table.Cell().Element(c => c.CeldaDato()).Text(ingreso.CantidadFacturas.ToString());
@@ -162,6 +294,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ReporteTopClientes_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
 
+            // El PDF exporta el ranking completo, no solo la pagina visible.
+            var clientes = (await _repository.ObtenerTopClientesPaginadoAsync(
+                FechaDesde, FechaHasta, 1, 0)).Items.ToList();
+
             var document = Document.Create(container =>
             {
                 container.Page(page =>
@@ -172,7 +308,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     page.DefaultTextStyle(x => x.FontSize(10));
 
                     page.Header().Element(c => c.ComposeEncabezadoTaller("Top 10 Clientes Frecuentes"));
-                    page.Content().Element(ComposeTopClientesContent);
+                    page.Content().Element(c => ComposeTopClientesContent(c, clientes));
                     page.Footer().Element(c => c.ComposePieDePagina());
                 });
             });
@@ -181,7 +317,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             AbrirPdf(filePath);
         }
 
-        private void ComposeTopClientesContent(IContainer container)
+        private void ComposeTopClientesContent(IContainer container, List<ReporteTopClienteDto> clientes)
         {
             container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
@@ -203,7 +339,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         header.Cell().Element(c => c.CeldaCabecera()).Text("Total Gastado").Bold();
                     });
 
-                    foreach (var c in TopClientes)
+                    foreach (var c in clientes)
                     {
                         table.Cell().Element(cell => cell.CeldaDato()).Text(c.NombreCompleto);
                         table.Cell().Element(cell => cell.CeldaDato()).Text(c.Dni);
@@ -218,6 +354,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ReporteModelosReparados_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
 
+            // El PDF exporta el ranking completo, no solo la pagina visible.
+            var modelos = (await _repository.ObtenerModelosMasReparadosPaginadoAsync(
+                FechaDesde, FechaHasta, 1, 0)).Items.ToList();
+
             var document = Document.Create(container =>
             {
                 container.Page(page =>
@@ -228,7 +368,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     page.DefaultTextStyle(x => x.FontSize(10));
 
                     page.Header().Element(c => c.ComposeEncabezadoTaller("Modelos de Vehículos Más Reparados"));
-                    page.Content().Element(ComposeModelosContent);
+                    page.Content().Element(c => ComposeModelosContent(c, modelos));
                     page.Footer().Element(c => c.ComposePieDePagina());
                 });
             });
@@ -237,10 +377,18 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             AbrirPdf(filePath);
         }
 
-        private void ComposeModelosContent(IContainer container)
+        private void ComposeModelosContent(IContainer container, List<ReporteModeloReparadoDto> modelos)
         {
             container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
+                var total = ModelosReparados.Sum(m => m.CantidadReparaciones);
+                column.Item().PaddingBottom(10).Text($"Total de Reparaciones en el periodo: {total}").FontSize(14).Bold();
+
+                if (ModelosReparados.Count > 0)
+                {
+                    column.Item().PaddingBottom(15).Svg(ModelosBarChartGenerator.BuildSvg(ModelosReparados.ToList()));
+                }
+
                 column.Item().Table(table =>
                 {
                     table.ColumnsDefinition(columns =>
@@ -255,7 +403,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         header.Cell().Element(c => c.CeldaCabecera()).Text("Cant. Reparaciones").Bold();
                     });
 
-                    foreach (var m in ModelosReparados)
+                    foreach (var m in modelos)
                     {
                         table.Cell().Element(c => c.CeldaDato()).Text(m.MarcaModelo);
                         table.Cell().Element(c => c.CeldaDato()).Text(m.CantidadReparaciones.ToString());
@@ -268,6 +416,10 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             var filePath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"ReporteServiciosPorRango_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
 
+            // El PDF exporta el conjunto completo, no solo la pagina visible.
+            var servicios = (await _repository.ObtenerServiciosPorRangoPaginadoAsync(
+                FechaDesde, FechaHasta, 1, 0)).Items.ToList();
+
             var document = Document.Create(container =>
             {
                 container.Page(page =>
@@ -278,7 +430,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     page.DefaultTextStyle(x => x.FontSize(10));
 
                     page.Header().Element(c => c.ComposeEncabezadoTaller("Cantidad de Servicios por Rango de Fechas"));
-                    page.Content().Element(ComposeServiciosContent);
+                    page.Content().Element(c => ComposeServiciosContent(c, servicios));
                     page.Footer().Element(c => c.ComposePieDePagina());
                 });
             });
@@ -287,7 +439,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             AbrirPdf(filePath);
         }
 
-        private void ComposeServiciosContent(IContainer container)
+        private void ComposeServiciosContent(IContainer container, List<ReporteServicioCantidadDto> servicios)
         {
             container.PaddingVertical(1, Unit.Centimetre).Column(column =>
             {
@@ -337,7 +489,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                         header.Cell().Element(c => c.CeldaCabecera()).Text("Cantidad").Bold();
                     });
 
-                    foreach (var s in ServiciosPorRango)
+                    foreach (var s in servicios)
                     {
                         table.Cell().Element(c => c.CeldaDato()).Text(s.Servicio);
                         table.Cell().Element(c => c.CeldaDato()).Text(s.Cantidad.ToString());
@@ -359,6 +511,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error al abrir PDF: {ex.Message}");
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "ReporteGerencialViewModel");
             }
         }
     }

@@ -26,5 +26,7 @@ namespace TP_ControlVehicular.Entidad
         public RegistroServicio RegistroServicio { get; set; } = null!;
 
         public ICollection<Pago> Pagos { get; set; } = new List<Pago>();
+
+        public bool Activo { get; set; } = true;
     }
 }

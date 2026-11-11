@@ -9,12 +9,12 @@ namespace TP_ControlVehicular.Negocio.Mappers
     {
         public MappingProfile()
         {
-            // Cliente  ClienteDto
+            // Cliente -> ClienteDto
             CreateMap<Cliente, ClienteDto>()
                 .ForMember(dest => dest.IdCliente, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FechaNac, opt => opt.MapFrom(src => src.FechaNacimiento));
 
-            // Vehiculo  VehiculoDto
+            // Vehiculo -> VehiculoDto
             CreateMap<Vehiculo, VehiculoDto>()
                 .ForMember(dest => dest.IdCliente, opt => opt.MapFrom((src, dest) => src.Propietarios.FirstOrDefault(p => p.EsActual)?.Cliente?.Id ?? 0))
                 .ForMember(dest => dest.IdModelo, opt => opt.MapFrom(src => src.ModeloId))
@@ -26,31 +26,42 @@ namespace TP_ControlVehicular.Negocio.Mappers
                 .ForMember(dest => dest.ModeloNombre, opt => opt.MapFrom(src => src.Modelo != null ? src.Modelo.NombreModelo : string.Empty))
                 .ForMember(dest => dest.MarcaNombre, opt => opt.MapFrom(src => src.Modelo != null && src.Modelo.Marca != null ? src.Modelo.Marca.NombreMarca : string.Empty));
 
-            // Modelo  ModeloDto
+            // Modelo -> ModeloDto
             CreateMap<Modelo, ModeloDto>()
                 .ForMember(dest => dest.IdMarca, opt => opt.MapFrom(src => src.MarcaId))
                 .ForMember(dest => dest.MarcaNombre, opt => opt.MapFrom(src => src.Marca != null ? src.Marca.NombreMarca : string.Empty));
 
-            // Marca  MarcaDto
+            // Marca -> MarcaDto
             CreateMap<Marca, MarcaDto>();
 
-            // Taller  TallerDto
+            // Taller -> TallerDto
             CreateMap<Taller, TallerDto>()
                 .ForMember(dest => dest.IdTaller, opt => opt.MapFrom(src => src.Id));
 
-            // Rol  RolDto
+            // ConfiguracionEmpresa -> EmpresaConfiguracionDto
+            CreateMap<ConfiguracionEmpresa, EmpresaConfiguracionDto>()
+                .ForMember(dest => dest.TieneLogo, opt => opt.MapFrom(src => src.Logo != null && src.Logo.Length > 0));
+
+            // ConfiguracionBackup -> BackupConfiguracionDto
+            CreateMap<ConfiguracionBackup, BackupConfiguracionDto>();
+
+            // Permiso -> PermisoDto
+            CreateMap<Permiso, PermisoDto>()
+                .ForMember(dest => dest.Asignado, opt => opt.Ignore());
+
+            // Rol -> RolDto
             CreateMap<Rol, RolDto>()
                 .ForMember(dest => dest.IdRol, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Permisos, opt => opt.MapFrom(src => src.Permisos.Select(p => p.Nombre).ToList()));
 
-            // Usuario  UsuarioDto
+            // Usuario -> UsuarioDto
             CreateMap<Usuario, UsuarioDto>()
                 .ForMember(dest => dest.IdUsuario, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.IdRol, opt => opt.MapFrom(src => src.RolId))
                 .ForMember(dest => dest.RolNombre, opt => opt.MapFrom(src => src.Rol != null ? src.Rol.Nombre : string.Empty))
                 .ForMember(dest => dest.Permisos, opt => opt.MapFrom(src => src.Rol != null && src.Rol.Permisos != null ? src.Rol.Permisos.Select(p => p.Nombre).ToList() : new System.Collections.Generic.List<string>()));
 
-            // Servicio  ServicioDto
+            // Servicio -> ServicioDto
             CreateMap<Servicio, ServicioDto>()
                 .ForMember(dest => dest.IdServicio, opt => opt.MapFrom(src => src.Id));
 

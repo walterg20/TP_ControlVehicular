@@ -1,21 +1,21 @@
 // walterg20
 using System;
 using System.Windows;
-using TP_ControlVehicular.Negocio.Handlers.Pagos;
+
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
 {
     public partial class FrmPago : Window
     {
-        private readonly TP_ControlVehicular.Negocio.Interfaces.IBillingService _billingService;
+        private readonly TP_ControlVehicular.Negocio.Interfaces.IFacturacionService _facturacionService;
         private readonly int _registroServicioId;
         private readonly decimal _total;
 
-        public FrmPago(TP_ControlVehicular.Negocio.Interfaces.IBillingService billingService, int registroServicioId, decimal total)
+        public FrmPago(TP_ControlVehicular.Negocio.Interfaces.IFacturacionService facturacionService, int registroServicioId, decimal total)
         {
             InitializeComponent();
-            _billingService = billingService;
+            _facturacionService = facturacionService;
             _registroServicioId = registroServicioId;
             _total = total;
             lblTotal.Text = $"$ {_total:F2}";
@@ -45,13 +45,13 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                 // Note: Si la factura ya se generó antes esto podría fallar o duplicar si no se controla,
                 // pero la task specifications no habla de persistir un estado previo o un "GenerarFactura" por separado.
                 // Lo hacemos todo acá.
-                var factura = await _billingService.GenerarFactura(_registroServicioId);
+                var factura = await _facturacionService.GenerarFactura(_registroServicioId);
 
                 if (optEfectivo.IsChecked == true)
                 {
                     if (decimal.TryParse(txtMontoRecibido.Text, out decimal montoRecibido))
                     {
-                        var (pago, vuelto) = await _billingService.RegistrarPago(factura.Id, 1, montoRecibido); // 1 = Efectivo
+                        var (pago, vuelto) = await _facturacionService.RegistrarPago(factura.Id, 1, montoRecibido); // 1 = Efectivo
                         FrmConfirmacion.MostrarAviso($"Pago registrado correctamente.\nSu vuelto es: $ {vuelto:F2}", "Éxito", Window.GetWindow(this));
                         this.DialogResult = true;
                         this.Close();
@@ -71,7 +71,7 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio
                     if (titular.ToLower().Trim() != "apro")
                         throw new Exception("Pago rechazado.");
 
-                    var (pago, vuelto) = await _billingService.RegistrarPago(factura.Id, 2, _total);
+                    var (pago, vuelto) = await _facturacionService.RegistrarPago(factura.Id, 2, _total);
                     FrmConfirmacion.MostrarAviso("Pago aprobado y registrado correctamente.", "Éxito", Window.GetWindow(this));
                     this.DialogResult = true;
                     this.Close();

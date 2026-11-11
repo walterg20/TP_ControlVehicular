@@ -17,7 +17,7 @@ namespace TP_ControlVehicular.Negocio.Services
             _mapper = mapper;
         }
 
-        public async Task<RegistroServicioDto> HandleAsync(RegistroServicio registro)
+        public virtual async Task<RegistroServicioDto> HandleAsync(RegistroServicio registro)
         {
             // Set order sequence and initial states for tasks
             if (registro.Detalles != null && registro.Detalles.Any())

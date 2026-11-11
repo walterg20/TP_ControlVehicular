@@ -2,9 +2,11 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Presentacion.Pantalla.Compartido;
 using TP_ControlVehicular.Presentacion.ViewModels;
+using TP_ControlVehicular.Negocio.Services;
 
 namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
 {
@@ -13,38 +15,33 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
     /// </summary>
     public partial class FrmServicio : Window
     {
-        private readonly ServicioViewModel _viewModel;
+        private bool _esModificacion = false;
 
+        // Constructor para Nuevo
         public FrmServicio()
         {
             InitializeComponent();
-            _viewModel = (App.ServiceProvider?.GetService(typeof(ServicioViewModel)) as ServicioViewModel)!;
-            DataContext = _viewModel;
+            lblTituloFormulario.Text = "Registrar Nuevo Servicio";
+            _esModificacion = false;
+            this.Title = "Registrar Nuevo Servicio";
+
+            this.ConfigurarViewModel(null);
+
+            Loaded += (s, e) => txtNombre.Focus();
             ConfigurarValidacionAlPerderFoco();
         }
 
-        public FrmServicio(ServicioViewModel viewModel)
+        // Constructor para Modificar
+        public FrmServicio(ServicioDto servicioDto)
         {
             InitializeComponent();
-            _viewModel = viewModel;
-            DataContext = _viewModel;
+            lblTituloFormulario.Text = "Modificar Servicio";
+            _esModificacion = true;
+            this.Title = "Modificar Servicio";
+
+            this.ConfigurarViewModel(servicioDto);
+            Loaded += (s, e) => txtNombre.Focus();
             ConfigurarValidacionAlPerderFoco();
-        }
-
-        public void PrepararParaNuevo()
-        {
-            Title = "Registrar Nuevo Servicio";
-            _viewModel.LimpiarFormulario();
-        }
-
-        public void PrepararParaEdicion(ServicioDto servicio)
-        {
-            Title = "Modificar Servicio";
-            _viewModel.IdServicio = servicio.IdServicio;
-            _viewModel.Nombre = servicio.Nombre;
-            _viewModel.Precio = servicio.Precio;
-            _viewModel.Activo = servicio.Activo;
-            _viewModel.ClearAllErrors();
         }
 
         private void ConfigurarValidacionAlPerderFoco()
@@ -71,23 +68,81 @@ namespace TP_ControlVehicular.Presentacion.Pantalla.Servicio
             }));
         }
 
+        private void ConfigurarViewModel(ServicioDto? servicio)
+        {
+            try
+            {
+                if (App.ServiceProvider?.GetService(typeof(ServicioViewModel)) is ServicioViewModel vmServicio)
+                {
+                    DataContext = vmServicio;
+                    vmServicio.NotificarPermisos();
+
+                    if (_esModificacion && servicio != null)
+                    {
+                        vmServicio.IdServicio = servicio.IdServicio;
+                        vmServicio.Nombre = servicio.Nombre;
+                        vmServicio.Precio = servicio.Precio;
+                        vmServicio.Activo = servicio.Activo;
+                    }
+                    else
+                    {
+                        vmServicio.LimpiarFormulario();
+                    }
+                    vmServicio.ClearAllErrors();
+
+                    bool puedeOperar = _esModificacion ? vmServicio.PuedeEditar : vmServicio.PuedeCrear;
+                    if (!puedeOperar)
+                    {
+                        btnGuardar.IsEnabled = false;
+                        txtNombre.IsReadOnly = true;
+                        txtPrecio.IsReadOnly = true;
+                        chkActivo.IsEnabled = false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "FrmServicio.xaml");
+                // Silenciar si DI no está disponible
+            }
+        }
+
         private async void BtnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (!_viewModel.ValidateAll())
+            if (FocusManager.GetFocusedElement(this) is FrameworkElement fe)
             {
-                FrmConfirmacion.MostrarAviso("Por favor, corrija los errores del formulario antes de continuar.", "Validación", this);
-                return;
+                BindingOperations.GetBindingExpression(fe, TextBox.TextProperty)?.UpdateSource();
             }
 
-            var ok = await _viewModel.SaveAsync();
-            if (ok)
+            if (DataContext is ServicioViewModel vmServicio)
             {
-                DialogResult = true;
-                Close();
+                bool puedeOperar = _esModificacion ? vmServicio.PuedeEditar : vmServicio.PuedeCrear;
+                if (!puedeOperar)
+                {
+                    FrmConfirmacion.MostrarAviso("No tiene permisos para guardar cambios en este servicio.", "Acceso denegado", this);
+                    return;
+                }
+
+                if (!vmServicio.ValidateAll())
+                {
+                    FrmConfirmacion.MostrarAviso("Por favor, corrija los errores del formulario antes de continuar.", "Validación", this);
+                    return;
+                }
+
+                var ok = await vmServicio.SaveAsync();
+                if (ok)
+                {
+                    this.DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    FrmConfirmacion.MostrarAviso("No se pudo guardar el servicio. Por favor, verifique los datos.", "Error", this, icono: "❌");
+                }
             }
             else
             {
-                FrmConfirmacion.MostrarAviso("No se pudo guardar el servicio. Por favor, verifique los datos.", "Error", this, icono: "❌");
+                this.DialogResult = false;
             }
         }
 

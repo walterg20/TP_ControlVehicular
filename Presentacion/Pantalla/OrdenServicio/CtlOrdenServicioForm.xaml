@@ -3,10 +3,21 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:ctl="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.OrdenServicio"
+             xmlns:compartido="clr-namespace:TP_ControlVehicular.Presentacion.Pantalla.Compartido"
              mc:Ignorable="d"
              FocusManager.FocusedElement="{Binding ElementName=cmbVehiculos}">
 
-    <Grid Margin="24">
+    <!-- Grid envolvente con 2 columnas: formulario + ayuda (colapsable) -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Columna 0: Contenido del formulario (con scroll) -->
+        <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -20,6 +31,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button x:Name="btnVolver" Content="← Volver" Grid.Column="0" Margin="0,0,15,0" Padding="10,5" Background="Transparent" Foreground="#2980B9" BorderBrush="Transparent" FontWeight="SemiBold" Click="BtnCancelar_Click" Cursor="Hand">
                 <Button.Resources>
@@ -29,6 +41,13 @@
                 </Button.Resources>
             </Button>
             <TextBlock x:Name="lblTitulo" Grid.Column="1" Text="Datos de la Inspección / Servicio" FontSize="20" FontWeight="Bold" Foreground="#2C3E50" VerticalAlignment="Center"/>
+            <Button x:Name="btnAyuda" Content="❓ Ayuda" Grid.Column="2" Padding="10,5" Background="#2980B9" Foreground="White" FontWeight="SemiBold" BorderThickness="0" Cursor="Hand" Click="BtnAyuda_Click">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="4"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
         </Grid>
 
         <!-- Formulario (Cabecera) -->
@@ -51,23 +70,14 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Cliente:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Cliente / Vehículo:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center"/>
                 <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="0" x:Name="cmbClientes" Height="30"
-                              ItemsSource="{Binding ClientesDisponibles}"
-                              SelectedValue="{Binding ClienteId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValuePath="IdCliente">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding NombreCompletoConDni}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <Button Grid.Column="1" x:Name="btnNuevoCliente" Content="➕" Width="30" Height="30" Margin="5,0,0,0" ToolTip="Nuevo Cliente" Click="BtnNuevoCliente_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
+                    <ctl:CtlBuscadorUniversal Grid.Column="0" x:Name="ctlBusquedaUniversal" Height="30"/>
+                    <Button Grid.Column="1" x:Name="btnNuevoCliente" Content="➕" Width="30" Height="30" Margin="5,0,0,0" ToolTip="Registrar Nuevo Cliente y Vehículo" Click="BtnNuevoCliente_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
                 </Grid>
 
                 <TextBlock Grid.Row="0" Grid.Column="3" Text="Vehículo:" FontWeight="Bold" Margin="0,5,10,12" VerticalAlignment="Center"/>
@@ -111,7 +121,15 @@
         <Border Grid.Row="2" Background="#ECF0F1" CornerRadius="8" Padding="15" Margin="0,0,0,15">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="Agregar Ítem de Inspección:" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <ComboBox Width="250" Height="30" Margin="0,0,10,0" IsEditable="True" ItemsSource="{Binding ServiciosDisponibles}" SelectedItem="{Binding ServicioBusquedaSeleccionado, Mode=TwoWay}" DisplayMemberPath="Nombre" /><Button x:Name="btnNuevoServicio" Content="➕" Width="30" Height="30" Margin="0,0,10,0" ToolTip="Nuevo Servicio" Click="BtnNuevoServicio_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
+                <ComboBox x:Name="cmbServicios" Width="250" Height="30" Margin="0,0,10,0"
+                          IsEditable="True"
+                          IsTextSearchEnabled="False"
+                          StaysOpenOnEdit="True"
+                          ItemsSource="{Binding ServiciosDisponibles}"
+                          SelectedItem="{Binding ServicioBusquedaSeleccionado, Mode=TwoWay}"
+                          DisplayMemberPath="Nombre"
+                          TextSearch.TextPath="Nombre" />
+                <Button x:Name="btnNuevoServicio" Content="➕" Width="30" Height="30" Margin="0,0,10,0" ToolTip="Nuevo Servicio" Click="BtnNuevoServicio_Click" Background="#27AE60" Foreground="White" BorderThickness="0" Cursor="Hand"><Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources></Button>
                 <Button Content="➕ Agregar" Click="BtnAgregarItem_Click" Padding="12,6" Background="#2980B9" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand">
                     <Button.Resources>
                         <Style TargetType="Border">
@@ -212,6 +230,24 @@
                 </Button.Resources>
             </Button>
         </StackPanel>
+    </Grid>
+</ScrollViewer>
+
+        <!-- Columna 1: Panel colapsable de ayuda contextual -->
+        <Border x:Name="pnlAyuda" Grid.Column="1" Width="350" Visibility="Collapsed"
+                BorderThickness="1,0,0,0" BorderBrush="#E0E0E0" Background="#F8F9FA">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" Margin="8,8,8,4" VerticalAlignment="Center">
+                    <TextBlock Text="Ayuda contextual" FontWeight="Bold" Foreground="#2C3E50" VerticalAlignment="Center"/>
+                    <Button x:Name="btnCerrarAyuda" Content="✕" Margin="8,0,0,0" Padding="6,2" Background="Transparent" Foreground="#C0392B" BorderThickness="0" Cursor="Hand" Click="BtnCerrarAyuda_Click"/>
+                </StackPanel>
+                <compartido:CtlAyudaContextual Grid.Row="1" Secciones="{Binding AyudaActual}"/>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>
 

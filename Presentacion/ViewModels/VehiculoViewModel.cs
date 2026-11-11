@@ -5,11 +5,14 @@ using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Interfaces;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class VehiculoViewModel : BaseViewModel
+    public class VehiculoViewModel : BasePaginableViewModel
     {
+        protected override string Modulo => "Vehiculo";
+
         private readonly ListarVehiculosHandler _listarVehiculosHandler;
         private readonly RegistrarVehiculoHandler _registrarVehiculoHandler;
         private readonly ModificarVehiculoHandler _modificarVehiculoHandler;
@@ -18,6 +21,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly ListarModelosHandler _listarModelosHandler;
         private readonly ListarMarcaHandler _listarMarcaHandler;
         private readonly IMapper _mapper;
+        private readonly Debouncer _debouncer;
 
         public VehiculoViewModel(
             ListarVehiculosHandler listarVehiculosHandler,
@@ -37,6 +41,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             _listarModelosHandler = listarModelosHandler;
             _listarMarcaHandler = listarMarcaHandler;
             _mapper = mapper;
+            _debouncer = new Debouncer();
 
             Vehiculos = new ObservableCollection<VehiculoDto>();
             ClientesDisponibles = new ObservableCollection<ClienteDto>();
@@ -44,12 +49,36 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ModelosDisponibles = new ObservableCollection<ModeloDto>();
             ((ObservableCollection<VehiculoDto>)Vehiculos).CollectionChanged += (s, e) =>
             {
-                OnPropertyChanged(nameof(ListadoVehiculosFiltered));
+                OnPropertyChanged(nameof(Vehiculos));
                 OnPropertyChanged(nameof(IsListEmpty));
             };
         }
 
         public ObservableCollection<VehiculoDto> Vehiculos { get; set; }
+
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
         public ObservableCollection<ClienteDto> ClientesDisponibles { get; set; }
         public ObservableCollection<MarcaDto> MarcasDisponibles { get; set; }
         public ObservableCollection<ModeloDto> ModelosDisponibles { get; set; }
@@ -63,19 +92,12 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 _textoBusqueda = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(ListadoVehiculosFiltered));
+                // El filtro cambio: el listado vuelve a la primera pagina.
+                ReiniciarPagina();
             }
         }
 
-        public IEnumerable<VehiculoDto> ListadoVehiculosFiltered =>
-            string.IsNullOrWhiteSpace(TextoBusqueda)
-                ? Vehiculos
-                : Vehiculos.Where(vehiculo => (vehiculo.Patente ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                    || (vehiculo.ClienteNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                    || (vehiculo.MarcaNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0
-                                    || (vehiculo.ModeloNombre ?? string.Empty).IndexOf(TextoBusqueda, StringComparison.OrdinalIgnoreCase) >= 0);
-
-        public bool IsListEmpty => !ListadoVehiculosFiltered.Any();
+        public bool IsListEmpty => !Vehiculos.Any();
 
         private int _idCliente;
         public int IdCliente
@@ -230,8 +252,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     IdMarca = nuevoId;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "VehiculoViewModel");
                 // Silenciar error en carga de marcas
             }
         }
@@ -273,8 +296,9 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                     IdModelo = targetModeloId.Value;
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "VehiculoViewModel");
                 // Silenciar error en carga de modelos
             }
         }
@@ -294,28 +318,71 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 await CargarMarcasAsync();
                 await CargarModelosAsync(seleccionarIdModelo);
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "VehiculoViewModel");
                 // Silenciar error en carga de combos
             }
         }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
         {
-            Vehiculos.Clear();
             await CargarCombosAsync();
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
 
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
+        {
+            IsLoading = true;
             try
             {
-                var lista = await _listarVehiculosHandler.HandleAsync();
-                foreach (var vehiculo in lista)
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
+                var (items, total) = await _listarVehiculosHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    estado,
+                    PaginaActual,
+                    TamanoPagina);
+
+                Vehiculos.Clear();
+                foreach (var vehiculo in items)
                 {
                     Vehiculos.Add(vehiculo);
                 }
+
+                ActualizarTotales(total);
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "VehiculoViewModel");
                 // Silenciar error en carga inicial
+                Vehiculos.Clear();
+                ActualizarTotales(0);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -330,7 +397,8 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
                 ModeloId = IdModelo,
                 Patente = Patente.Trim().ToUpper(),
                 Anio = Anio,
-                KmActual = KmActual
+                KmActual = KmActual,
+                Activo = seleccion?.Activo ?? true
             };
 
             if (IdCliente > 0)
@@ -347,30 +415,20 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (vehiculo.Id == 0)
                 {
-                    var dto = await _registrarVehiculoHandler.HandleAsync(vehiculo);
-                    Vehiculos.Add(dto);
+                    await _registrarVehiculoHandler.HandleAsync(vehiculo);
                 }
                 else
                 {
-                    var dto = await _modificarVehiculoHandler.HandleAsync(vehiculo);
-                    var exist = Vehiculos.FirstOrDefault(vehiculo => vehiculo.Id == dto.Id);
-                    if (exist != null)
-                    {
-                        exist.Patente = dto.Patente;
-                        exist.Anio = dto.Anio;
-                        exist.KmActual = dto.KmActual;
-                        exist.IdCliente = dto.IdCliente;
-                        exist.ClienteNombre = dto.ClienteNombre;
-                        exist.IdModelo = dto.IdModelo;
-                        exist.ModeloNombre = dto.ModeloNombre;
-                        exist.MarcaNombre = dto.MarcaNombre;
-                        OnPropertyChanged(nameof(ListadoVehiculosFiltered));
-                    }
+                    await _modificarVehiculoHandler.HandleAsync(vehiculo);
                 }
+
+                // Recargar la pagina actual para que el listado refleje el alta o la edicion.
+                await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "VehiculoViewModel");
                 return false;
             }
         }
@@ -380,15 +438,27 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             try
             {
                 await _eliminarVehiculoHandler.HandleAsync(id);
-                var exist = Vehiculos.FirstOrDefault(vehiculo => vehiculo.Id == id);
-                if (exist != null)
-                {
-                    Vehiculos.Remove(exist);
-                }
+                await CargarPaginaAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "VehiculoViewModel");
+                return false;
+            }
+        }
+
+        public async Task<bool> ReactivarVehiculoAsync(int id)
+        {
+            try
+            {
+                await _eliminarVehiculoHandler.ReactivarAsync(id);
+                await CargarPaginaAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "VehiculoViewModel");
                 return false;
             }
         }

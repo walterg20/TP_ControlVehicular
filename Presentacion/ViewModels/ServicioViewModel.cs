@@ -5,10 +5,14 @@ using System.Windows.Input;
 using TP_ControlVehicular.Entidad;
 using TP_ControlVehicular.Negocio.DTOs;
 using TP_ControlVehicular.Negocio.Services;
+using TP_ControlVehicular.Presentacion.Helpers;
 
 namespace TP_ControlVehicular.Presentacion.ViewModels
 {
-    public class ServicioViewModel : BaseViewModel
+    /// <summary>
+    /// Listado de servicios con paginacion y busqueda en la base de datos.
+    /// </summary>
+    public class ServicioViewModel : BasePaginableViewModel
     {
         protected override string Modulo => "Servicio";
 
@@ -16,6 +20,15 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         private readonly RegistrarServicioHandler _registrarServicioHandler;
         private readonly ModificarServicioHandler _modificarServicioHandler;
         private readonly EliminarServicioHandler _eliminarServicioHandler;
+        private readonly ReactivarServicioHandler _reactivarServicioHandler;
+        private readonly Debouncer _debouncer;
+
+        private ServicioDto? _servicioSeleccionado;
+        public ServicioDto? ServicioSeleccionado
+        {
+            get => _servicioSeleccionado;
+            set => SetProperty(ref _servicioSeleccionado, value);
+        }
 
         private int _idServicio;
         public int IdServicio
@@ -42,7 +55,37 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         public bool Activo
         {
             get => _activo;
-            set => SetProperty(ref _activo, value);
+            set { SetProperty(ref _activo, value); }
+        }
+
+        private string _filtroEstado = "Todos";
+        public string FiltroEstado
+        {
+            get => _filtroEstado;
+            set
+            {
+                if (_filtroEstado == value) return;
+                _filtroEstado = value;
+                OnPropertyChanged();
+                ReiniciarPagina();
+                _ = CargarPaginaAsync();
+            }
+        }
+
+        public bool PuedeVerFiltroEstado => PuedeEliminar;
+
+        public List<string> EstadosDisponibles { get; } = new List<string> { "Todos", "Activos", "Inactivos" };
+
+        public new void NotificarPermisos()
+        {
+            base.NotificarPermisos();
+            OnPropertyChanged(nameof(PuedeVerFiltroEstado));
+        }
+
+        public bool MostrarInactivos
+        {
+            get => FiltroEstado != "Activos";
+            set => FiltroEstado = value ? "Todos" : "Activos";
         }
 
         private string _textoBusqueda = string.Empty;
@@ -53,20 +96,14 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             {
                 if (SetProperty(ref _textoBusqueda, value))
                 {
-                    AplicarFiltro();
+                    // El filtro cambio: el listado vuelve a la primera pagina.
+                    ReiniciarPagina();
                 }
             }
         }
 
-        private bool _isLoading;
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
-        }
-
-        private readonly List<ServicioDto> _todosLosServicios = new();
-        public ObservableCollection<ServicioDto> ListadoServiciosFiltered { get; } = new();
+        /// <summary>Registros de la pagina actual.</summary>
+        public ObservableCollection<ServicioDto> Servicios { get; } = new();
 
         public ICommand CargarServiciosCommand { get; }
 
@@ -74,46 +111,69 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             ListarServiciosHandler listarServiciosHandler,
             RegistrarServicioHandler registrarServicioHandler,
             ModificarServicioHandler modificarServicioHandler,
-            EliminarServicioHandler eliminarServicioHandler)
+            EliminarServicioHandler eliminarServicioHandler,
+            ReactivarServicioHandler reactivarServicioHandler)
         {
             _listarServiciosHandler = listarServiciosHandler;
             _registrarServicioHandler = registrarServicioHandler;
             _modificarServicioHandler = modificarServicioHandler;
             _eliminarServicioHandler = eliminarServicioHandler;
+            _reactivarServicioHandler = reactivarServicioHandler;
+            _debouncer = new Debouncer();
 
             CargarServiciosCommand = new RelayCommand(LoadAsync);
         }
 
+        /// <summary>
+        /// Carga la primera pagina del listado (usada al abrir la pantalla).
+        /// </summary>
         public async Task LoadAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Aplica los filtros actuales y recarga el listado desde la primera pagina.
+        /// </summary>
+        public async Task BuscarAsync()
+        {
+            ReiniciarPagina();
+            await CargarPaginaAsync();
+        }
+
+        /// <summary>
+        /// Programa la busqueda con un retardo breve, para no consultar la base de datos
+        /// en cada tecla escrita.
+        /// </summary>
+        public void ProgramarBusqueda() => _debouncer.Debounce(BuscarAsync);
+
+        /// <summary>Cancela una busqueda programada que todavia no se ejecuto.</summary>
+        public void CancelarBusquedaProgramada() => _debouncer.Cancel();
+
+        protected override async Task CargarPaginaAsync()
         {
             IsLoading = true;
             try
             {
-                var list = await _listarServiciosHandler.HandleAsync();
-                _todosLosServicios.Clear();
-                _todosLosServicios.AddRange(list);
-                AplicarFiltro();
+                var estado = PuedeVerFiltroEstado ? FiltroEstado : "Activos";
+                var (items, total) = await _listarServiciosHandler.HandlePaginadoAsync(
+                    TextoBusqueda.Trim(),
+                    estado,
+                    PaginaActual,
+                    TamanoPagina);
+
+                Servicios.Clear();
+                foreach (var item in items)
+                {
+                    Servicios.Add(item);
+                }
+
+                ActualizarTotales(total);
             }
             finally
             {
                 IsLoading = false;
-            }
-        }
-
-        private void AplicarFiltro()
-        {
-            ListadoServiciosFiltered.Clear();
-            var query = _todosLosServicios.AsEnumerable();
-
-            if (!string.IsNullOrWhiteSpace(TextoBusqueda))
-            {
-                var txt = TextoBusqueda.Trim().ToLower();
-                query = query.Where(s => s.Nombre.ToLower().Contains(txt));
-            }
-
-            foreach (var item in query)
-            {
-                ListadoServiciosFiltered.Add(item);
             }
         }
 
@@ -150,31 +210,45 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
         {
             if (!ValidateAll()) return false;
 
-            var entity = new Servicio
+            try
             {
-                Id = IdServicio,
-                Nombre = Nombre.Trim(),
-                Precio = Precio,
-                Activo = Activo
-            };
+                var entity = new Servicio
+                {
+                    Id = IdServicio,
+                    Nombre = Nombre.Trim(),
+                    Precio = Precio,
+                    Activo = Activo
+                };
 
-            if (IdServicio == 0)
-            {
-                await _registrarServicioHandler.HandleAsync(entity);
-            }
-            else
-            {
-                await _modificarServicioHandler.HandleAsync(entity);
-            }
+                if (IdServicio == 0)
+                {
+                    await _registrarServicioHandler.HandleAsync(entity);
+                }
+                else
+                {
+                    await _modificarServicioHandler.HandleAsync(entity);
+                }
 
-            LimpiarFormulario();
-            await LoadAsync();
-            return true;
+                LimpiarFormulario();
+                await LoadAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                (App.ServiceProvider?.GetService(typeof(IErrorNotifier)) as IErrorNotifier)?.Notify(ex, "ServicioViewModel");
+                return false;
+            }
         }
 
         public async Task DeleteAsync(int id)
         {
             await _eliminarServicioHandler.HandleAsync(id);
+            await LoadAsync();
+        }
+
+        public async Task ReactivarAsync(int id)
+        {
+            await _reactivarServicioHandler.HandleAsync(id);
             await LoadAsync();
         }
 
@@ -184,6 +258,7 @@ namespace TP_ControlVehicular.Presentacion.ViewModels
             Nombre = string.Empty;
             Precio = 0;
             Activo = true;
+            ServicioSeleccionado = null;
             ClearAllErrors();
         }
     }

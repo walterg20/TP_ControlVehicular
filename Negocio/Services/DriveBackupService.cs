@@ -132,6 +132,104 @@ namespace TP_ControlVehicular.Negocio.Services
             };
         }
 
+        public async Task<IReadOnlyList<DriveArchivoDto>> ListarArchivosAsync()
+        {
+            var credencial = await ObtenerCredencialAsync(CancellationToken.None);
+            if (credencial?.Token == null)
+                throw new InvalidOperationException("No hay credenciales de Google Drive. Conecte la PC primero.");
+
+            var servicio = new DriveService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credencial,
+                ApplicationName = "ControlVehicular"
+            });
+
+            var config = await _configuracionService.ObtenerAsync();
+            var carpetaId = await ObtenerOCrearCarpetaAsync(servicio, config);
+            if (string.IsNullOrWhiteSpace(carpetaId))
+                return new List<DriveArchivoDto>();
+
+            var lista = new List<DriveArchivoDto>();
+            string? pageToken = null;
+            do
+            {
+                var request = servicio.Files.List();
+                request.Q = $"'{Escapar(carpetaId)}' in parents and trashed = false";
+                request.Fields = "nextPageToken, files(id, name, modifiedTime, size)";
+                request.Spaces = "drive";
+                request.PageToken = pageToken;
+                var resultado = await request.ExecuteAsync();
+
+                foreach (var f in resultado.Files ?? new List<Google.Apis.Drive.v3.Data.File>())
+                {
+                    if (string.IsNullOrWhiteSpace(f.Name)) continue;
+                    if (!f.Name.EndsWith(".bak", StringComparison.OrdinalIgnoreCase)) continue;
+
+                    long tamano = 0;
+                    if (f.Size.HasValue) tamano = f.Size.Value;
+
+                    lista.Add(new DriveArchivoDto
+                    {
+                        Id = f.Id ?? string.Empty,
+                        Nombre = f.Name,
+                        FechaModificacion = f.ModifiedTime ?? DateTime.MinValue,
+                        TamanoBytes = tamano,
+                        TamanoLegible = FormatearTamano(tamano)
+                    });
+                }
+
+                pageToken = resultado.NextPageToken;
+            } while (!string.IsNullOrEmpty(pageToken));
+
+            return lista.OrderByDescending(a => a.FechaModificacion).ToList();
+        }
+
+        public async Task<string> DescargarAsync(string fileId, string nombreArchivo)
+        {
+            if (string.IsNullOrWhiteSpace(fileId))
+                throw new InvalidOperationException("Debe indicar el identificador del archivo en Drive.");
+            if (string.IsNullOrWhiteSpace(nombreArchivo))
+                throw new InvalidOperationException("Debe indicar el nombre del archivo a descargar.");
+
+            var credencial = await ObtenerCredencialAsync(CancellationToken.None);
+            if (credencial?.Token == null)
+                throw new InvalidOperationException("No hay credenciales de Google Drive. Conecte la PC primero.");
+
+            var servicio = new DriveService(new BaseClientService.Initializer
+            {
+                HttpClientInitializer = credencial,
+                ApplicationName = "ControlVehicular"
+            });
+
+            var config = await _configuracionService.ObtenerAsync();
+            var carpeta = !string.IsNullOrWhiteSpace(config.RutaBackupUNC)
+                ? config.RutaBackupUNC.Trim()
+                : config.RutaBackupServer.Trim();
+
+            if (string.IsNullOrWhiteSpace(carpeta))
+                throw new InvalidOperationException("Debe configurar la carpeta de backup antes de descargar.");
+
+            if (!Directory.Exists(carpeta))
+                Directory.CreateDirectory(carpeta);
+
+            var rutaDestino = Path.Combine(carpeta, nombreArchivo);
+
+            await using var stream = new FileStream(rutaDestino, FileMode.Create, FileAccess.Write);
+            var request = servicio.Files.Get(fileId);
+            await request.DownloadAsync(stream);
+
+            return rutaDestino;
+        }
+
+        private static string FormatearTamano(long bytes)
+        {
+            if (bytes <= 0) return "-";
+            if (bytes >= 1024L * 1024L * 1024L) return $"{bytes / (1024d * 1024d * 1024d):N2} GB";
+            if (bytes >= 1024L * 1024L) return $"{bytes / (1024d * 1024d):N2} MB";
+            if (bytes >= 1024L) return $"{bytes / 1024d:N2} KB";
+            return $"{bytes} B";
+        }
+
         private static bool YaResguardado(BackupConfiguracionDto config, string nombre)
         {
             return string.Equals(config.UltimaSubidaArchivo, nombre, StringComparison.OrdinalIgnoreCase)
@@ -141,17 +239,37 @@ namespace TP_ControlVehicular.Negocio.Services
 
         private async Task<UserCredential> ObtenerCredencialAsync(CancellationToken cancellationToken)
         {
-            var rutaCredenciales = Path.Combine(AppContext.BaseDirectory, ArchivoCredenciales);
+            // Override opcional por variables de entorno (util en CI/CD o cuando no se
+            // quiere un archivo credenciales.json en disco). Si ambas estan presentes,
+            // se construye el ClientSecrets en memoria.
+            var clientId = Environment.GetEnvironmentVariable("TPCV_Google__ClientId");
+            var clientSecret = Environment.GetEnvironmentVariable("TPCV_Google__ClientSecret");
 
-            if (!File.Exists(rutaCredenciales))
+            Google.Apis.Auth.OAuth2.ClientSecrets secretos;
+
+            if (!string.IsNullOrWhiteSpace(clientId) && !string.IsNullOrWhiteSpace(clientSecret))
             {
-                throw new InvalidOperationException(
-                    $"No se encontró el archivo de credenciales de Google Drive ({rutaCredenciales}). " +
-                    "Copie credenciales.json (descargado de Google Cloud) junto al ejecutable.");
+                secretos = new Google.Apis.Auth.OAuth2.ClientSecrets
+                {
+                    ClientId = clientId,
+                    ClientSecret = clientSecret
+                };
             }
+            else
+            {
+                var rutaCredenciales = Path.Combine(AppContext.BaseDirectory, ArchivoCredenciales);
 
-            using var stream = File.OpenRead(rutaCredenciales);
-            var secretos = GoogleClientSecrets.FromStream(stream).Secrets;
+                if (!File.Exists(rutaCredenciales))
+                {
+                    throw new InvalidOperationException(
+                        $"No se encontró el archivo de credenciales de Google Drive ({rutaCredenciales}). " +
+                        "Copie credenciales.json (descargado de Google Cloud) junto al ejecutable, " +
+                        "o defina TPCV_Google__ClientId y TPCV_Google__ClientSecret.");
+                }
+
+                using var stream = File.OpenRead(rutaCredenciales);
+                secretos = GoogleClientSecrets.FromStream(stream).Secrets;
+            }
 
             return await GoogleWebAuthorizationBroker.AuthorizeAsync(
                 secretos,

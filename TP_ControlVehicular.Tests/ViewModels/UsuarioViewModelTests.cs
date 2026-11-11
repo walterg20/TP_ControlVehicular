@@ -28,7 +28,7 @@ namespace TP_ControlVehicular.Tests.ViewModels
             mockRepo.Setup(r => r.GetWithRolAsync()).ReturnsAsync(new List<Usuario>());
             mockRolRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Rol>());
 
-            var viewModel = new UsuarioViewModel(listarHandler, regHandler, modHandler, mockRolRepo.Object, mockMapper.Object);
+            var viewModel = new UsuarioViewModel(listarHandler, regHandler, modHandler, mockRepo.Object, mockRolRepo.Object, mockMapper.Object);
             return (viewModel, mockRepo);
         }
 

@@ -1,4 +1,5 @@
 // walterg20
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using TP_ControlVehicular.Datos.Data;
 using TP_ControlVehicular.Entidad;
@@ -8,32 +9,48 @@ namespace TP_ControlVehicular.Datos.Repositories
 {
     public class VehiculoRepository : Repository<Vehiculo>, IVehiculoRepository
     {
-        private readonly CVDbContext _cvDbContext;
+        private readonly IDbContextFactory<CVDbContext> _contextFactory;
 
-        public VehiculoRepository(CVDbContext cvDbContext) : base(cvDbContext)
+        public VehiculoRepository(IDbContextFactory<CVDbContext> contextFactory) : base(contextFactory)
         {
-            _cvDbContext = cvDbContext;
+            _contextFactory = contextFactory;
         }
 
-        public async Task<IEnumerable<Vehiculo>> GetByClienteAsync(int idCliente) =>
-            await _cvDbContext.Vehiculos
+        public async Task<List<Vehiculo>> GetActivosAsync()
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Vehiculos.AsNoTracking()
+                .Include(v => v.Propietarios).ThenInclude(p => p.Cliente)
+                .Include(v => v.Modelo).ThenInclude(m => m.Marca)
+                .Where(v => v.Activo)
+                .OrderBy(v => v.Patente)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Vehiculo>> GetByClienteAsync(int idCliente)
+        {
+            await using var ctx = CrearContexto();
+            return await ctx.Vehiculos
                 .Include(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(v => v.Modelo)
                 .ThenInclude(m => m.Marca)
-                .Where(v => v.Propietarios.Any(p => p.ClienteId == idCliente && p.EsActual))
+                .Where(v => v.Activo && v.Propietarios.Any(p => p.ClienteId == idCliente && p.EsActual))
                 .ToListAsync();
+        }
 
         public async Task<IEnumerable<Vehiculo>> GetAllWithDetailsAsync(int? mecanicoId = null)
         {
-            var query = _cvDbContext.Vehiculos
+            await using var ctx = CrearContexto();
+            var query = ctx.Vehiculos
                 .Include(v => v.Propietarios).ThenInclude(p => p.Cliente)
                 .Include(v => v.Modelo)
                 .ThenInclude(m => m.Marca)
+                .Where(v => v.Activo)
                 .AsQueryable();
 
             if (mecanicoId.HasValue)
             {
-                query = query.Where(v => _cvDbContext.RegistroServicios
+                query = query.Where(v => ctx.RegistroServicios
                     .Any(rs => rs.VehiculoId == v.Id && rs.Detalles.Any(ds => ds.UsuarioId == mecanicoId.Value)));
             }
 
@@ -42,12 +59,66 @@ namespace TP_ControlVehicular.Datos.Repositories
 
         public async Task<Vehiculo?> GetByPatenteAsync(string patente)
         {
-            return await _cvDbContext.Vehiculos
+            await using var ctx = CrearContexto();
+            return await ctx.Vehiculos
                 .Include(v => v.Propietarios)
                 .ThenInclude(p => p.Cliente)
                 .Include(v => v.Modelo)
                 .ThenInclude(m => m.Marca)
                 .FirstOrDefaultAsync(v => v.Patente.ToLower() == patente.ToLower());
+        }
+
+        public async Task<(IEnumerable<Vehiculo> Items, int TotalRegistros)> GetPaginadoAsync(
+            string? busqueda,
+            string? filtroEstado,
+            int pagina,
+            int tamanoPagina)
+        {
+            Expression<Func<Vehiculo, bool>>? filtro = null;
+
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                var patron = CrearPatronLike(busqueda.Trim());
+                filtro = v => EF.Functions.Like(v.Patente, patron)
+                          || EF.Functions.Like(v.Modelo.NombreModelo, patron)
+                          || EF.Functions.Like(v.Modelo.Marca.NombreMarca, patron)
+                          || v.Propietarios.Any(p => p.EsActual
+                                && (EF.Functions.Like(p.Cliente.Nombre, patron)
+                                 || EF.Functions.Like(p.Cliente.Apellido, patron)
+                                 || EF.Functions.Like(p.Cliente.Dni, patron)));
+            }
+
+            Expression<Func<Vehiculo, bool>>? filtroEstadoExpr = null;
+            var estado = (filtroEstado ?? "Todos").Trim();
+            if (string.Equals(estado, "Activos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = v => v.Activo;
+            else if (string.Equals(estado, "Inactivos", StringComparison.OrdinalIgnoreCase))
+                filtroEstadoExpr = v => !v.Activo;
+
+            Expression<Func<Vehiculo, bool>>? filtroFinal = null;
+            if (filtro != null && filtroEstadoExpr != null)
+            {
+                var param = Expression.Parameter(typeof(Vehiculo), "v");
+                var body = Expression.AndAlso(
+                    Expression.Invoke(filtro, param),
+                    Expression.Invoke(filtroEstadoExpr, param));
+                filtroFinal = Expression.Lambda<Func<Vehiculo, bool>>(body, param);
+            }
+            else if (filtro != null)
+                filtroFinal = filtro;
+            else if (filtroEstadoExpr != null)
+                filtroFinal = filtroEstadoExpr;
+
+            return await GetPaginadoAsync(
+                pagina,
+                tamanoPagina,
+                filtroFinal,
+                // AsSplitQuery: pagina primero y despues carga las colecciones relacionadas,
+                // evitando que el JOIN 1:N altere el Skip/Take.
+                q => q.Include(v => v.Propietarios).ThenInclude(p => p.Cliente)
+                      .Include(v => v.Modelo).ThenInclude(m => m.Marca)
+                      .AsSplitQuery(),
+                q => q.OrderBy(v => v.Id));
         }
     }
 }
