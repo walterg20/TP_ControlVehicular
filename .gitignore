@@ -388,6 +388,14 @@ token.json
 .env
 .env.local
 
+# Herramientas de IA / agentes (entorno local, no versionar)
+.opencode/
+.agents/
+.kilo/
+.codegraph/
+mcp.json
+MEMORY.md
+
 # Resguardos locales de base de datos
 docs/script/BAckup_activos.sql
 *.bak
