@@ -397,6 +397,11 @@ mcp.json
 MEMORY.md
 AGENTS.md
 
+# Documentacion, instalador y specs (entorno local / no versionar)
+docs/
+installer/
+openspec/
+
 # Resguardos locales de base de datos
 docs/script/BAckup_activos.sql
 *.bak
